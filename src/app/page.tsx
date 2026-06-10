@@ -3,7 +3,20 @@ import Link from "next/link";
 import { getSql, initDb } from "@/lib/db";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Navbar from "@/components/Navbar";
-import { Terminal, Database, User, ArrowRight } from "lucide-react";
+import { 
+  Terminal, 
+  Database, 
+  User, 
+  ArrowRight, 
+  Code2, 
+  Sparkles, 
+  ChevronRight, 
+  BarChart3, 
+  ShieldAlert, 
+  Activity, 
+  Layout, 
+  Plus 
+} from "lucide-react";
 import AddProblemButton from "@/components/AddProblemButton";
 
 export const dynamic = "force-dynamic";
@@ -60,109 +73,225 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
+    <div 
+      className="min-h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin"
+      style={{ 
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.015) 1px, transparent 0)', 
+        backgroundSize: '32px 32px' 
+      }}
+    >
+      {/* Custom Glowing Ambient Background Orbs */}
+      <div className="absolute top-[8%] left-[-10%] w-[500px] h-[500px] bg-[#E8730C]/5 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#00b8a3]/5 rounded-full blur-[160px] pointer-events-none z-0" />
+      <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] bg-[#ff375f]/3 rounded-full blur-[140px] pointer-events-none z-0" />
+
       <Navbar />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col justify-center space-y-16 animate-page-in">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-24 flex flex-col justify-center space-y-16 sm:space-y-24 z-10 animate-page-in">
         
-        {/* Sleek Minimal Header */}
-        <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-black text-[#E8730C] tracking-wider uppercase">
-            OA Engine
+        {/* Hero Banner Section */}
+        <div className="text-center space-y-6 max-w-3xl mx-auto">
+          {/* Slogan Pill Badge */}
+          <div className="inline-flex items-center space-x-1.5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 rounded-full px-4 py-1.5 text-[10px] font-black tracking-widest uppercase text-gray-400 backdrop-blur-md transition-colors cursor-default">
+            <Sparkles size={11} className="text-[#E8730C]" />
+            <span>Developer Sandbox Environment</span>
+          </div>
+
+          <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.95] text-white">
+            Supercharge your <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-[#E8730C] via-[#f58d33] to-[#F28B2D] bg-clip-text text-transparent">
+              Online Assessments
+            </span>.
           </h1>
+
+          <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto font-medium leading-relaxed">
+            The ultimate developer workspace to parse raw coding problems, run solution code against dozens of structured test cases, and analyze performance instantly.
+          </p>
+
+          {/* Action Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link 
+              href="/workspace" 
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(232,115,12,0.2)] hover:shadow-[0_0_40px_rgba(232,115,12,0.45)] flex items-center justify-center space-x-2 transform hover:-translate-y-0.5"
+            >
+              <span>Open Workspace</span>
+              <ArrowRight size={14} strokeWidth={3} />
+            </Link>
+            <Link 
+              href="/problems" 
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-gray-300 hover:text-white font-extrabold text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 backdrop-blur-md"
+            >
+              <span>Browse Problems</span>
+            </Link>
+          </div>
         </div>
 
         {/* Dynamic Database Statistics Panel */}
-        <div className="bg-[#0b0b0b] rounded-2xl p-8 max-w-2xl mx-auto w-full">
-          <div className="grid grid-cols-4 gap-4 text-center">
-            <div className="space-y-1">
-              <div className="text-4xl md:text-5xl font-black text-white font-mono leading-none">{stats.total}</div>
-              <div className="text-xs text-gray-500 uppercase font-extrabold tracking-widest mt-1">Problems</div>
+        <div className="relative bg-white/[0.015] border border-white/[0.04] rounded-2xl p-6 sm:p-8 backdrop-blur-xl max-w-3xl mx-auto w-full shadow-[0_24px_60px_rgba(0,0,0,0.7)]">
+          {/* Subtle Accent Top Border */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#E8730C]/30 to-transparent" />
+          
+          <div className="flex items-center justify-between border-b border-white/[0.04] pb-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <BarChart3 size={15} className="text-[#E8730C]" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Live Database Diagnostics</span>
             </div>
-            <div className="space-y-1">
-              <div className="text-2xl md:text-3xl font-bold text-[#00b8a3] font-mono leading-none">{stats.easy}</div>
-              <div className="text-xs text-gray-500 uppercase font-extrabold tracking-widest mt-1">Easy</div>
+            <div className="flex items-center space-x-1.5">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00b8a3] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00b8a3]"></span>
+              </span>
+              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Active</span>
             </div>
-            <div className="space-y-1">
-              <div className="text-2xl md:text-3xl font-bold text-[#ffc01e] font-mono leading-none">{stats.medium}</div>
-              <div className="text-xs text-gray-500 uppercase font-extrabold tracking-widest mt-1">Medium</div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center divide-y md:divide-y-0 md:divide-x divide-white/[0.04]">
+            <div className="space-y-1 pt-4 md:pt-0">
+              <div className="text-4xl sm:text-5xl font-black text-white font-mono tracking-tighter leading-none">
+                {stats.total}
+              </div>
+              <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
+                Total Problems
+              </div>
             </div>
-            <div className="space-y-1">
-              <div className="text-2xl md:text-3xl font-bold text-[#ff375f] font-mono leading-none">{stats.hard}</div>
-              <div className="text-xs text-gray-500 uppercase font-extrabold tracking-widest mt-1">Hard</div>
+            <div className="space-y-1 pt-4 md:pt-0">
+              <div className="text-2xl sm:text-3xl font-bold text-[#00b8a3] font-mono leading-none">
+                {stats.easy}
+              </div>
+              <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
+                Easy Slugs
+              </div>
+            </div>
+            <div className="space-y-1 pt-4 md:pt-0">
+              <div className="text-2xl sm:text-3xl font-bold text-[#ffc01e] font-mono leading-none">
+                {stats.medium}
+              </div>
+              <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
+                Medium Slugs
+              </div>
+            </div>
+            <div className="space-y-1 pt-4 md:pt-0">
+              <div className="text-2xl sm:text-3xl font-bold text-[#ff375f] font-mono leading-none">
+                {stats.hard}
+              </div>
+              <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
+                Hard Slugs
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto w-full">
+        {/* Action Modules Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto w-full">
           
-          {/* Card 1: Workspace Editor */}
+          {/* Card 1: Workspace */}
           <Link
             href="/workspace"
-            className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
-            <div className="flex items-center space-x-3 text-[#E8730C]">
-              <Terminal size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
-                Workspace
-              </h3>
+            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
+              <Code2 size={120} className="text-[#E8730C]" />
             </div>
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
-              <span>Enter Workspace</span>
-              <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 text-[#E8730C]">
+                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20">
+                  <Terminal size={18} />
+                </div>
+                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
+                  Workspace
+                </h3>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                Write solutions in an interactive Monaco editor, run code against 30+ parsed test cases, and analyze execution times.
+              </p>
+            </div>
+
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
+              <span>Open IDE Workspace</span>
+              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Card 2: Problems DB */}
+          {/* Card 2: Problems Database */}
           <Link
             href="/problems"
-            className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
-            <div className="flex items-center space-x-3 text-[#E8730C]">
-              <Database size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
-                Problems DB
-              </h3>
+            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
+              <Database size={120} className="text-[#E8730C]" />
             </div>
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
-              <span>Browse DB</span>
-              <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
+
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 text-[#E8730C]">
+                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20">
+                  <Database size={18} />
+                </div>
+                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
+                  Problems DB
+                </h3>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                Explore the parsed database of technical assessment questions. Search by tags, companies, or difficulty levels.
+              </p>
+            </div>
+
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
+              <span>Browse Database</span>
+              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           {/* Card 3: Profile & Admin */}
           <Link
             href="/profile"
-            className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
-            <div className="flex items-center space-x-3 text-[#E8730C]">
-              <User size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors flex items-center space-x-2">
-                <span>Profile</span>
-                {isAdmin && (
-                  <span className="bg-red-500/10 text-red-400 text-[9px] px-2 py-0.5 rounded font-mono font-extrabold uppercase">
-                    Admin
-                  </span>
-                )}
-              </h3>
+            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
+              <User size={120} className="text-[#E8730C]" />
             </div>
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
-              <span>{userName ? "View Stats" : "Sign In"}</span>
-              <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
+
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 text-[#E8730C]">
+                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20 flex items-center justify-center">
+                  <User size={18} />
+                </div>
+                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors flex items-center space-x-2">
+                  <span>Profile</span>
+                  {isAdmin && (
+                    <span className="bg-red-500/10 text-red-400 text-[8px] px-1.5 py-0.5 rounded font-mono font-black uppercase tracking-wider">
+                      Admin
+                    </span>
+                  )}
+                </h3>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                Review your recent submission history, success rates, speed analyses, and overall preparation diagnostics.
+              </p>
+            </div>
+
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
+              <span>{userName ? "View Diagnostics" : "Authenticate Account"}</span>
+              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Card 4: Add Problem */}
-          {isAdmin && <AddProblemButton variant="card" />}
+          {/* Card 4 (Conditional): Add Problem Button */}
+          {isAdmin && (
+            <div className="md:col-span-3 flex justify-center pt-2">
+              <AddProblemButton variant="card" />
+            </div>
+          )}
 
         </div>
 
-        {/* Footer Area */}
-        <div className="text-center pt-8 max-w-xs mx-auto">
-          <p className="text-[10px] text-gray-700 font-mono uppercase tracking-widest">
-            OA Engine © {new Date().getFullYear()}
-          </p>
+        {/* Bottom footer metadata */}
+        <div className="border-t border-white/[0.04] pt-8 flex flex-col md:flex-row items-center justify-between text-gray-600 text-[10px] font-mono uppercase tracking-wider">
+          <div>OA Engine © {new Date().getFullYear()}</div>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <span className="hover:text-[#E8730C] transition-colors cursor-default">Terminals Secured</span>
+            <span className="hover:text-[#E8730C] transition-colors cursor-default">Sandboxed Execution v1.0</span>
+          </div>
         </div>
 
       </main>
