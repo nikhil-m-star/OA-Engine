@@ -147,7 +147,7 @@ export default function WorkspacePage() {
           {/* Left Panel Body Content */}
           <div className="flex-1 overflow-hidden relative bg-[#0a0a0a]">
             {activeTab === "description" && problem ? (
-              <ProblemDescription problem={problem} />
+              <ProblemDescription problem={problem} code={code} />
             ) : (
               <JSONInput
                 onRender={handleRenderProblem}

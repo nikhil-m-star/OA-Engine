@@ -191,6 +191,18 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         }
       } else {
         outputDetails = `Accepted: All ${result.passed} / ${result.total} test cases passed!`;
+
+        // Record submission (non-blocking)
+        fetch("/api/submissions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            problemSlug: problem.slug,
+            language,
+            status: "Accepted",
+            runtimeMs: parseFloat(result.runtime ?? "0"),
+          }),
+        }).catch(() => {});
       }
 
       setRunResult({

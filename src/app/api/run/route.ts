@@ -4,6 +4,24 @@ import path from "path";
 import { exec } from "child_process";
 import { parseInputArgs } from "@/app/runner";
 
+// In-memory rate limiter: 10 requests per IP per minute
+const runRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function checkRunRateLimit(req: NextRequest): NextResponse | null {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const now = Date.now();
+  const entry = runRateLimit.get(ip);
+  if (entry && now < entry.resetAt) {
+    if (entry.count >= 10) {
+      return NextResponse.json({ success: false, error: "Rate limit exceeded. Max 10 requests per minute." }, { status: 429 });
+    }
+    entry.count++;
+  } else {
+    runRateLimit.set(ip, { count: 1, resetAt: now + 60000 });
+  }
+  return null;
+}
+
 const LANGUAGE_IDS: Record<string, number> = {
   cpp: 75, // C++ (GCC 13.2.0)
   python: 92, // Python (3.11.2)
@@ -1596,6 +1614,10 @@ ${testBlocks}
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit check
+  const rateLimitResponse = checkRunRateLimit(req);
+  if (rateLimitResponse) return rateLimitResponse;
+
   let tempDir = "";
   let sourceFilePath = "";
   let binaryFilePath = "";

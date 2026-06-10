@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useUser, SignInButton } from "@clerk/nextjs";
-import { ShieldAlert, Mail, Calendar, User, Award, ExternalLink, Layers, BookOpen } from "lucide-react";
+import { ShieldAlert, Mail, Calendar, User, Award, ExternalLink, Layers, BookOpen, Activity } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface ProblemSummary {
@@ -16,21 +16,41 @@ interface ProblemSummary {
   companies?: string[];
 }
 
+interface Submission {
+  id: number;
+  problem_slug: string;
+  problem_title: string | null;
+  language: string;
+  status: string;
+  runtime_ms: number | null;
+  submitted_at: string;
+}
+
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [problems, setProblems] = useState<ProblemSummary[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("/api/problems");
-        if (res.ok) {
-          const json = await res.json();
+        const [problemsRes, submissionsRes] = await Promise.all([
+          fetch("/api/problems"),
+          fetch("/api/submissions"),
+        ]);
+        if (problemsRes.ok) {
+          const json = await problemsRes.json();
           if (Array.isArray(json)) {
             setProblems(json);
           } else if (json && Array.isArray(json.data)) {
             setProblems(json.data);
+          }
+        }
+        if (submissionsRes.ok) {
+          const json = await submissionsRes.json();
+          if (json.success && Array.isArray(json.data)) {
+            setSubmissions(json.data);
           }
         }
       } catch (err) {
@@ -44,6 +64,22 @@ export default function ProfilePage() {
       fetchStats();
     }
   }, [isSignedIn]);
+
+  const totalSubmissions = submissions.length;
+  const acceptedSubmissions = submissions.filter(s => s.status === "Accepted").length;
+  const acceptanceRate = totalSubmissions > 0 ? ((acceptedSubmissions / totalSubmissions) * 100).toFixed(1) : "0.0";
+  const recentAccepted = submissions.filter(s => s.status === "Accepted").slice(0, 5);
+
+  function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }
 
   const totalCount = problems.length;
   const easyCount = problems.filter((p) => p.difficulty.toLowerCase() === "easy").length;
@@ -280,6 +316,56 @@ export default function ProfilePage() {
                         <ExternalLink size={12} className="text-gray-600 group-hover:text-white transition-colors shrink-0" />
                       </Link>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Submissions Stats */}
+              <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-4">
+                <div className="flex items-center space-x-2 pb-3">
+                  <Activity size={16} className="text-[#E8730C]" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Submissions</h3>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="space-y-1">
+                    <div className="text-2xl font-bold text-white font-mono">{totalSubmissions}</div>
+                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-2xl font-bold text-[#00b8a3] font-mono">{acceptedSubmissions}</div>
+                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Accepted</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-2xl font-bold text-[#E8730C] font-mono">{acceptanceRate}%</div>
+                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Rate</div>
+                  </div>
+                </div>
+
+                {recentAccepted.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Recent Accepted</span>
+                    <div className="space-y-1.5">
+                      {recentAccepted.map((s) => (
+                        <Link
+                          key={s.id}
+                          href={`/workspace?problem=${s.problem_slug}`}
+                          className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-lg px-3 py-2.5 transition-colors group"
+                        >
+                          <span className="text-sm font-medium text-white group-hover:text-[#E8730C] transition-colors truncate">
+                            {s.problem_title || s.problem_slug}
+                          </span>
+                          <div className="flex items-center space-x-2 shrink-0 ml-2">
+                            <span className="px-1.5 py-0.5 text-[10px] bg-[#0f0f0f] text-gray-400 rounded font-medium uppercase">
+                              {s.language}
+                            </span>
+                            <span className="text-[10px] text-gray-600 font-mono">
+                              {timeAgo(s.submitted_at)}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

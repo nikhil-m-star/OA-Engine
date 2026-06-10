@@ -56,6 +56,22 @@ export async function initDb() {
       await sql`
         ALTER TABLE problems ADD COLUMN IF NOT EXISTS test_cases JSONB DEFAULT '[]';
       `;
+
+      // Submissions tracking table
+      await sql`
+        CREATE TABLE IF NOT EXISTS submissions (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          problem_slug VARCHAR(255) NOT NULL,
+          language VARCHAR(20) NOT NULL,
+          status VARCHAR(30) NOT NULL,
+          runtime_ms INT,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
+      `;
     } catch (err) {
       console.error("Failed to initialize Neon Postgres database:", err);
       initializedPromise = null; // Allow retry on next request if initialization failed

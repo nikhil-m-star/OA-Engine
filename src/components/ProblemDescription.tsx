@@ -2,17 +2,23 @@
 
 import React, { useState } from "react";
 import { ProblemData } from "@/app/types";
-import { Tag, Briefcase, Edit2, X, Plus } from "lucide-react";
+import { Tag, Briefcase, Edit2, X, Plus, Loader2, Lightbulb } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 interface ProblemDescriptionProps {
   problem: ProblemData;
+  code?: string;
 }
 
-export default function ProblemDescription({ problem }: ProblemDescriptionProps) {
+export default function ProblemDescription({ problem, code }: ProblemDescriptionProps) {
   const { user } = useUser();
   const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
   const isAdmin = emails.includes("nikhilm9110@gmail.com");
+
+  // Hint state
+  const [hint, setHint] = useState<string | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintError, setHintError] = useState<string | null>(null);
 
   const [isEditingCompanies, setIsEditingCompanies] = useState(false);
   const [editedCompanies, setEditedCompanies] = useState<string[]>([]);
@@ -258,6 +264,66 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* AI Hint */}
+        {user && (
+          <div className="pt-2 space-y-2">
+            {!hint && !hintLoading && (
+              <button
+                onClick={async () => {
+                  setHintLoading(true);
+                  setHintError(null);
+                  try {
+                    const res = await fetch("/api/hint", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        problemTitle: problem.title,
+                        problemDescription: problem.description,
+                        userCode: code || "",
+                        language: "cpp",
+                      }),
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                      setHint(json.hint);
+                    } else {
+                      setHintError(json.error || "Failed to get hint.");
+                    }
+                  } catch {
+                    setHintError("Network error.");
+                  } finally {
+                    setHintLoading(false);
+                  }
+                }}
+                className="flex items-center space-x-1.5 text-xs font-bold text-[#E8730C] hover:text-[#F28B2D] transition-colors cursor-pointer"
+              >
+                <Lightbulb size={13} />
+                <span>Get Hint</span>
+              </button>
+            )}
+            {hintLoading && (
+              <div className="flex items-center space-x-1.5 text-xs text-gray-400">
+                <Loader2 size={13} className="animate-spin text-[#E8730C]" />
+                <span>Thinking...</span>
+              </div>
+            )}
+            {hint && (
+              <div className="border-l-2 border-[#E8730C] pl-3 text-sm text-gray-300 mt-2 flex items-start justify-between">
+                <p className="leading-relaxed">{hint}</p>
+                <button
+                  onClick={() => { setHint(null); setHintError(null); }}
+                  className="ml-2 text-gray-500 hover:text-white shrink-0 cursor-pointer"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+            {hintError && (
+              <p className="text-xs text-red-400 font-medium">{hintError}</p>
+            )}
           </div>
         )}
 

@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminUser } from "@/lib/auth";
 
+// In-memory rate limiter: 5 requests per IP per minute
+const generateRateLimit = new Map<string, { count: number; resetAt: number }>();
+
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+    const now = Date.now();
+    const entry = generateRateLimit.get(ip);
+    if (entry && now < entry.resetAt) {
+      if (entry.count >= 5) {
+        return NextResponse.json({ success: false, error: "Rate limit exceeded. Max 5 requests per minute." }, { status: 429 });
+      }
+      entry.count++;
+    } else {
+      generateRateLimit.set(ip, { count: 1, resetAt: now + 60000 });
+    }
+
     const admin = await isAdminUser();
     if (!admin) {
       return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
