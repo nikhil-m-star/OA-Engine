@@ -3,7 +3,7 @@ import Link from "next/link";
 import { sql, initDb } from "@/lib/db";
 import { Play, Tag, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import DeleteProblemButton from "@/components/DeleteProblemButton";
 
 // Force dynamic rendering to query Neon Postgres directly on every load
@@ -24,9 +24,12 @@ export default async function ProblemsPage() {
   let isAdmin = false;
 
   try {
-    const user = await currentUser();
-    const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
-    isAdmin = emails.includes("nikhilm9110@gmail.com");
+    const { userId } = await auth();
+    if (userId) {
+      const user = await currentUser();
+      const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
+      isAdmin = emails.includes("nikhilm9110@gmail.com");
+    }
   } catch (authErr) {
     console.error("Clerk auth failed on server:", authErr);
   }

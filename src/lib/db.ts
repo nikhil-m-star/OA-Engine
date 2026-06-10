@@ -6,35 +6,48 @@ if (!process.env.DATABASE_URL) {
 
 export const sql = neon(process.env.DATABASE_URL);
 
+// Global cache to prevent running DDL checks on every request
+let initializedPromise: Promise<void> | null = null;
+
 export async function initDb() {
-  try {
-    await sql`
-      CREATE TABLE IF NOT EXISTS problems (
-        id INT NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) PRIMARY KEY,
-        difficulty VARCHAR(50) NOT NULL,
-        tags TEXT[] NOT NULL,
-        description TEXT NOT NULL,
-        constraints TEXT[] NOT NULL,
-        examples JSONB NOT NULL,
-        follow_up TEXT,
-        starter_code JSONB NOT NULL,
-        companies TEXT[] DEFAULT '{}',
-        test_cases JSONB DEFAULT '[]',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    
-    // Auto-migration for existing tables
-    await sql`
-      ALTER TABLE problems ADD COLUMN IF NOT EXISTS companies TEXT[] DEFAULT '{}';
-    `;
-    await sql`
-      ALTER TABLE problems ADD COLUMN IF NOT EXISTS test_cases JSONB DEFAULT '[]';
-    `;
-  } catch (err) {
-    console.error("Failed to initialize Neon Postgres database:", err);
-    throw err;
+  if (initializedPromise) {
+    return initializedPromise;
   }
+
+  initializedPromise = (async () => {
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS problems (
+          id INT NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          slug VARCHAR(255) PRIMARY KEY,
+          difficulty VARCHAR(50) NOT NULL,
+          tags TEXT[] NOT NULL,
+          description TEXT NOT NULL,
+          constraints TEXT[] NOT NULL,
+          examples JSONB NOT NULL,
+          follow_up TEXT,
+          starter_code JSONB NOT NULL,
+          companies TEXT[] DEFAULT '{}',
+          test_cases JSONB DEFAULT '[]',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+      
+      // Auto-migration for existing tables
+      await sql`
+        ALTER TABLE problems ADD COLUMN IF NOT EXISTS companies TEXT[] DEFAULT '{}';
+      `;
+      await sql`
+        ALTER TABLE problems ADD COLUMN IF NOT EXISTS test_cases JSONB DEFAULT '[]';
+      `;
+    } catch (err) {
+      console.error("Failed to initialize Neon Postgres database:", err);
+      initializedPromise = null; // Allow retry on next request if initialization failed
+      throw err;
+    }
+  })();
+
+  return initializedPromise;
 }
+

@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { sql, initDb } from "@/lib/db";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Navbar from "@/components/Navbar";
 import { Terminal, Database, User, ArrowRight, ShieldCheck, Sparkles, BookOpen, Layers } from "lucide-react";
 
@@ -15,12 +15,15 @@ export default async function HomePage() {
   let userEmail = "";
 
   try {
-    const user = await currentUser();
-    if (user) {
-      const emails = user.emailAddresses.map((e) => e.emailAddress.toLowerCase()) || [];
-      isAdmin = emails.includes("nikhilm9110@gmail.com");
-      userName = user.fullName || user.username || "Developer";
-      userEmail = user.primaryEmailAddress?.emailAddress || "";
+    const { userId } = await auth();
+    if (userId) {
+      const user = await currentUser();
+      if (user) {
+        const emails = user.emailAddresses.map((e) => e.emailAddress.toLowerCase()) || [];
+        isAdmin = emails.includes("nikhilm9110@gmail.com");
+        userName = user.fullName || user.username || "Developer";
+        userEmail = user.primaryEmailAddress?.emailAddress || "";
+      }
     }
   } catch (authErr) {
     console.error("Clerk auth failed on server:", authErr);
