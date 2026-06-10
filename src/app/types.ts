@@ -15,6 +15,7 @@ export interface ProblemData {
   examples: ExampleData[];
   follow_up?: string;
   companies?: string[];
+  test_cases?: { input: string; output: string }[];
   starter_code: {
     cpp: string;
     [key: string]: string;

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { sql, initDb } from "@/lib/db";
 import { Play, Tag, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { currentUser } from "@clerk/nextjs/server";
+import DeleteProblemButton from "@/components/DeleteProblemButton";
 
 // Force dynamic rendering to query Neon Postgres directly on every load
 export const dynamic = "force-dynamic";
@@ -19,6 +21,15 @@ interface ProblemSummary {
 export default async function ProblemsPage() {
   let problems: ProblemSummary[] = [];
   let error: string | null = null;
+  let isAdmin = false;
+
+  try {
+    const user = await currentUser();
+    const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
+    isAdmin = emails.includes("nikhilm9110@gmail.com");
+  } catch (authErr) {
+    console.error("Clerk auth failed on server:", authErr);
+  }
 
   try {
     await initDb();
@@ -100,6 +111,7 @@ export default async function ProblemsPage() {
                   <th className="py-3.5 px-6 hidden md:table-cell">Tags</th>
                   <th className="py-3.5 px-6 hidden lg:table-cell">Companies</th>
                   <th className="py-3.5 px-6 w-20 text-center">Action</th>
+                  {isAdmin && <th className="py-3.5 px-6 w-16 text-center">Admin</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#2d2d2d] font-medium">
@@ -160,6 +172,11 @@ export default async function ProblemsPage() {
                         <Play size={11} fill="currentColor" className="ml-0.5" />
                       </Link>
                     </td>
+                    {isAdmin && (
+                      <td className="py-4 px-6 text-center">
+                        <DeleteProblemButton slug={problem.slug} title={problem.title} />
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

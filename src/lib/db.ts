@@ -21,6 +21,7 @@ export async function initDb() {
         follow_up TEXT,
         starter_code JSONB NOT NULL,
         companies TEXT[] DEFAULT '{}',
+        test_cases JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
@@ -28,6 +29,9 @@ export async function initDb() {
     // Auto-migration for existing tables
     await sql`
       ALTER TABLE problems ADD COLUMN IF NOT EXISTS companies TEXT[] DEFAULT '{}';
+    `;
+    await sql`
+      ALTER TABLE problems ADD COLUMN IF NOT EXISTS test_cases JSONB DEFAULT '[]';
     `;
   } catch (err) {
     console.error("Failed to initialize Neon Postgres database:", err);

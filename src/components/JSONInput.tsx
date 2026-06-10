@@ -121,6 +121,23 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       throw new Error('Field "companies" must be an array of strings.');
     }
 
+    // Initialize or validate test_cases array
+    if (!parsed.test_cases) {
+      parsed.test_cases = [];
+    } else if (!Array.isArray(parsed.test_cases)) {
+      throw new Error('Field "test_cases" must be an array.');
+    } else {
+      parsed.test_cases.forEach((tc: unknown, idx: number) => {
+        if (!tc || typeof tc !== "object") {
+          throw new Error(`Test case ${idx + 1} must be an object.`);
+        }
+        const caseObj = tc as Record<string, unknown>;
+        if (!("input" in caseObj) || !("output" in caseObj)) {
+          throw new Error(`Test case ${idx + 1} is missing "input" or "output" fields.`);
+        }
+      });
+    }
+
     // Validate required keys
     const requiredKeys = ["id", "title", "slug", "difficulty", "tags", "description", "constraints", "examples", "starter_code"];
     for (const key of requiredKeys) {
@@ -205,6 +222,10 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       );
 
       parsedData.companies = mergedCompanies;
+
+      if (!parsedData.test_cases) {
+        parsedData.test_cases = [];
+      }
 
       // Validate schema format before rendering
       const requiredKeys = ["id", "title", "slug", "difficulty", "tags", "description", "constraints", "examples", "starter_code"];

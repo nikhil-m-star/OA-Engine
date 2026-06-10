@@ -40,9 +40,9 @@ export async function POST(req: NextRequest) {
     // Upsert into database
     await sql`
       INSERT INTO problems (
-        id, title, slug, difficulty, tags, description, constraints, examples, follow_up, starter_code, companies
+        id, title, slug, difficulty, tags, description, constraints, examples, follow_up, starter_code, companies, test_cases
       ) VALUES (
-        ${problem.id}, ${problem.title}, ${problem.slug}, ${problem.difficulty}, ${problem.tags}, ${problem.description}, ${problem.constraints}, ${JSON.stringify(problem.examples)}, ${problem.follow_up || null}, ${JSON.stringify(problem.starter_code)}, ${problem.companies || []}
+        ${problem.id}, ${problem.title}, ${problem.slug}, ${problem.difficulty}, ${problem.tags}, ${problem.description}, ${problem.constraints}, ${JSON.stringify(problem.examples)}, ${problem.follow_up || null}, ${JSON.stringify(problem.starter_code)}, ${problem.companies || []}, ${JSON.stringify(problem.test_cases || [])}
       )
       ON CONFLICT (slug)
       DO UPDATE SET
@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
         examples = EXCLUDED.examples,
         follow_up = EXCLUDED.follow_up,
         starter_code = EXCLUDED.starter_code,
-        companies = EXCLUDED.companies;
+        companies = EXCLUDED.companies,
+        test_cases = EXCLUDED.test_cases;
     `;
 
     return NextResponse.json({ success: true, data: problem });

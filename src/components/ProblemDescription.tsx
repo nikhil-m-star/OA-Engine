@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { ProblemData } from "@/app/types";
-import { Tag, ThumbsUp, ThumbsDown, Star, Briefcase } from "lucide-react";
+import { Tag, ThumbsUp, ThumbsDown, Star, Briefcase, Edit2, Save, X, Plus } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 interface ProblemDescriptionProps {
   problem: ProblemData;
@@ -13,6 +14,57 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
   const [starred, setStarred] = useState(false);
   const [likesCount, setLikesCount] = useState(1432);
   const [dislikesCount, setDislikesCount] = useState(87);
+
+  const { user } = useUser();
+  const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
+  const isAdmin = emails.includes("nikhilm9110@gmail.com");
+
+  const [isEditingCompanies, setIsEditingCompanies] = useState(false);
+  const [editedCompanies, setEditedCompanies] = useState<string[]>([]);
+  const [newCompanyInput, setNewCompanyInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const startEditing = () => {
+    setEditedCompanies([...(problem.companies || [])]);
+    setNewCompanyInput("");
+    setIsEditingCompanies(true);
+  };
+
+  const handleAddCompany = () => {
+    const clean = newCompanyInput.trim();
+    if (clean && !editedCompanies.includes(clean)) {
+      setEditedCompanies([...editedCompanies, clean]);
+    }
+    setNewCompanyInput("");
+  };
+
+  const handleRemoveCompany = (company: string) => {
+    setEditedCompanies(editedCompanies.filter(c => c !== company));
+  };
+
+  const handleSaveCompanies = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/problems/${problem.slug}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ companies: editedCompanies }),
+      });
+      if (res.ok) {
+        problem.companies = editedCompanies;
+        setIsEditingCompanies(false);
+      } else {
+        const json = await res.json();
+        alert(`Failed to save companies: ${json.error}`);
+      }
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Difficulty badge colors
   const getDifficultyStyles = (diff: string) => {
@@ -113,20 +165,100 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
             </div>
           )}
 
-          {problem.companies && problem.companies.length > 0 && (
+          {isEditingCompanies ? (
+            <div className="pt-2.5 pb-2.5 border-t border-[#3a3a3a]/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-500 uppercase flex items-center space-x-1">
+                  <Briefcase size={10} className="text-gray-500" />
+                  <span>Edit Companies:</span>
+                </span>
+                <div className="flex items-center space-x-1.5">
+                  <button
+                    onClick={handleSaveCompanies}
+                    disabled={isSaving}
+                    className="p-1 rounded bg-[#00b8a3] hover:bg-[#00b8a3]/90 text-black font-bold transition-all flex items-center space-x-1 text-[10px] px-2.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save size={10} />
+                    <span>Save</span>
+                  </button>
+                  <button
+                    onClick={() => setIsEditingCompanies(false)}
+                    className="p-1 rounded bg-[#3a3a3a] hover:bg-[#444] text-gray-300 transition-all flex items-center space-x-1 text-[10px] px-2.5 cursor-pointer"
+                  >
+                    <X size={10} />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {editedCompanies.map((company, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 text-[10px] font-bold text-gray-300 bg-[#ffa116]/10 border border-[#ffa116]/20 rounded flex items-center space-x-1 select-none"
+                  >
+                    <span>{company}</span>
+                    <button
+                      onClick={() => handleRemoveCompany(company)}
+                      className="text-red-400 hover:text-red-300 ml-1.5 cursor-pointer"
+                    >
+                      <X size={8} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={newCompanyInput}
+                  onChange={e => setNewCompanyInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddCompany();
+                    }
+                  }}
+                  placeholder="e.g. Google"
+                  className="bg-[#1e1e1e] border border-[#3e3e3e] rounded px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-[#ffa116] outline-none"
+                />
+                <button
+                  onClick={handleAddCompany}
+                  className="p-1 rounded bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white transition-colors cursor-pointer"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
+          ) : (
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5 border-t border-[#3a3a3a]/40">
               <span className="text-[10px] font-bold text-gray-500 uppercase select-none mr-1.5 flex items-center space-x-1">
                 <Briefcase size={10} className="text-gray-500" />
                 <span>Companies:</span>
               </span>
-              {problem.companies.map((company, idx) => (
-                <span 
-                  key={idx} 
-                  className="px-2.5 py-0.5 text-[10px] font-bold text-gray-300 bg-[#ffa116]/10 border border-[#ffa116]/25 rounded hover:bg-[#ffa116]/20 transition-all cursor-default select-none shadow-sm"
+              
+              {problem.companies && problem.companies.length > 0 ? (
+                problem.companies.map((company, idx) => (
+                  <span 
+                    key={idx} 
+                    className="px-2.5 py-0.5 text-[10px] font-bold text-gray-300 bg-[#ffa116]/10 border border-[#ffa116]/25 rounded hover:bg-[#ffa116]/20 transition-all cursor-default select-none shadow-sm"
+                  >
+                    {company}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500 italic text-[10px] mr-2">None</span>
+              )}
+
+              {isAdmin && (
+                <button
+                  onClick={startEditing}
+                  className="p-1 text-gray-500 hover:text-[#ffa116] transition-colors rounded hover:bg-[#333] ml-2 cursor-pointer"
+                  title="Edit companies"
                 >
-                  {company}
-                </span>
-              ))}
+                  <Edit2 size={10} />
+                </button>
+              )}
             </div>
           )}
         </div>

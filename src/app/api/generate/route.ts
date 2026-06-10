@@ -32,6 +32,15 @@ Your task is to parse this information and output a single, raw, valid JSON obje
   ],
   "follow_up": "Can you solve it in O(n) time complexity?", // follow-up string or omit if not present
   "companies": ["Google", "Meta"], // array of company names (strings) where this question was asked, extracted from any text headers, assessment titles, or standard company associations. Return an empty array [] if no company associations are mentioned.
+  "test_cases": [
+    // MUST contain a minimum of 30 diverse and comprehensive test cases for verifying code correctness.
+    // Cover boundary values, small lists, large lists, negative numbers, zeros, duplicates, etc.
+    // Follow the input/output formatting of the examples exactly. Generates at least 30 test cases!
+    {
+      "input": "nums = [2,7,11,15], target = 9",
+      "output": "[0,1]"
+    }
+  ],
   "starter_code": {
     "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};",
     "python": "class Solution:\\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\\n        pass",
@@ -39,7 +48,7 @@ Your task is to parse this information and output a single, raw, valid JSON obje
   }
 }
 
-CRITICAL: Return ONLY the raw, valid JSON object. Do not wrap it in markdown code blocks like \`\`\`json ... \`\`\`, and do not add any surrounding text. The response must be directly parseable by JSON.parse().`;
+CRITICAL: You MUST generate at least 30 test cases in the "test_cases" array. Return ONLY the raw, valid JSON object. Do not wrap it in markdown code blocks like \`\`\`json ... \`\`\`, and do not add any surrounding text. The response must be directly parseable by JSON.parse().`;
 
     // Call Nvidia NIM endpoint (OpenAI-compatible)
     const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
