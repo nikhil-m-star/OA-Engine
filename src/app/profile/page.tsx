@@ -86,6 +86,19 @@ export default function ProfilePage() {
   const mediumCount = problems.filter((p) => p.difficulty.toLowerCase() === "medium").length;
   const hardCount = problems.filter((p) => p.difficulty.toLowerCase() === "hard").length;
 
+  // Track unique solved problem slugs (status === 'Accepted')
+  const solvedSlugs = new Set(
+    submissions
+      .filter((s) => s.status === "Accepted")
+      .map((s) => s.problem_slug)
+  );
+
+  const solvedProblems = problems.filter((p) => solvedSlugs.has(p.slug));
+  const solvedCount = solvedProblems.length;
+  const solvedEasyCount = solvedProblems.filter((p) => p.difficulty.toLowerCase() === "easy").length;
+  const solvedMediumCount = solvedProblems.filter((p) => p.difficulty.toLowerCase() === "medium").length;
+  const solvedHardCount = solvedProblems.filter((p) => p.difficulty.toLowerCase() === "hard").length;
+
   if (isLoaded && !isSignedIn) {
     return (
       <div className="h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none">
@@ -214,14 +227,14 @@ export default function ProfilePage() {
                           stroke="#E8730C" 
                           strokeWidth="8"
                           strokeDasharray="251.2"
-                          strokeDashoffset={251.2 - (251.2 * (totalCount > 0 ? 1 : 0))}
+                          strokeDashoffset={251.2 - (251.2 * (totalCount > 0 ? solvedCount / totalCount : 0))}
                           strokeLinecap="round"
                           className="transition-all duration-1000 ease-out"
                         />
                       </svg>
                       <div className="absolute flex flex-col items-center text-center">
-                        <span className="text-3xl font-black text-white leading-none">{totalCount}</span>
-                        <span className="text-[10px] text-gray-500 font-bold uppercase mt-1">Problems</span>
+                        <span className="text-3xl font-black text-white leading-none">{solvedCount}</span>
+                        <span className="text-[9px] text-gray-500 font-bold uppercase mt-1">/ {totalCount} Solved</span>
                       </div>
                     </div>
                   </div>
@@ -232,12 +245,12 @@ export default function ProfilePage() {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center text-xs font-bold">
                         <span className="text-[#00b8a3]">Easy</span>
-                        <span className="text-gray-400 font-mono">{easyCount}</span>
+                        <span className="text-gray-400 font-mono">{solvedEasyCount} / {easyCount}</span>
                       </div>
                       <div className="w-full bg-[#111111] h-2.5 rounded-full overflow-hidden">
                         <div 
                           className="bg-[#00b8a3] h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${totalCount > 0 ? (easyCount / totalCount) * 100 : 0}%` }}
+                          style={{ width: `${easyCount > 0 ? (solvedEasyCount / easyCount) * 100 : 0}%` }}
                         />
                       </div>
                     </div>
@@ -246,12 +259,12 @@ export default function ProfilePage() {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center text-xs font-bold">
                         <span className="text-[#ffc01e]">Medium</span>
-                        <span className="text-gray-400 font-mono">{mediumCount}</span>
+                        <span className="text-gray-400 font-mono">{solvedMediumCount} / {mediumCount}</span>
                       </div>
                       <div className="w-full bg-[#111111] h-2.5 rounded-full overflow-hidden">
                         <div 
                           className="bg-[#ffc01e] h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${totalCount > 0 ? (mediumCount / totalCount) * 100 : 0}%` }}
+                          style={{ width: `${mediumCount > 0 ? (solvedMediumCount / mediumCount) * 100 : 0}%` }}
                         />
                       </div>
                     </div>
@@ -260,12 +273,12 @@ export default function ProfilePage() {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center text-xs font-bold">
                         <span className="text-[#ff375f]">Hard</span>
-                        <span className="text-gray-400 font-mono">{hardCount}</span>
+                        <span className="text-gray-400 font-mono">{solvedHardCount} / {hardCount}</span>
                       </div>
                       <div className="w-full bg-[#111111] h-2.5 rounded-full overflow-hidden">
                         <div 
                           className="bg-[#ff375f] h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${totalCount > 0 ? (hardCount / totalCount) * 100 : 0}%` }}
+                          style={{ width: `${hardCount > 0 ? (solvedHardCount / hardCount) * 100 : 0}%` }}
                         />
                       </div>
                     </div>
