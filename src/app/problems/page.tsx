@@ -67,14 +67,14 @@ export default async function ProblemsPage() {
       <Navbar />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6 animate-page-in">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
           <h1 className="text-3xl font-black text-white uppercase tracking-wider">Problems</h1>
           
           <div className="flex items-center space-x-2 text-sm text-gray-400 bg-[#0a0a0a] px-4 py-2 rounded-lg font-bold">
-            <span className="text-[#ff6b00]">{problems.length}</span>
+            <span className="text-[#E8730C]">{problems.length}</span>
             <span>Total</span>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function ProblemsPage() {
             <h3 className="text-white font-bold text-base">No Saved Problems</h3>
             <Link
               href="/workspace"
-              className="px-5 py-2.5 bg-[#ff6b00] hover:bg-[#ff8533] text-black font-extrabold text-xs rounded transition-all cursor-pointer"
+              className="px-5 py-2.5 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold text-xs rounded transition-all cursor-pointer"
             >
               Add Problem
             </Link>
@@ -119,7 +119,7 @@ export default async function ProblemsPage() {
                     <td className="py-4.5 px-6">
                       <Link 
                         href={`/workspace?problem=${problem.slug}`}
-                        className="text-white hover:text-[#ff6b00] transition-colors text-base"
+                        className="text-white hover:text-[#E8730C] transition-colors text-base"
                       >
                         {problem.title}
                       </Link>
@@ -148,7 +148,7 @@ export default async function ProblemsPage() {
                           problem.companies.map((company, idx) => (
                             <span 
                               key={idx}
-                              className="px-2.5 py-0.5 text-xs bg-[#ff6b00]/10 text-gray-300 rounded font-bold"
+                              className="px-2.5 py-0.5 text-xs bg-[#E8730C]/10 text-gray-300 rounded font-bold"
                             >
                               {company}
                             </span>
@@ -161,7 +161,7 @@ export default async function ProblemsPage() {
                     <td className="py-4.5 px-6 text-center">
                       <Link
                         href={`/workspace?problem=${problem.slug}`}
-                        className="inline-flex items-center justify-center w-8 h-8 bg-[#111111] group-hover:bg-[#ff6b00] rounded text-gray-400 group-hover:text-black transition-all"
+                        className="inline-flex items-center justify-center w-8 h-8 bg-[#111111] group-hover:bg-[#E8730C] rounded text-gray-400 group-hover:text-black transition-all"
                         title="Solve Problem"
                       >
                         <Play size={13} fill="currentColor" className="ml-0.5" />

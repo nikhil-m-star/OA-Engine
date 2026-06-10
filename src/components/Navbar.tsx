@@ -22,7 +22,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2.5 group">
           {/* Stylized OA logo */}
-          <div className="relative flex h-7 w-7 items-center justify-center rounded bg-[#ff6b00] font-extrabold text-black text-sm transition-transform group-hover:scale-105">
+          <div className="relative flex h-7 w-7 items-center justify-center rounded bg-[#E8730C] font-extrabold text-black text-sm transition-transform group-hover:scale-105">
             OA
           </div>
           <span className="font-extrabold text-base tracking-wider text-white">OA Engine</span>
@@ -33,7 +33,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
           <Link
             href="/workspace"
             className={`px-3.5 py-2 rounded transition-all ${
-              pathname.startsWith("/workspace") ? "text-[#ff6b00] bg-[#111111]" : "text-gray-400 hover:text-white"
+              pathname.startsWith("/workspace") ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
             }`}
           >
             Workspace
@@ -41,7 +41,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
           <Link
             href="/problems"
             className={`px-3.5 py-2 rounded transition-all ${
-              pathname === "/problems" ? "text-[#ff6b00] bg-[#111111]" : "text-gray-400 hover:text-white"
+              pathname === "/problems" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
             }`}
           >
             Problems
@@ -49,7 +49,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
           <Link
             href="/profile"
             className={`px-3.5 py-2 rounded transition-all ${
-              pathname === "/profile" ? "text-[#ff6b00] bg-[#111111]" : "text-gray-400 hover:text-white"
+              pathname === "/profile" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
             }`}
           >
             Profile
@@ -61,7 +61,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
       <div className="hidden md:flex items-center space-x-2">
         {pathname.startsWith("/workspace") && hasProblem && problemTitle ? (
           <div className="flex items-center space-x-2 bg-[#111111] px-4 py-2 rounded text-sm font-bold text-white">
-            <Terminal size={14} className="text-[#ff6b00]" />
+            <Terminal size={14} className="text-[#E8730C]" />
             <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
           </div>
         ) : null}
@@ -89,7 +89,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
               </button>
             </SignInButton>
             <SignUpButton mode="modal">
-              <button className="px-3.5 py-2 rounded bg-[#ff6b00] hover:bg-[#ff8533] text-black font-extrabold transition-all cursor-pointer">
+              <button className="px-3.5 py-2 rounded bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold transition-all cursor-pointer">
                 Sign Up
               </button>
             </SignUpButton>

@@ -228,7 +228,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript" | "java")}
-            className="bg-[#111111] text-[#eff2f6f2] font-bold px-3 py-1 rounded cursor-pointer outline-none focus:ring-1 focus:ring-[#ff6b00] transition-colors border-none"
+            className="bg-[#111111] text-[#eff2f6f2] font-bold px-3 py-1 rounded cursor-pointer outline-none focus:ring-1 focus:ring-[#E8730C] transition-colors border-none"
           >
             <option value="cpp">C++ (GCC 13)</option>
             <option value="python">Python (3.11)</option>
@@ -288,7 +288,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                   <button 
                     onClick={() => setConsoleTab("testcase")}
                     className={`h-full px-1.5 transition-colors ${
-                      consoleTab === "testcase" ? "text-[#ff6b00]" : "text-gray-400 hover:text-white"
+                      consoleTab === "testcase" ? "text-[#E8730C]" : "text-gray-400 hover:text-white"
                     }`}
                   >
                     Testcase
@@ -296,7 +296,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                   <button 
                     onClick={() => setConsoleTab("result")}
                     className={`h-full px-1.5 transition-colors ${
-                      consoleTab === "result" ? "text-[#ff6b00]" : "text-gray-400 hover:text-white"
+                      consoleTab === "result" ? "text-[#E8730C]" : "text-gray-400 hover:text-white"
                     }`}
                   >
                     Result
@@ -320,7 +320,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                       value={customInput}
                       onChange={(e) => setCustomInput(e.target.value)}
                       placeholder="e.g. nums = [2,7,11,15], target = 9"
-                      className="flex-1 w-full bg-black rounded p-3 text-gray-200 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-[#ff6b00] resize-none border-none"
+                      className="flex-1 w-full bg-black rounded p-3 text-gray-200 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-[#E8730C] resize-none border-none"
                       spellCheck="false"
                     />
                   </div>
@@ -328,7 +328,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                   <div className="h-full">
                     {isRunning ? (
                       <div className="flex flex-col items-center justify-center h-full space-y-2.5 text-gray-400">
-                        <Loader2 className="animate-spin text-[#ff6b00]" size={24} />
+                        <Loader2 className="animate-spin text-[#E8730C]" size={24} />
                         <span className="font-bold text-xs">Compiling & Running...</span>
                       </div>
                     ) : hasRun && runResult ? (

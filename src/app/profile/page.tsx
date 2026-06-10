@@ -61,7 +61,7 @@ export default function ProfilePage() {
             <h1 className="text-xl font-bold text-white uppercase tracking-wider">Authentication Required</h1>
             <div className="pt-2">
               <SignInButton mode="modal">
-                <button className="w-full py-3 rounded bg-[#ff6b00] hover:bg-[#ff8533] text-black font-extrabold text-sm transition-all cursor-pointer">
+                <button className="w-full py-3 rounded bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold text-sm transition-all cursor-pointer">
                   Sign In
                 </button>
               </SignInButton>
@@ -76,10 +76,10 @@ export default function ProfilePage() {
     <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
       <Navbar />
       
-      <main className="flex-grow max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6">
+      <main className="flex-grow max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6 animate-page-in">
         {!isLoaded || (isSignedIn && isLoadingStats) ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <div className="w-7 h-7 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin" />
+            <div className="w-7 h-7 border-2 border-t-[#E8730C] border-r-transparent border-b-[#E8730C] border-l-transparent rounded-full animate-spin" />
             <span className="text-sm text-gray-500 font-bold">Loading Stats...</span>
           </div>
         ) : (
@@ -107,7 +107,7 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-black text-white tracking-tight">
                       {user?.fullName || user?.username || "Developer"}
                     </h2>
-                    <p className="text-sm text-[#ff6b00] font-bold font-mono">
+                    <p className="text-sm text-[#E8730C] font-bold font-mono">
                       @{user?.username || user?.primaryEmailAddress?.emailAddress.split("@")[0] || "user"}
                     </p>
                   </div>
@@ -153,7 +153,7 @@ export default function ProfilePage() {
               {/* LeetCode stats ring and progress bars */}
               <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-6">
                 <div className="flex items-center space-x-2 pb-3">
-                  <Layers size={16} className="text-[#ff6b00]" />
+                  <Layers size={16} className="text-[#E8730C]" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Progress Stats</h3>
                 </div>
 
@@ -171,7 +171,7 @@ export default function ProfilePage() {
                         <circle 
                           cx="50" cy="50" r="40" 
                           fill="transparent" 
-                          stroke="#ff6b00" 
+                          stroke="#E8730C" 
                           strokeWidth="8"
                           strokeDasharray="251.2"
                           strokeDashoffset={251.2 - (251.2 * (totalCount > 0 ? 1 : 0))}
@@ -237,10 +237,10 @@ export default function ProfilePage() {
               <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between pb-3">
                   <div className="flex items-center space-x-2">
-                    <BookOpen size={16} className="text-[#ff6b00]" />
+                    <BookOpen size={16} className="text-[#E8730C]" />
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">Explorer</h3>
                   </div>
-                  <Link href="/problems" className="text-xs text-[#ff6b00] hover:underline font-bold flex items-center space-x-0.5">
+                  <Link href="/problems" className="text-xs text-[#E8730C] hover:underline font-bold flex items-center space-x-0.5">
                     <span>View All</span>
                     <ExternalLink size={10} />
                   </Link>
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                         className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-xl p-4 transition-colors group cursor-pointer"
                       >
                         <div className="space-y-1 pr-2">
-                          <div className="text-sm font-bold text-white group-hover:text-[#ff6b00] transition-colors truncate max-w-[180px]">
+                          <div className="text-sm font-bold text-white group-hover:text-[#E8730C] transition-colors truncate max-w-[180px]">
                             {problem.title}
                           </div>
                           <div className="flex items-center space-x-1.5 text-xs text-gray-500">

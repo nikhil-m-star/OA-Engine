@@ -12,7 +12,7 @@ const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ssr: false,
   loading: () => (
     <div className="flex-1 flex flex-col items-center justify-center bg-black text-gray-400 font-mono text-xs">
-      <div className="w-6 h-6 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin mb-2" />
+      <div className="w-6 h-6 border-2 border-t-[#E8730C] border-r-transparent border-b-[#E8730C] border-l-transparent rounded-full animate-spin mb-2" />
       <span>Loading Workspace...</span>
     </div>
   )
@@ -91,7 +91,7 @@ export default function WorkspacePage() {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-gray-400 font-sans text-sm">
         <div className="flex flex-col items-center space-y-3">
-          <div className="w-7 h-7 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin" />
+          <div className="w-7 h-7 border-2 border-t-[#E8730C] border-r-transparent border-b-[#E8730C] border-l-transparent rounded-full animate-spin" />
           <span>Loading Workspace...</span>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function WorkspacePage() {
               disabled={!problem}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold ${
                 activeTab === "description"
-                  ? "bg-[#111111] text-[#ff6b00]"
+                  ? "bg-[#111111] text-[#E8730C]"
                   : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
               }`}
             >
@@ -135,7 +135,7 @@ export default function WorkspacePage() {
               onClick={() => setActiveTab("json")}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold cursor-pointer ${
                 activeTab === "json"
-                  ? "bg-[#111111] text-[#ff6b00]"
+                  ? "bg-[#111111] text-[#E8730C]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -167,7 +167,7 @@ export default function WorkspacePage() {
             />
           ) : (
             <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0a] text-gray-400 font-sans space-y-4">
-              <div className="p-3.5 bg-[#111111] rounded-full text-[#ff6b00]">
+              <div className="p-3.5 bg-[#111111] rounded-full text-[#E8730C]">
                 <AlertTriangle size={28} />
               </div>
               <div className="space-y-1">

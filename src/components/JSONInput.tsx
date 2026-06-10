@@ -217,7 +217,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-[#050505] shrink-0">
         <div className="flex items-center space-x-2">
-          <Code size={16} className="text-[#ff6b00]" />
+          <Code size={16} className="text-[#E8730C]" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-gray-300">Generator</h2>
         </div>
         <div className="flex items-center space-x-3">
@@ -240,7 +240,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
           }}
           className={`px-3.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
             activeSubTab === "json"
-              ? "bg-[#111111] text-[#ff6b00]"
+              ? "bg-[#111111] text-[#E8730C]"
               : "text-gray-400 hover:text-white"
           }`}
         >
@@ -254,11 +254,11 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
           }}
           className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
             activeSubTab === "ai"
-              ? "bg-[#111111] text-[#ff6b00]"
+              ? "bg-[#111111] text-[#E8730C]"
               : "text-gray-400 hover:text-white"
           }`}
         >
-          <Sparkles size={11} fill={activeSubTab === "ai" ? "#ff6b00" : "none"} className={activeSubTab === "ai" ? "text-[#ff6b00]" : ""} />
+          <Sparkles size={11} fill={activeSubTab === "ai" ? "#E8730C" : "none"} className={activeSubTab === "ai" ? "text-[#E8730C]" : ""} />
           <span>AI</span>
         </button>
       </div>
@@ -274,7 +274,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
                 if (error) setError(null);
               }}
               placeholder="Paste problem JSON here..."
-              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#ff6b00] font-mono text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin"
+              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#E8730C] font-mono text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin"
               spellCheck="false"
             />
           </div>
@@ -304,7 +304,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
             
             <button
               type="submit"
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#ff6b00] hover:bg-[#ff8533] text-black font-extrabold rounded-md text-xs transition-all cursor-pointer"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold rounded-md text-xs transition-all cursor-pointer"
             >
               <Play size={13} fill="black" />
               <span>Render</span>
@@ -322,7 +322,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
               }}
               disabled={isGenerating}
               placeholder="Paste raw description text here..."
-              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#ff6b00] font-sans text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin disabled:opacity-50"
+              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#E8730C] font-sans text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin disabled:opacity-50"
               spellCheck="false"
             />
           </div>
@@ -337,7 +337,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
               onChange={(e) => setCompaniesInput(e.target.value)}
               disabled={isGenerating}
               placeholder="e.g. Google, Meta"
-              className="w-full bg-black text-white rounded-lg px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-[#ff6b00] font-sans text-xs disabled:opacity-50"
+              className="w-full bg-black text-white rounded-lg px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-[#E8730C] font-sans text-xs disabled:opacity-50"
             />
           </div>
 
@@ -350,7 +350,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
 
           {isGenerating && (
             <div className="flex items-center space-x-2.5 p-3 bg-black rounded-lg text-gray-400 text-xs font-bold">
-              <div className="w-3.5 h-3.5 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin shrink-0" />
+              <div className="w-3.5 h-3.5 border-2 border-t-[#E8730C] border-r-transparent border-b-[#E8730C] border-l-transparent rounded-full animate-spin shrink-0" />
               <span>AI parsing description...</span>
             </div>
           )}
@@ -366,7 +366,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
             <button
               type="submit"
               disabled={isGenerating || !rawText.trim()}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#ff6b00] hover:bg-[#ff8533] disabled:bg-[#ff6b00]/40 disabled:text-black/50 text-black font-extrabold rounded-md text-xs transition-all disabled:cursor-not-allowed cursor-pointer"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#E8730C] hover:bg-[#F28B2D] disabled:bg-[#E8730C]/40 disabled:text-black/50 text-black font-extrabold rounded-md text-xs transition-all disabled:cursor-not-allowed cursor-pointer"
             >
               <Sparkles size={13} fill="currentColor" />
               <span>{isGenerating ? "Parsing..." : "Parse & Render"}</span>

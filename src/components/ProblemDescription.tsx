@@ -80,7 +80,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
     <div className="flex flex-col h-full bg-[#0a0a0a] text-[#eff2f6f2] overflow-y-auto scrollbar-thin select-text font-sans">
       {/* Tab Header */}
       <div className="flex items-center px-4 bg-[#050505] text-sm h-[40px] shrink-0">
-        <div className="text-[#ff6b00] font-bold h-full px-2 flex items-center select-none">
+        <div className="text-[#E8730C] font-bold h-full px-2 flex items-center select-none">
           Description
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                 {editedCompanies.map((company, idx) => (
                   <span
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#ff6b00]/10 rounded flex items-center space-x-1"
+                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#E8730C]/10 rounded flex items-center space-x-1"
                   >
                     <span>{company}</span>
                     <button
@@ -169,7 +169,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                     }
                   }}
                   placeholder="e.g. Google"
-                  className="bg-black rounded px-3 py-2 text-xs text-white placeholder-gray-600 focus:ring-1 focus:ring-[#ff6b00] outline-none"
+                  className="bg-black rounded px-3 py-2 text-xs text-white placeholder-gray-600 focus:ring-1 focus:ring-[#E8730C] outline-none"
                 />
                 <button
                   onClick={handleAddCompany}
@@ -190,7 +190,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                 problem.companies.map((company, idx) => (
                   <span 
                     key={idx} 
-                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#ff6b00]/15 rounded hover:bg-[#ff6b00]/25 transition-all"
+                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#E8730C]/15 rounded hover:bg-[#E8730C]/25 transition-all"
                   >
                     {company}
                   </span>
@@ -202,7 +202,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
               {isAdmin && (
                 <button
                   onClick={startEditing}
-                  className="p-1.5 text-gray-500 hover:text-[#ff6b00] transition-colors rounded hover:bg-[#111111] ml-2"
+                  className="p-1.5 text-gray-500 hover:text-[#E8730C] transition-colors rounded hover:bg-[#111111] ml-2"
                   title="Edit companies"
                 >
                   <Edit2 size={12} />
@@ -231,7 +231,7 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                   </div>
                   <div>
                     <span className="text-gray-400 font-bold select-none">Output: </span>
-                    <span className="text-[#ff6b00] font-bold">{example.output}</span>
+                    <span className="text-[#E8730C] font-bold">{example.output}</span>
                   </div>
                   {example.explanation && (
                     <div className="whitespace-pre-line mt-1 text-[#c5c8c6]">

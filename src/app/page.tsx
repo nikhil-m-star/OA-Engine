@@ -54,11 +54,11 @@ export default async function HomePage() {
     <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
       <Navbar />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col justify-center space-y-16">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col justify-center space-y-16 animate-page-in">
         
         {/* Sleek Minimal Header */}
         <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-black text-[#ff6b00] tracking-wider uppercase">
+          <h1 className="text-5xl md:text-6xl font-black text-[#E8730C] tracking-wider uppercase">
             OA Engine
           </h1>
         </div>
@@ -93,13 +93,13 @@ export default async function HomePage() {
             href="/workspace"
             className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className="flex items-center space-x-3 text-[#ff6b00]">
+            <div className="flex items-center space-x-3 text-[#E8730C]">
               <Terminal size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#ff6b00] transition-colors">
+              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
                 Workspace
               </h3>
             </div>
-            <div className="flex items-center text-xs font-bold text-[#ff6b00] space-x-1">
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
               <span>Enter Workspace</span>
               <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
@@ -110,13 +110,13 @@ export default async function HomePage() {
             href="/problems"
             className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className="flex items-center space-x-3 text-[#ff6b00]">
+            <div className="flex items-center space-x-3 text-[#E8730C]">
               <Database size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#ff6b00] transition-colors">
+              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
                 Problems DB
               </h3>
             </div>
-            <div className="flex items-center text-xs font-bold text-[#ff6b00] space-x-1">
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
               <span>Browse DB</span>
               <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
@@ -127,9 +127,9 @@ export default async function HomePage() {
             href="/profile"
             className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className="flex items-center space-x-3 text-[#ff6b00]">
+            <div className="flex items-center space-x-3 text-[#E8730C]">
               <User size={20} />
-              <h3 className="text-lg font-extrabold text-white group-hover:text-[#ff6b00] transition-colors flex items-center space-x-2">
+              <h3 className="text-lg font-extrabold text-white group-hover:text-[#E8730C] transition-colors flex items-center space-x-2">
                 <span>Profile</span>
                 {isAdmin && (
                   <span className="bg-red-500/10 text-red-400 text-[9px] px-2 py-0.5 rounded font-mono font-extrabold uppercase">
@@ -138,7 +138,7 @@ export default async function HomePage() {
                 )}
               </h3>
             </div>
-            <div className="flex items-center text-xs font-bold text-[#ff6b00] space-x-1">
+            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1">
               <span>{userName ? "View Stats" : "Sign In"}</span>
               <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
