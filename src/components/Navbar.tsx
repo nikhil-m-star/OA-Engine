@@ -22,9 +22,11 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2.5 group">
           {/* Stylized OA logo */}
-          <div className="relative flex h-7 w-7 items-center justify-center rounded bg-[#E8730C] font-extrabold text-black text-sm transition-transform group-hover:scale-105">
-            OA
-          </div>
+          <img
+            src="/logo.png"
+            alt="OA Engine Logo"
+            className="h-7 w-7 rounded object-contain transition-transform group-hover:scale-105"
+          />
           <span className="font-extrabold text-base tracking-wider text-white">OA Engine</span>
         </Link>
 
