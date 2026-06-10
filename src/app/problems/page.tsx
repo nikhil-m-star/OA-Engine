@@ -50,7 +50,8 @@ export default async function ProblemsPage() {
     error = err instanceof Error ? err.message : String(err);
   }
 
-  const getDiffColor = (diff: string) => {
+  const getDiffColor = (diff?: string | null) => {
+    if (!diff) return "text-gray-400";
     switch (diff.toLowerCase()) {
       case "easy":
         return "text-[#00b8a3]";

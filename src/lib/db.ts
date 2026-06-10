@@ -1,10 +1,23 @@
 import { neon } from "@neondatabase/serverless";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is missing.");
-}
+type SqlQuery = <T = Record<string, unknown>>(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+) => Promise<T[]>;
 
-export const sql = neon(process.env.DATABASE_URL);
+let sqlClient: SqlQuery | null = null;
+
+export function getSql() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is missing.");
+  }
+
+  if (!sqlClient) {
+    sqlClient = neon(process.env.DATABASE_URL) as unknown as SqlQuery;
+  }
+
+  return sqlClient;
+}
 
 // Global cache to prevent running DDL checks on every request
 let initializedPromise: Promise<void> | null = null;
@@ -16,6 +29,8 @@ export async function initDb() {
 
   initializedPromise = (async () => {
     try {
+      const sql = getSql();
+
       await sql`
         CREATE TABLE IF NOT EXISTS problems (
           id INT NOT NULL,
@@ -50,4 +65,3 @@ export async function initDb() {
 
   return initializedPromise;
 }
-

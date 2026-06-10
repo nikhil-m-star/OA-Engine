@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminUser } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const admin = await isAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
+    }
+
     const { text } = await req.json();
 
     if (!text || !text.trim()) {

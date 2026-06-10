@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ProblemData } from "@/app/types";
-import { Tag, Briefcase, Edit2, Save, X, Plus } from "lucide-react";
+import { Tag, Briefcase, Edit2, X, Plus } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 interface ProblemDescriptionProps {

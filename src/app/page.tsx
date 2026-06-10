@@ -1,12 +1,19 @@
 import React from "react";
 import Link from "next/link";
-import { sql, initDb } from "@/lib/db";
+import { getSql, initDb } from "@/lib/db";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Navbar from "@/components/Navbar";
 import { Terminal, Database, User, ArrowRight } from "lucide-react";
 import AddProblemButton from "@/components/AddProblemButton";
 
 export const dynamic = "force-dynamic";
+
+interface StatsRow {
+  total: number;
+  easy: number;
+  medium: number;
+  hard: number;
+}
 
 export default async function HomePage() {
   let stats = { total: 0, easy: 0, medium: 0, hard: 0 };
@@ -29,8 +36,9 @@ export default async function HomePage() {
 
   try {
     await initDb();
+    const sql = getSql();
     
-    const rows = await sql`
+    const rows = await sql<StatsRow>`
       SELECT 
         COUNT(*)::int as total,
         COALESCE(SUM(CASE WHEN LOWER(difficulty) = 'easy' THEN 1 ELSE 0 END), 0)::int as easy,
@@ -146,7 +154,7 @@ export default async function HomePage() {
           </Link>
 
           {/* Card 4: Add Problem */}
-          <AddProblemButton variant="card" />
+          {isAdmin && <AddProblemButton variant="card" />}
 
         </div>
 

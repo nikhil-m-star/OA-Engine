@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, initDb } from "@/lib/db";
+import { getSql, initDb } from "@/lib/db";
+import { isAdminUser } from "@/lib/auth";
+import { sanitizeProblemDescription } from "@/lib/sanitizeProblem";
+
+interface ExistingProblemRow {
+  id: number;
+  title: string;
+  slug: string;
+}
 
 // GET handler: Lists all problems sorted by ID
 export async function GET() {
   try {
     await initDb();
+    const sql = getSql();
     
     // Select summary details for lists
     const problems = await sql`
@@ -25,7 +34,13 @@ export async function GET() {
 // POST handler: Inserts a problem into the database with duplicate detection
 export async function POST(req: NextRequest) {
   try {
+    const admin = await isAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
+    }
+
     await initDb();
+    const sql = getSql();
     
     const body = await req.json();
     const problem = body;
@@ -41,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Duplicate detection (skip if workspace overwrite mode)
     if (!allowOverwrite) {
-      const existing = await sql`
+      const existing = await sql<ExistingProblemRow>`
         SELECT id, title, slug FROM problems WHERE slug = ${problem.slug} LIMIT 1
       `;
       if (existing.length > 0) {
@@ -53,12 +68,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const sanitizedDescription = sanitizeProblemDescription(problem.description);
+    if (!sanitizedDescription) {
+      return NextResponse.json({ success: false, error: "Problem description cannot be empty." }, { status: 400 });
+    }
+
+    const savedProblem = {
+      ...problem,
+      description: sanitizedDescription,
+    };
+
     // Upsert into database
     await sql`
       INSERT INTO problems (
         id, title, slug, difficulty, tags, description, constraints, examples, follow_up, starter_code, companies, test_cases
       ) VALUES (
-        ${problem.id}, ${problem.title}, ${problem.slug}, ${problem.difficulty}, ${problem.tags}, ${problem.description}, ${problem.constraints}, ${JSON.stringify(problem.examples)}, ${problem.follow_up || null}, ${JSON.stringify(problem.starter_code)}, ${problem.companies || []}, ${JSON.stringify(problem.test_cases || [])}
+        ${savedProblem.id}, ${savedProblem.title}, ${savedProblem.slug}, ${savedProblem.difficulty}, ${savedProblem.tags}, ${savedProblem.description}, ${savedProblem.constraints}, ${JSON.stringify(savedProblem.examples)}, ${savedProblem.follow_up || null}, ${JSON.stringify(savedProblem.starter_code)}, ${savedProblem.companies || []}, ${JSON.stringify(savedProblem.test_cases || [])}
       )
       ON CONFLICT (slug)
       DO UPDATE SET
@@ -75,7 +100,7 @@ export async function POST(req: NextRequest) {
         test_cases = EXCLUDED.test_cases;
     `;
 
-    return NextResponse.json({ success: true, data: problem });
+    return NextResponse.json({ success: true, data: savedProblem });
   } catch (err) {
     return NextResponse.json({ 
       success: false, 
@@ -83,4 +108,3 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 }
-

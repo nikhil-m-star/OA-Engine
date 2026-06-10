@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, initDb } from "@/lib/db";
+import { getSql, initDb } from "@/lib/db";
+import { isAdminUser } from "@/lib/auth";
+
+interface ExistingProblemRow {
+  id: number;
+  title: string;
+  slug: string;
+}
 
 export async function POST(req: NextRequest) {
   try {
+    const admin = await isAdminUser();
+    if (!admin) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
+    }
+
     const { title, slug, rawText } = await req.json();
 
     if (!rawText || !rawText.trim()) {
@@ -14,12 +26,13 @@ export async function POST(req: NextRequest) {
 
     // --- Step 1: Duplicate check against DB ---
     await initDb();
+    const sql = getSql();
 
     let isDuplicate = false;
     let duplicateReason = "";
 
     if (slug) {
-      const bySlug = await sql`
+      const bySlug = await sql<ExistingProblemRow>`
         SELECT id, title, slug FROM problems WHERE slug = ${slug} LIMIT 1
       `;
       if (bySlug.length > 0) {
@@ -30,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     if (!isDuplicate && title) {
       const normalizedTitle = title.trim().toLowerCase();
-      const byTitle = await sql`
+      const byTitle = await sql<ExistingProblemRow>`
         SELECT id, title, slug FROM problems WHERE LOWER(TRIM(title)) = ${normalizedTitle} LIMIT 1
       `;
       if (byTitle.length > 0) {
