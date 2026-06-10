@@ -23,7 +23,7 @@ interface RunResult {
 }
 
 export default function CodeEditor({ problem, code, onChange }: CodeEditorProps) {
-  const [language, setLanguage] = useState<"cpp" | "python" | "javascript">("cpp");
+  const [language, setLanguage] = useState<"cpp" | "python" | "javascript" | "java">("cpp");
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
   const [isRunning, setIsRunning] = useState(false);
@@ -52,6 +52,8 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
       } else if (language === "javascript") {
         starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
+      } else if (language === "java") {
+        starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
       } else {
         starter = "";
       }
@@ -70,6 +72,8 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
         } else if (language === "javascript") {
           starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
+        } else if (language === "java") {
+          starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
         } else {
           starter = "";
         }
@@ -159,12 +163,13 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         <div className="flex items-center space-x-2 select-none">
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript")}
+            onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript" | "java")}
             className="bg-[#2a2a2a] text-gray-200 font-semibold px-2 py-1 rounded cursor-pointer border border-[#3e3e3e] focus:border-[#ffa116] outline-none hover:bg-[#333] transition-colors"
           >
             <option value="cpp">C++ (GCC 13)</option>
             <option value="python">Python (3.11)</option>
             <option value="javascript">JavaScript (Node.js 18)</option>
+            <option value="java">Java (OpenJDK 21)</option>
           </select>
         </div>
         
