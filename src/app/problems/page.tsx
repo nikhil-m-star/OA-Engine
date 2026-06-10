@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { sql, initDb } from "@/lib/db";
+import { getSql, initDb } from "@/lib/db";
 import { HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -27,7 +27,7 @@ export default async function ProblemsPage() {
     const { userId } = await auth();
     if (userId) {
       const user = await currentUser();
-      const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
+      const emails = user?.emailAddresses.map((email) => email.emailAddress.toLowerCase()) || [];
       isAdmin = emails.includes("nikhilm9110@gmail.com");
     }
   } catch (authErr) {
@@ -36,14 +36,15 @@ export default async function ProblemsPage() {
 
   try {
     await initDb();
-    
-    const rows = await sql`
-      SELECT id, title, slug, difficulty, tags, companies 
-      FROM problems 
+    const sql = getSql();
+
+    const rows = await sql<ProblemSummary>`
+      SELECT id, title, slug, difficulty, tags, companies
+      FROM problems
       ORDER BY id ASC, created_at DESC
     `;
-    
-    problems = rows as ProblemSummary[];
+
+    problems = rows;
   } catch (err) {
     console.error("Error loading problems:", err);
     error = err instanceof Error ? err.message : String(err);
@@ -67,13 +68,11 @@ export default async function ProblemsPage() {
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-5 animate-page-in">
-        
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">Problems</h1>
           <div className="flex items-center space-x-3">
             <span className="text-sm text-gray-500 font-medium">{problems.length} problems</span>
-            <AddProblemButton variant="inline" />
+            {isAdmin && <AddProblemButton variant="inline" />}
           </div>
         </div>
 
@@ -86,74 +85,73 @@ export default async function ProblemsPage() {
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-5">
             <HelpCircle size={40} className="text-gray-700" />
             <p className="text-gray-500 text-sm">No problems yet</p>
-            <AddProblemButton variant="inline" />
+            {isAdmin && <AddProblemButton variant="inline" />}
           </div>
         ) : (
           <div className="space-y-1">
-            {problems.map((problem, index) => (
-              <Link
-                key={problem.slug}
-                href={`/workspace?problem=${problem.slug}`}
-                className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-colors group cursor-pointer ${
-                  index % 2 === 0 ? "bg-transparent" : "bg-[#0a0a0a]"
-                } hover:bg-[#111111]`}
-              >
-                {/* Left: ID + Title + Difficulty */}
-                <div className="flex items-center space-x-4 min-w-0 flex-1">
-                  <span className="text-gray-600 text-sm font-medium w-8 shrink-0 tabular-nums">{problem.id}</span>
-                  <span className="text-white text-[15px] font-medium group-hover:text-[#E8730C] transition-colors truncate">
-                    {problem.title}
-                  </span>
-                </div>
+            {problems.map((problem, index) => {
+              const tags = Array.isArray(problem.tags) ? problem.tags : [];
+              const companies = Array.isArray(problem.companies) ? problem.companies : [];
 
-                {/* Right: Tags + Difficulty + Admin */}
-                <div className="flex items-center space-x-4 shrink-0 ml-4">
-                  {/* Companies */}
-                  <div className="hidden lg:flex items-center space-x-1.5">
-                    {problem.companies && problem.companies.length > 0 ? (
-                      problem.companies.slice(0, 2).map((company, idx) => (
+              return (
+                <Link
+                  key={problem.slug}
+                  href={`/workspace?problem=${problem.slug}`}
+                  className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-colors group cursor-pointer ${
+                    index % 2 === 0 ? "bg-transparent" : "bg-[#0a0a0a]"
+                  } hover:bg-[#111111]`}
+                >
+                  <div className="flex items-center space-x-4 min-w-0 flex-1">
+                    <span className="text-gray-600 text-sm font-medium w-8 shrink-0 tabular-nums">{problem.id}</span>
+                    <span className="text-white text-[15px] font-medium group-hover:text-[#E8730C] transition-colors truncate">
+                      {problem.title}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-4 shrink-0 ml-4">
+                    <div className="hidden lg:flex items-center space-x-1.5">
+                      {companies.length > 0 ? (
+                        companies.slice(0, 2).map((company, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
+                          >
+                            {company}
+                          </span>
+                        ))
+                      ) : null}
+                      {companies.length > 2 && (
+                        <span className="text-[11px] text-gray-600">+{companies.length - 2}</span>
+                      )}
+                    </div>
+
+                    <div className="hidden md:flex items-center space-x-1.5">
+                      {tags.slice(0, 2).map((tag, idx) => (
                         <span
                           key={idx}
                           className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
                         >
-                          {company}
+                          {tag}
                         </span>
-                      ))
-                    ) : null}
-                    {problem.companies && problem.companies.length > 2 && (
-                      <span className="text-[11px] text-gray-600">+{problem.companies.length - 2}</span>
-                    )}
-                  </div>
-
-                  {/* Tags - show first 2 */}
-                  <div className="hidden md:flex items-center space-x-1.5">
-                    {problem.tags.slice(0, 2).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {problem.tags.length > 2 && (
-                      <span className="text-[11px] text-gray-600">+{problem.tags.length - 2}</span>
-                    )}
-                  </div>
-
-                  {/* Difficulty */}
-                  <span className={`text-sm font-medium w-16 text-right ${getDiffColor(problem.difficulty)}`}>
-                    {problem.difficulty}
-                  </span>
-
-                  {/* Admin delete */}
-                  {isAdmin && (
-                    <div onClick={(e) => e.preventDefault()}>
-                      <DeleteProblemButton slug={problem.slug} title={problem.title} />
+                      ))}
+                      {tags.length > 2 && (
+                        <span className="text-[11px] text-gray-600">+{tags.length - 2}</span>
+                      )}
                     </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+
+                    <span className={`text-sm font-medium w-16 text-right ${getDiffColor(problem.difficulty)}`}>
+                      {problem.difficulty}
+                    </span>
+
+                    {isAdmin && (
+                      <div onClick={(e) => e.preventDefault()}>
+                        <DeleteProblemButton slug={problem.slug} title={problem.title} />
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
