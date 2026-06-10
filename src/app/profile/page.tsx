@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { ShieldAlert, Mail, Calendar, User, Award, ExternalLink, Layers, BookOpen } from "lucide-react";
@@ -91,9 +92,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center text-center space-y-4 pt-2">
                   <div className="relative">
                     {user?.imageUrl ? (
-                      <img 
+                      <Image 
                         src={user.imageUrl} 
                         alt="Avatar" 
+                        width={96}
+                        height={96}
+                        unoptimized
                         className="w-24 h-24 rounded-full object-cover shadow-lg"
                       />
                     ) : (
@@ -108,7 +112,7 @@ export default function ProfilePage() {
                       {user?.fullName || user?.username || "Developer"}
                     </h2>
                     <p className="text-sm text-[#E8730C] font-bold font-mono">
-                      @{user?.username || user?.primaryEmailAddress?.emailAddress.split("@")[0] || "user"}
+                        @{user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "user"}
                     </p>
                   </div>
                 </div>

@@ -22,6 +22,26 @@ interface RunResult {
   input: string;
 }
 
+function getStarterCode(problem: ProblemData, selectedLanguage: "cpp" | "python" | "javascript" | "java") {
+  let starter = problem.starter_code[selectedLanguage];
+
+  if (!starter) {
+    const camelCaseMethod = problem.slug.replace(/-./g, (x) => x[1].toUpperCase());
+
+    if (selectedLanguage === "python") {
+      starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
+    } else if (selectedLanguage === "javascript") {
+      starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
+    } else if (selectedLanguage === "java") {
+      starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
+    } else {
+      starter = "";
+    }
+  }
+
+  return starter;
+}
+
 export default function CodeEditor({ problem, code, onChange }: CodeEditorProps) {
   const [language, setLanguage] = useState<"cpp" | "python" | "javascript" | "java">("cpp");
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
@@ -45,40 +65,16 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
 
   // Load starter code template when switching languages or problem
   useEffect(() => {
-    let starter = problem.starter_code[language];
-    if (!starter) {
-      const camelCaseMethod = problem.slug.replace(/-./g, x => x[1].toUpperCase());
-      if (language === "python") {
-        starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
-      } else if (language === "javascript") {
-        starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
-      } else if (language === "java") {
-        starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
-      } else {
-        starter = "";
-      }
-    }
+    const starter = getStarterCode(problem, language);
+
     onChange(starter);
     setRunResult(null);
     setHasRun(false);
-  }, [language, problem.id]);
+  }, [language, problem, onChange]);
 
   const handleResetCode = () => {
     if (window.confirm(`Are you sure you want to reset your code to the ${language.toUpperCase()} starter template?`)) {
-      let starter = problem.starter_code[language];
-      if (!starter) {
-        const camelCaseMethod = problem.slug.replace(/-./g, x => x[1].toUpperCase());
-        if (language === "python") {
-          starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
-        } else if (language === "javascript") {
-          starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
-        } else if (language === "java") {
-          starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
-        } else {
-          starter = "";
-        }
-      }
-      onChange(starter);
+      onChange(getStarterCode(problem, language));
     }
   };
 
