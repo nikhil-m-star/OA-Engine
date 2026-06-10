@@ -97,7 +97,7 @@ export default function Home() {
       <div className="flex items-center justify-center h-screen bg-[#1a1a1a] text-gray-400 font-mono text-sm">
         <div className="flex flex-col items-center space-y-2">
           <div className="w-8 h-8 border-4 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin" />
-          <span>Loading LeetCode Workspace...</span>
+          <span>Loading OA Engine Workspace...</span>
         </div>
       </div>
     );

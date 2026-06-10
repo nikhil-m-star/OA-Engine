@@ -1,7 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { sql, initDb } from "@/lib/db";
-import { Play, Tag, HelpCircle, PlusCircle } from "lucide-react";
+import { Play, Tag, HelpCircle } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 // Force dynamic rendering to query Neon Postgres directly on every load
 export const dynamic = "force-dynamic";
@@ -51,24 +52,7 @@ export default async function ProblemsPage() {
 
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-gray-200 flex flex-col font-sans select-none">
-      {/* Navbar clone */}
-      <header className="flex h-12 w-full items-center justify-between border-b border-[#282828] bg-[#1a1a1a] px-6 text-[#eff2f6f2] shrink-0">
-        <div className="flex items-center space-x-2">
-          <div className="relative flex h-5 w-5 items-center justify-center rounded bg-[#ffa116] font-bold text-black text-[11px] shadow">
-            L
-          </div>
-          <span className="font-semibold text-xs tracking-wider text-white">LeetCode OA Engine</span>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Link
-            href="/"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#ffa116] hover:bg-[#ffa116]/90 active:bg-[#e68e0f] text-xs font-bold text-black transition-all shadow-md cursor-pointer"
-          >
-            <PlusCircle size={13} />
-            <span>Workspace Editor</span>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Container */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6">

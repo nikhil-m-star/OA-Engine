@@ -2,60 +2,106 @@
 
 import React from "react";
 import Link from "next/link";
-import { RefreshCw, Database } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { RefreshCw, Terminal } from "lucide-react";
+import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 
 interface NavbarProps {
   problemId?: number;
   problemTitle?: string;
   onReset?: () => void;
-  hasProblem: boolean;
+  hasProblem?: boolean;
 }
 
-export default function Navbar({ problemId, problemTitle, onReset, hasProblem }: NavbarProps) {
+export default function Navbar({ problemId, problemTitle, onReset, hasProblem = false }: NavbarProps) {
+  const pathname = usePathname();
+
   return (
-    <header className="flex h-12 w-full items-center justify-between border-b border-[#282828] bg-[#1a1a1a] px-4 text-[#eff2f6f2] select-none">
-      {/* Left section: Logo & Title */}
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          {/* Custom LeetCode-like logo */}
-          <div className="relative flex h-5 w-5 items-center justify-center rounded bg-[#ffa116] font-bold text-black text-[11px] shadow">
-            L
+    <header className="flex h-[50px] w-full items-center justify-between border-b border-[#282828] bg-[#1a1a1a] px-6 text-[#eff2f6f2] select-none shrink-0 z-30">
+      {/* Left section: Logo & Nav Links */}
+      <div className="flex items-center space-x-6">
+        <Link href="/" className="flex items-center space-x-2 group">
+          {/* Stylized OA logo */}
+          <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-[#ffa116] font-extrabold text-black text-xs shadow-md transition-transform group-hover:scale-105">
+            OA
           </div>
-          <span className="font-semibold text-xs tracking-wider text-white">LeetCode OA Engine</span>
-        </div>
+          <span className="font-bold text-sm tracking-wider text-white">OA Engine</span>
+        </Link>
+
+        {/* Navigation Menu */}
+        <nav className="flex items-center space-x-4 text-xs font-semibold">
+          <Link
+            href="/"
+            className={`px-3 py-1.5 rounded-md transition-all ${
+              pathname === "/" ? "text-white bg-[#282828] shadow-sm" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Workspace
+          </Link>
+          <Link
+            href="/problems"
+            className={`px-3 py-1.5 rounded-md transition-all ${
+              pathname === "/problems" ? "text-white bg-[#282828] shadow-sm" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Problems
+          </Link>
+          <Link
+            href="/profile"
+            className={`px-3 py-1.5 rounded-md transition-all ${
+              pathname === "/profile" ? "text-white bg-[#282828] shadow-sm" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Profile
+          </Link>
+        </nav>
       </div>
 
       {/* Middle section: Active Problem Info */}
-      <div className="flex items-center space-x-2">
-        {hasProblem && problemTitle ? (
-          <div className="flex items-center space-x-2 bg-[#282828] px-3.5 py-1 rounded-md border border-[#383838] text-xs font-semibold text-white shadow-inner">
+      <div className="hidden md:flex items-center space-x-2">
+        {pathname === "/" && hasProblem && problemTitle ? (
+          <div className="flex items-center space-x-2 bg-[#282828] px-3.5 py-1.5 rounded-md border border-[#383838] text-xs font-semibold text-white shadow-inner">
+            <Terminal size={12} className="text-[#ffa116]" />
             <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
           </div>
-        ) : (
-          <span className="text-xs text-gray-500 font-mono">Workspace Standby</span>
-        )}
+        ) : null}
       </div>
 
-      {/* Right section: Navigation & Reset controls */}
-      <div className="flex items-center space-x-3">
-        <Link
-          href="/problems"
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#282828] hover:bg-[#383838] text-xs font-semibold text-gray-200 border border-[#383838] transition-all cursor-pointer shadow-sm"
-        >
-          <Database size={13} className="text-[#ffa116]" />
-          <span>Problems DB</span>
-        </Link>
-
-        {hasProblem && onReset && (
+      {/* Right section: Reset controls & Clerk Session */}
+      <div className="flex items-center space-x-4">
+        {pathname === "/" && hasProblem && onReset && (
           <button
             onClick={onReset}
-            className="flex items-center space-x-1.5 text-xs text-red-400 hover:text-red-300 font-semibold px-3.5 py-1.5 rounded-md hover:bg-red-500/10 transition-colors border border-red-500/20 shadow-sm"
+            className="flex items-center space-x-1.5 text-xs text-red-400 hover:text-red-300 font-semibold px-2.5 py-1.5 rounded-md hover:bg-red-500/10 transition-colors border border-red-500/20 shadow-sm"
             title="Clear and reset problem"
           >
             <RefreshCw size={12} className="animate-spin-hover" />
             <span>Reset Data</span>
           </button>
         )}
+
+        <div className="h-4 w-[1px] bg-[#282828]" />
+
+        {/* Clerk Authentication Integration */}
+        <Show when="signed-out">
+          <div className="flex items-center space-x-2 text-xs">
+            <SignInButton mode="modal">
+              <button className="px-3 py-1.5 rounded bg-[#2a2a2a] hover:bg-[#333] border border-[#3e3e3e] text-gray-300 font-semibold transition-all cursor-pointer">
+                Sign In
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="px-3 py-1.5 rounded bg-[#ffa116] hover:bg-[#ffa116]/90 active:bg-[#e68e0f] text-black font-bold transition-all shadow-sm cursor-pointer">
+                Sign Up
+              </button>
+            </SignUpButton>
+          </div>
+        </Show>
+        <Show when="signed-in">
+          <div className="flex items-center space-x-3">
+            <UserButton />
+          </div>
+        </Show>
       </div>
     </header>
   );
