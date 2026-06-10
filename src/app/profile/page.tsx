@@ -298,7 +298,7 @@ export default function ProfilePage() {
                     {problems.slice(0, 10).map((problem) => (
                       <Link
                         key={problem.slug}
-                        href={`/?problem=${problem.slug}`}
+                        href={`/workspace?problem=${problem.slug}`}
                         className="flex items-center justify-between bg-[#1e1e1e] hover:bg-[#202020] border border-[#2d2d2d] rounded-xl p-3.5 transition-colors group cursor-pointer"
                       >
                         <div className="space-y-1 pr-2">

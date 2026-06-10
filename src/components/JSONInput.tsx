@@ -381,7 +381,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
                 if (error) setError(null);
               }}
               disabled={isGenerating}
-              placeholder="Paste raw LeetCode description text here... (e.g. Title, description copy-paste, examples, constraints, starter templates)"
+              placeholder="Paste raw LeetCode description text here..."
               className="flex-1 w-full bg-[#1e1e1e] text-[#c5c8c6] border border-[#3e3e3e] rounded-lg p-3 outline-none focus:border-[#ffa116] font-sans text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin shadow-inner disabled:opacity-50"
               spellCheck="false"
             />
@@ -411,16 +411,16 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
           )}
 
           {isGenerating && (
-            <div className="flex items-center space-x-3 p-3 bg-[#1e1e1e] border border-[#3e3e3e] rounded-lg text-gray-400 text-xs">
-              <div className="w-4 h-4 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin shrink-0" />
-              <span>NVIDIA NIM is processing description & generating schema...</span>
+            <div className="flex items-center space-x-2.5 p-3 bg-[#1e1e1e] border border-[#3e3e3e] rounded-lg text-gray-400 text-xs font-medium">
+              <div className="w-3.5 h-3.5 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin shrink-0" />
+              <span>AI is parsing description...</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center space-x-2 p-3 bg-green-950/40 border border-green-500/30 rounded-lg text-green-400 text-xs">
-              <CheckCircle2 size={16} className="flex-shrink-0" />
-              <span>Success! AI parsed and loaded problem workspace.</span>
+            <div className="flex items-center space-x-2 p-3 bg-green-950/40 border border-green-500/30 rounded-lg text-green-400 text-xs font-medium">
+              <CheckCircle2 size={14} className="flex-shrink-0" />
+              <span>Problem loaded.</span>
             </div>
           )}
 
@@ -459,7 +459,7 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
             {/* Modal Content */}
             <div className="p-4 flex-1 overflow-y-auto space-y-4 text-xs scrollbar-thin">
               <p className="text-gray-300 leading-relaxed font-sans">
-                Use this prompt template in your AI assistant (e.g. Claude, ChatGPT) to convert any LeetCode problem copy-paste into the exact JSON format required by this workspace.
+                Use this prompt template to convert any LeetCode problem copy-paste into the required JSON schema.
               </p>
 
               <div className="relative bg-[#1e1e1e] p-3 rounded-lg border border-[#3e3e3e] font-mono text-[10px] text-gray-400 select-all max-h-[220px] overflow-y-auto scrollbar-thin">

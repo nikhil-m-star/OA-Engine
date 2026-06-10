@@ -94,7 +94,7 @@ export default async function ProblemsPage() {
               </p>
             </div>
             <Link
-              href="/"
+              href="/workspace"
               className="px-4 py-2 bg-[#ffa116] hover:bg-[#ffa116]/90 text-black font-bold text-xs rounded-md shadow-md transition-all cursor-pointer"
             >
               Parse Problem Now
@@ -123,7 +123,7 @@ export default async function ProblemsPage() {
                     <td className="py-4 px-6 text-gray-500 font-mono">{problem.id}</td>
                     <td className="py-4 px-6">
                       <Link 
-                        href={`/?problem=${problem.slug}`}
+                        href={`/workspace?problem=${problem.slug}`}
                         className="text-white font-semibold hover:text-[#ffa116] transition-colors text-sm"
                       >
                         {problem.title}
@@ -165,7 +165,7 @@ export default async function ProblemsPage() {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <Link
-                        href={`/?problem=${problem.slug}`}
+                        href={`/workspace?problem=${problem.slug}`}
                         className="inline-flex items-center justify-center w-7 h-7 bg-[#3a3a3a] group-hover:bg-[#ffa116] rounded-full text-gray-400 group-hover:text-black transition-all shadow"
                         title="Solve Problem"
                       >

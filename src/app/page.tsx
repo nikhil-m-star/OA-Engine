@@ -1,191 +1,208 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
+import Link from "next/link";
+import { sql, initDb } from "@/lib/db";
+import { currentUser } from "@clerk/nextjs/server";
 import Navbar from "@/components/Navbar";
-import JSONInput from "@/components/JSONInput";
-import ProblemDescription from "@/components/ProblemDescription";
-import { ProblemData, SavedProblemState } from "@/app/types";
-import { Code, BookOpen, AlertTriangle } from "lucide-react";
-import dynamic from "next/dynamic";
+import { Terminal, Database, User, ArrowRight, ShieldCheck, Sparkles, BookOpen, Layers } from "lucide-react";
 
-const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex-1 flex flex-col items-center justify-center bg-[#1e1e1e] text-gray-400 font-mono text-xs">
-      <div className="w-6 h-6 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin mb-2" />
-      <span>Initializing Monaco Workspace...</span>
-    </div>
-  )
-});
+// Force dynamic rendering to query database on every load
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const [problem, setProblem] = useState<ProblemData | null>(null);
-  const [activeTab, setActiveTab] = useState<"description" | "json">("json");
-  const [code, setCode] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
+export default async function HomePage() {
+  let stats = { total: 0, easy: 0, medium: 0, hard: 0 };
+  let isAdmin = false;
+  let userName = "";
+  let userEmail = "";
 
-  // Check query parameter on mount
-  useEffect(() => {
-    async function loadWorkspace() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const problemSlug = params.get("problem");
-
-        if (problemSlug) {
-          // If a query parameter slug is provided, fetch details from Neon DB
-          const res = await fetch(`/api/problems/${problemSlug}`);
-          if (res.ok) {
-            const json = await res.json();
-            if (json.success && json.data) {
-              setProblem(json.data);
-              setCode(json.data.starter_code.cpp || "");
-              setActiveTab("description");
-              setIsLoading(false);
-              return;
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error reading initial workspace state:", err);
-      } finally {
-        setIsLoading(false);
-      }
+  try {
+    const user = await currentUser();
+    if (user) {
+      const emails = user.emailAddresses.map((e) => e.emailAddress.toLowerCase()) || [];
+      isAdmin = emails.includes("nikhilm9110@gmail.com");
+      userName = user.fullName || user.username || "Developer";
+      userEmail = user.primaryEmailAddress?.emailAddress || "";
     }
+  } catch (authErr) {
+    console.error("Clerk auth failed on server:", authErr);
+  }
 
-    loadWorkspace();
-  }, []);
-
-  const handleRenderProblem = async (data: ProblemData) => {
-    // Update state immediately
-    setProblem(data);
-    setCode(data.starter_code.cpp || "");
-    setActiveTab("description");
-
-    // Post to Neon DB in the background
-    try {
-      const response = await fetch("/api/problems", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errJson = await response.json();
-        console.error("Failed to store problem on Neon DB:", errJson.error);
-      } else {
-        console.log("Successfully stored problem on Neon DB:", data.slug);
-      }
-    } catch (err) {
-      console.error("Failed to POST problem to Neon DB:", err);
+  try {
+    await initDb();
+    
+    // Fetch statistics with SQL aggregation
+    const rows = await sql`
+      SELECT 
+        COUNT(*)::int as total,
+        COALESCE(SUM(CASE WHEN LOWER(difficulty) = 'easy' THEN 1 ELSE 0 END), 0)::int as easy,
+        COALESCE(SUM(CASE WHEN LOWER(difficulty) = 'medium' THEN 1 ELSE 0 END), 0)::int as medium,
+        COALESCE(SUM(CASE WHEN LOWER(difficulty) = 'hard' THEN 1 ELSE 0 END), 0)::int as hard
+      FROM problems;
+    `;
+    
+    if (rows && rows.length > 0) {
+      stats = {
+        total: rows[0].total || 0,
+        easy: rows[0].easy || 0,
+        medium: rows[0].medium || 0,
+        hard: rows[0].hard || 0,
+      };
     }
-  };
-
-  const handleResetData = () => {
-    setProblem(null);
-    setCode("");
-    setActiveTab("json");
-    // Clear problem slug from URL
-    if (typeof window !== "undefined") {
-      window.history.replaceState({}, "", "/");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#1a1a1a] text-gray-400 font-mono text-sm">
-        <div className="flex flex-col items-center space-y-2">
-          <div className="w-8 h-8 border-4 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin" />
-          <span>Loading OA Engine Workspace...</span>
-        </div>
-      </div>
-    );
+  } catch (err) {
+    console.error("Error loading problem stats:", err);
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#1a1a1a] select-none text-gray-200">
-      {/* Top Navbar */}
-      <Navbar
-        problemId={problem?.id}
-        problemTitle={problem?.title}
-        onReset={handleResetData}
-        hasProblem={!!problem}
-      />
+    <div className="h-screen overflow-y-auto bg-[#1a1a1a] text-gray-200 flex flex-col font-sans select-none scrollbar-thin">
+      <Navbar />
 
-      {/* Main Split Layout Workspace */}
-      <div className="flex-1 flex w-full overflow-hidden p-1.5 gap-1.5 bg-[#1a1a1a]">
+      {/* Main Container */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 md:py-16 flex flex-col justify-center space-y-12">
         
-        {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
-        <div className="w-[40%] min-w-[320px] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
-          
-          {/* Main Left Tabs (Description vs JSON Input) */}
-          <div className="flex items-center bg-[#2d2d2d] border-b border-[#3e3e3e] h-[37px] shrink-0 text-xs px-2 space-x-1 select-none">
-            <button
-              onClick={() => {
-                if (problem) setActiveTab("description");
-              }}
-              disabled={!problem}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold ${
-                activeTab === "description"
-                  ? "bg-[#3e3e3e] text-white"
-                  : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
-              }`}
-            >
-              <BookOpen size={13} />
-              <span>Description</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("json")}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold cursor-pointer ${
-                activeTab === "json"
-                  ? "bg-[#3e3e3e] text-white"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <Code size={13} />
-              <span>JSON Input</span>
-            </button>
+        {/* Sleek, Dark Hero Banner */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="inline-flex items-center space-x-2 bg-amber-500/10 text-[#ffa116] border border-amber-500/25 px-3 py-1 rounded-full text-xs font-semibold select-none">
+            <Sparkles size={12} className="animate-pulse" />
+            <span>LeetCode OA Simulation Environment</span>
           </div>
+          
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase">
+            OA <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffa116] to-[#ffc01e]">Engine</span>
+          </h1>
+          
+          <p className="text-sm text-gray-400 leading-relaxed font-medium">
+            Generate test cases, render descriptions, write clean solutions, and simulate online assessment runs inside a premium workspace.
+          </p>
+        </div>
 
-          {/* Left Panel Body Content */}
-          <div className="flex-1 overflow-hidden relative">
-            {activeTab === "description" && problem ? (
-              <ProblemDescription problem={problem} />
-            ) : (
-              <JSONInput
-                onRender={handleRenderProblem}
-                initialValue={problem ? JSON.stringify(problem, null, 2) : undefined}
-              />
-            )}
+        {/* Dynamic Database Statistics Panel */}
+        <div className="bg-[#282828] border border-[#2d2d2d] rounded-2xl p-6 shadow-xl max-w-3xl mx-auto w-full relative overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1.5 text-center md:text-left">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center justify-center md:justify-start space-x-1.5">
+                <Layers size={12} className="text-[#ffa116]" />
+                <span>Live Database Stats</span>
+              </h3>
+              <p className="text-[10px] text-gray-500">
+                Problems synchronized across all active coding sessions
+              </p>
+            </div>
+
+            {/* Stats Breakdown */}
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <div className="text-center px-4">
+                <div className="text-3xl font-black text-white font-mono leading-none">{stats.total}</div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-1">Total Problems</div>
+              </div>
+              <div className="h-8 w-[1px] bg-[#3e3e3e] hidden sm:block" />
+              <div className="text-center px-4">
+                <div className="text-xl font-bold text-[#00b8a3] font-mono leading-none">{stats.easy}</div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-1">Easy</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-xl font-bold text-[#ffc01e] font-mono leading-none">{stats.medium}</div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-1">Medium</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-xl font-bold text-[#ff375f] font-mono leading-none">{stats.hard}</div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-1">Hard</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
-        <div className="w-[60%] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
-          {problem ? (
-            <CodeEditor
-              problem={problem}
-              code={code}
-              onChange={setCode}
-            />
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-[#1e1e1e] text-gray-400 font-sans space-y-4">
-              <div className="p-4 bg-[#2d2d2d] rounded-full border border-[#3e3e3e] text-[#ffa116]">
-                <AlertTriangle size={32} />
+        {/* Navigation Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto w-full">
+          
+          {/* Card 1: Workspace Editor */}
+          <Link
+            href="/workspace"
+            className="group relative bg-[#282828] hover:bg-[#2e2e2e] border border-[#2d2d2d] hover:border-[#ffa116]/30 rounded-2xl p-6 flex flex-col justify-between h-[180px] shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div className="space-y-3">
+              <div className="w-9 h-9 bg-amber-500/10 text-[#ffa116] rounded-xl flex items-center justify-center border border-amber-500/20">
+                <Terminal size={18} />
               </div>
-              <div className="space-y-1 max-w-sm">
-                <h3 className="text-white font-semibold text-sm">No Problem Rendered</h3>
-                <p className="text-xs leading-relaxed text-gray-500">
-                  Paste a problem JSON on the left panel and click <strong className="text-[#ffa116]">Render Problem</strong> to initialize the C++ code editor workspace.
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-[#ffa116] transition-colors">
+                  Workspace
+                </h3>
+                <p className="text-[11px] text-gray-400 leading-normal">
+                  Paste JSON or parse problems using AI. Write, test, and run code.
                 </p>
               </div>
             </div>
-          )}
+            <div className="flex items-center text-[10px] font-bold text-[#ffa116] mt-4 space-x-1">
+              <span>Enter Workspace</span>
+              <ArrowRight size={10} className="transform group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Card 2: Problems DB */}
+          <Link
+            href="/problems"
+            className="group relative bg-[#282828] hover:bg-[#2e2e2e] border border-[#2d2d2d] hover:border-[#ffa116]/30 rounded-2xl p-6 flex flex-col justify-between h-[180px] shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div className="space-y-3">
+              <div className="w-9 h-9 bg-amber-500/10 text-[#ffa116] rounded-xl flex items-center justify-center border border-amber-500/20">
+                <Database size={18} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-[#ffa116] transition-colors">
+                  Problems DB
+                </h3>
+                <p className="text-[11px] text-gray-400 leading-normal">
+                  Explore stored problems, difficulty metrics, tag parameters, and companies.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center text-[10px] font-bold text-[#ffa116] mt-4 space-x-1">
+              <span>Browse DB</span>
+              <ArrowRight size={10} className="transform group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Card 3: Profile & Admin */}
+          <Link
+            href="/profile"
+            className="group relative bg-[#282828] hover:bg-[#2e2e2e] border border-[#2d2d2d] hover:border-[#ffa116]/30 rounded-2xl p-6 flex flex-col justify-between h-[180px] shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div className="space-y-3">
+              <div className="w-9 h-9 bg-amber-500/10 text-[#ffa116] rounded-xl flex items-center justify-center border border-amber-500/20">
+                <User size={18} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white group-hover:text-[#ffa116] transition-colors flex items-center space-x-1.5">
+                  <span>Profile Stats</span>
+                  {isAdmin && (
+                    <span className="bg-red-500/10 text-red-400 text-[8px] px-1.5 py-0.5 rounded border border-red-500/20 font-mono tracking-wider font-extrabold uppercase">
+                      Admin
+                    </span>
+                  )}
+                </h3>
+                <p className="text-[11px] text-gray-400 leading-normal">
+                  {userName ? `Welcome back, ${userName}. View stats and verify settings.` : "Sign in to track progress and unlock saving features."}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center text-[10px] font-bold text-[#ffa116] mt-4 space-x-1">
+              <span>{userName ? "View Dashboard" : "Sign In / Join"}</span>
+              <ArrowRight size={10} className="transform group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
         </div>
 
-      </div>
+        {/* Footer Area */}
+        <div className="text-center pt-8 border-t border-[#232323] max-w-md mx-auto">
+          <p className="text-[10px] text-gray-600 font-mono uppercase tracking-wider">
+            OA Engine © {new Date().getFullYear()} • Minimalist Prep Environment
+          </p>
+        </div>
+
+      </main>
     </div>
   );
 }

@@ -31,9 +31,9 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
         {/* Navigation Menu */}
         <nav className="flex items-center space-x-4 text-xs font-semibold">
           <Link
-            href="/"
+            href="/workspace"
             className={`px-3 py-1.5 rounded-md transition-all ${
-              pathname === "/" ? "text-white bg-[#282828] shadow-sm" : "text-gray-400 hover:text-white"
+              pathname.startsWith("/workspace") ? "text-white bg-[#282828] shadow-sm" : "text-gray-400 hover:text-white"
             }`}
           >
             Workspace
@@ -59,7 +59,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
       {/* Middle section: Active Problem Info */}
       <div className="hidden md:flex items-center space-x-2">
-        {pathname === "/" && hasProblem && problemTitle ? (
+        {pathname.startsWith("/workspace") && hasProblem && problemTitle ? (
           <div className="flex items-center space-x-2 bg-[#282828] px-3.5 py-1.5 rounded-md border border-[#383838] text-xs font-semibold text-white shadow-inner">
             <Terminal size={12} className="text-[#ffa116]" />
             <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
@@ -69,7 +69,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
       {/* Right section: Reset controls & Clerk Session */}
       <div className="flex items-center space-x-4">
-        {pathname === "/" && hasProblem && onReset && (
+        {pathname.startsWith("/workspace") && hasProblem && onReset && (
           <button
             onClick={onReset}
             className="flex items-center space-x-1.5 text-xs text-red-400 hover:text-red-300 font-semibold px-2.5 py-1.5 rounded-md hover:bg-red-500/10 transition-colors border border-red-500/20 shadow-sm"
