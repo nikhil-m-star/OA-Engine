@@ -11,9 +11,9 @@ import dynamic from "next/dynamic";
 const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 flex flex-col items-center justify-center bg-[#1e1e1e] text-gray-400 font-mono text-xs">
-      <div className="w-5 h-5 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin mb-2" />
-      <span>Loading Monaco Workspace...</span>
+    <div className="flex-1 flex flex-col items-center justify-center bg-black text-gray-400 font-mono text-xs">
+      <div className="w-6 h-6 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin mb-2" />
+      <span>Loading Workspace...</span>
     </div>
   )
 });
@@ -89,9 +89,9 @@ export default function WorkspacePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#1a1a1a] text-gray-400 font-mono text-xs">
-        <div className="flex flex-col items-center space-y-2">
-          <div className="w-6 h-6 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-screen bg-black text-gray-400 font-sans text-sm">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="w-7 h-7 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin" />
           <span>Loading Workspace...</span>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#1a1a1a] select-none text-gray-200">
+    <div className="flex flex-col h-screen overflow-hidden bg-black select-none text-gray-200 font-sans">
       {/* Top Navbar */}
       <Navbar
         problemId={problem?.id}
@@ -109,43 +109,43 @@ export default function WorkspacePage() {
       />
 
       {/* Main Split Layout Workspace */}
-      <div className="flex-1 flex w-full overflow-hidden p-1.5 gap-1.5 bg-[#1a1a1a]">
+      <div className="flex-1 flex w-full overflow-hidden p-2 gap-2 bg-black">
         
         {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
-        <div className="w-[40%] min-w-[320px] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
+        <div className="w-[40%] min-w-[320px] flex flex-col h-full bg-[#0a0a0a] rounded-xl overflow-hidden">
           
           {/* Main Left Tabs (Description vs JSON Input) */}
-          <div className="flex items-center bg-[#2d2d2d] border-b border-[#3e3e3e] h-[37px] shrink-0 text-xs px-2 space-x-1 select-none">
+          <div className="flex items-center bg-[#050505] h-[40px] shrink-0 text-sm px-3 space-x-1 select-none">
             <button
               onClick={() => {
                 if (problem) setActiveTab("description");
               }}
               disabled={!problem}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold ${
                 activeTab === "description"
-                  ? "bg-[#3e3e3e] text-white"
+                  ? "bg-[#111111] text-[#ff6b00]"
                   : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
               }`}
             >
-              <BookOpen size={13} />
+              <BookOpen size={14} />
               <span>Description</span>
             </button>
 
             <button
               onClick={() => setActiveTab("json")}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold cursor-pointer ${
                 activeTab === "json"
-                  ? "bg-[#3e3e3e] text-white"
+                  ? "bg-[#111111] text-[#ff6b00]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              <Code size={13} />
+              <Code size={14} />
               <span>JSON Input</span>
             </button>
           </div>
 
           {/* Left Panel Body Content */}
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative bg-[#0a0a0a]">
             {activeTab === "description" && problem ? (
               <ProblemDescription problem={problem} />
             ) : (
@@ -158,7 +158,7 @@ export default function WorkspacePage() {
         </div>
 
         {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
-        <div className="w-[60%] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
+        <div className="w-[60%] flex flex-col h-full bg-[#0a0a0a] rounded-xl overflow-hidden">
           {problem ? (
             <CodeEditor
               problem={problem}
@@ -166,15 +166,12 @@ export default function WorkspacePage() {
               onChange={setCode}
             />
           ) : (
-            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#1e1e1e] text-gray-400 font-sans space-y-3">
-              <div className="p-3 bg-[#2d2d2d] rounded-full border border-[#3e3e3e] text-[#ffa116]">
-                <AlertTriangle size={24} />
+            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0a] text-gray-400 font-sans space-y-4">
+              <div className="p-3.5 bg-[#111111] rounded-full text-[#ff6b00]">
+                <AlertTriangle size={28} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-white font-semibold text-xs">No Problem Rendered</h3>
-                <p className="text-[10px] text-gray-500">
-                  Paste problem JSON or generate using NIM AI on the left panel.
-                </p>
+                <h3 className="text-white font-bold text-sm">No Problem Loaded</h3>
               </div>
             </div>
           )}

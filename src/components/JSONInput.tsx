@@ -1,45 +1,6 @@
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle2, Play, Code, Sparkles, Copy, X, Check } from "lucide-react";
+import { AlertCircle, CheckCircle2, Play, Code, Sparkles } from "lucide-react";
 import { ProblemData } from "@/app/types";
-
-interface JSONInputProps {
-  onRender: (data: ProblemData) => void;
-  initialValue?: string;
-}
-
-const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a structured JSON object. The output must strictly follow the schema below, without any surrounding markdown commentary (just return the raw JSON block).
-
-{
-  "id": 1,
-  "title": "Two Sum",
-  "slug": "two-sum",
-  "difficulty": "Easy",
-  "tags": ["Array", "Hash Map"],
-  "description": "<p>Given an array of integers <code>nums</code> and an integer <code>target</code>...</p>",
-  "constraints": ["2 <= nums.length <= 10^4"],
-  "examples": [
-    {
-      "input": "nums = [2,7,11,15], target = 9",
-      "output": "[0,1]",
-      "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
-    }
-  ],
-  "follow_up": "Can you solve it in O(n) time complexity?",
-  "companies": ["Google", "Meta"],
-  "test_cases": [
-    // Must contain a minimum of 30 diverse and comprehensive test cases
-    {
-      "input": "nums = [2,7,11,15], target = 9",
-      "output": "[0,1]"
-    }
-  ],
-  "starter_code": {
-    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
-  }
-}
-
-Problem to Convert:
-[Paste your LeetCode problem here]`;
 
 const DEFAULT_TEMPLATE: ProblemData = {
   id: 1,
@@ -82,6 +43,11 @@ const DEFAULT_TEMPLATE: ProblemData = {
   }
 };
 
+interface JSONInputProps {
+  onRender: (data: ProblemData) => void;
+  initialValue?: string;
+}
+
 export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
   const [activeSubTab, setActiveSubTab] = useState<"json" | "ai">("json");
   const [jsonText, setJsonText] = useState(
@@ -92,8 +58,6 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [showPromptModal, setShowPromptModal] = useState(false);
-  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const handleFormat = () => {
     try {
@@ -113,12 +77,6 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
     setSuccess(false);
   };
 
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(AI_PROMPT_TEXT);
-    setCopiedPrompt(true);
-    setTimeout(() => setCopiedPrompt(false), 2000);
-  };
-
   const validateAndRender = (text: string) => {
     if (!text.trim()) {
       throw new Error("JSON input cannot be empty.");
@@ -126,14 +84,12 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
 
     const parsed = JSON.parse(text);
 
-    // Initialize or validate companies array
     if (!parsed.companies) {
       parsed.companies = [];
     } else if (!Array.isArray(parsed.companies)) {
       throw new Error('Field "companies" must be an array of strings.');
     }
 
-    // Initialize or validate test_cases array
     if (!parsed.test_cases) {
       parsed.test_cases = [];
     } else if (!Array.isArray(parsed.test_cases)) {
@@ -150,7 +106,6 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       });
     }
 
-    // Validate required keys
     const requiredKeys = ["id", "title", "slug", "difficulty", "tags", "description", "constraints", "examples", "starter_code"];
     for (const key of requiredKeys) {
       if (!(key in parsed)) {
@@ -158,7 +113,6 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       }
     }
 
-    // Validate examples structure
     if (!Array.isArray(parsed.examples)) {
       throw new Error('Field "examples" must be an array.');
     }
@@ -172,12 +126,10 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       }
     });
 
-    // Validate starter code
     if (!parsed.starter_code || typeof parsed.starter_code !== "object" || !parsed.starter_code.cpp) {
       throw new Error('Field "starter_code" must be an object containing "cpp" starter code.');
     }
 
-    // Validated successfully
     setSuccess(true);
     setTimeout(() => {
       setSuccess(false);
@@ -217,12 +169,11 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || `NIM API Generation failed with status ${response.status}`);
+        throw new Error(result.error || `Generation failed with status ${response.status}`);
       }
 
       const parsedData = result.data;
 
-      // Extract and merge user-entered companies
       const userCompanies = companiesInput
         .split(",")
         .map((c) => c.trim())
@@ -239,7 +190,6 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
         parsedData.test_cases = [];
       }
 
-      // Validate schema format before rendering
       const requiredKeys = ["id", "title", "slug", "difficulty", "tags", "description", "constraints", "examples", "starter_code"];
       for (const key of requiredKeys) {
         if (!(key in parsedData)) {
@@ -247,9 +197,8 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
         }
       }
 
-      // Success, write it to JSON tab and render
       setJsonText(JSON.stringify(parsedData, null, 2));
-      setActiveSubTab("json"); // Switch back to JSON tab so they can see the generated output
+      setActiveSubTab("json");
       setSuccess(true);
       
       setTimeout(() => {
@@ -264,24 +213,17 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#282828] text-gray-200 relative">
+    <div className="flex flex-col h-full bg-[#0a0a0a] text-[#eff2f6f2] relative font-sans text-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3e3e3e] bg-[#2d2d2d] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-[#050505] shrink-0">
         <div className="flex items-center space-x-2">
-          <Code size={16} className="text-[#ffa116]" />
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-300">Workspace Generator</h2>
+          <Code size={16} className="text-[#ff6b00]" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-300">Generator</h2>
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setShowPromptModal(true)}
-            className="flex items-center space-x-1 text-xs text-[#ffa116] hover:text-[#ffb84d] transition-colors font-medium cursor-pointer"
-          >
-            <Sparkles size={12} fill="#ffa116" className="animate-pulse" />
-            <span>AI Prompt Helper</span>
-          </button>
-          <button
             onClick={handleLoadDemo}
-            className="text-xs text-gray-400 hover:text-white transition-colors"
+            className="text-xs font-bold text-gray-400 hover:text-white transition-colors"
           >
             Reset Demo
           </button>
@@ -289,20 +231,20 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
       </div>
 
       {/* Sub Tabs Selection */}
-      <div className="flex bg-[#222] border-b border-[#3e3e3e] px-4 py-1.5 space-x-2 shrink-0">
+      <div className="flex bg-[#030303] px-4 py-1.5 space-x-2 shrink-0">
         <button
           type="button"
           onClick={() => {
             setActiveSubTab("json");
             setError(null);
           }}
-          className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+          className={`px-3.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
             activeSubTab === "json"
-              ? "bg-[#2d2d2d] text-white border border-[#3e3e3e]"
+              ? "bg-[#111111] text-[#ff6b00]"
               : "text-gray-400 hover:text-white"
           }`}
         >
-          Paste JSON
+          JSON
         </button>
         <button
           type="button"
@@ -310,14 +252,14 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
             setActiveSubTab("ai");
             setError(null);
           }}
-          className={`flex items-center space-x-1.5 px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
             activeSubTab === "ai"
-              ? "bg-[#2d2d2d] text-white border border-[#3e3e3e]"
+              ? "bg-[#111111] text-[#ff6b00]"
               : "text-gray-400 hover:text-white"
           }`}
         >
-          <Sparkles size={11} fill={activeSubTab === "ai" ? "#ffa116" : "none"} className={activeSubTab === "ai" ? "text-[#ffa116]" : ""} />
-          <span>AI Generator</span>
+          <Sparkles size={11} fill={activeSubTab === "ai" ? "#ff6b00" : "none"} className={activeSubTab === "ai" ? "text-[#ff6b00]" : ""} />
+          <span>AI</span>
         </button>
       </div>
 
@@ -331,43 +273,41 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
                 setJsonText(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder="Paste your LeetCode problem JSON here..."
-              className="flex-1 w-full bg-[#1e1e1e] text-[#c5c8c6] border border-[#3e3e3e] rounded-lg p-3 outline-none focus:border-[#ffa116] font-mono text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin shadow-inner"
+              placeholder="Paste problem JSON here..."
+              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#ff6b00] font-mono text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin"
               spellCheck="false"
             />
           </div>
 
-          {/* Feedback / Errors */}
           {error && (
-            <div className="flex items-start space-x-2 p-3 bg-red-950/40 border border-red-500/30 rounded-lg text-red-400 text-xs">
-              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+            <div className="flex items-start space-x-2 p-3 bg-red-950/40 rounded-lg text-red-400 text-xs">
+              <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
               <div className="break-all font-mono whitespace-pre-wrap">{error}</div>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center space-x-2 p-3 bg-green-950/40 border border-green-500/30 rounded-lg text-green-400 text-xs">
-              <CheckCircle2 size={16} className="flex-shrink-0" />
-              <span>Success! Loaded workspace.</span>
+            <div className="flex items-center space-x-2 p-3 bg-green-950/40 rounded-lg text-green-400 text-xs">
+              <CheckCircle2 size={15} className="flex-shrink-0" />
+              <span>Loaded successfully.</span>
             </div>
           )}
 
-          {/* Controls */}
-          <div className="flex items-center space-x-2 pt-2">
+          <div className="flex items-center space-x-2 pt-1.5">
             <button
               type="button"
               onClick={handleFormat}
-              className="px-3 py-2 text-xs bg-[#3a3a3a] hover:bg-[#484848] active:bg-[#2e2e2e] text-white rounded-md font-semibold transition-all border border-[#4d4d4d]"
+              className="px-4 py-2.5 text-xs bg-[#111111] hover:bg-[#222] text-white rounded-md font-bold transition-all"
             >
-              Format JSON
+              Format
             </button>
             
             <button
               type="submit"
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-[#ffa116] hover:bg-[#ffa116]/90 active:bg-[#e68e0f] text-black font-bold rounded-md text-xs transition-all shadow-md cursor-pointer"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#ff6b00] hover:bg-[#ff8533] text-black font-extrabold rounded-md text-xs transition-all cursor-pointer"
             >
               <Play size={13} fill="black" />
-              <span>Render Problem</span>
+              <span>Render</span>
             </button>
           </div>
         </form>
@@ -381,122 +321,58 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
                 if (error) setError(null);
               }}
               disabled={isGenerating}
-              placeholder="Paste raw LeetCode description text here..."
-              className="flex-1 w-full bg-[#1e1e1e] text-[#c5c8c6] border border-[#3e3e3e] rounded-lg p-3 outline-none focus:border-[#ffa116] font-sans text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin shadow-inner disabled:opacity-50"
+              placeholder="Paste raw description text here..."
+              className="flex-1 w-full bg-black text-[#eff2f6f2] rounded-lg p-4 outline-none focus:ring-1 focus:ring-[#ff6b00] font-sans text-xs leading-relaxed resize-none overflow-y-auto scrollbar-thin disabled:opacity-50"
               spellCheck="false"
             />
           </div>
 
-          {/* Companies Input Field */}
-          <div className="space-y-1.5 shrink-0">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-              Companies (optional, comma-separated)
+          <div className="space-y-1 shrink-0">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">
+              Companies (optional)
             </label>
             <input
               type="text"
               value={companiesInput}
               onChange={(e) => setCompaniesInput(e.target.value)}
               disabled={isGenerating}
-              placeholder="e.g. Google, Meta, Microsoft"
-              className="w-full bg-[#1e1e1e] text-white border border-[#3e3e3e] rounded-lg px-3 py-2.5 outline-none focus:border-[#ffa116] font-sans text-xs shadow-inner disabled:opacity-50"
+              placeholder="e.g. Google, Meta"
+              className="w-full bg-black text-white rounded-lg px-3.5 py-2.5 outline-none focus:ring-1 focus:ring-[#ff6b00] font-sans text-xs disabled:opacity-50"
             />
           </div>
 
-          {/* Feedback / Errors */}
           {error && (
-            <div className="flex items-start space-x-2 p-3 bg-red-950/40 border border-red-500/30 rounded-lg text-red-400 text-xs">
-              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+            <div className="flex items-start space-x-2 p-3 bg-red-950/40 rounded-lg text-red-400 text-xs">
+              <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
               <div className="break-all font-mono whitespace-pre-wrap">{error}</div>
             </div>
           )}
 
           {isGenerating && (
-            <div className="flex items-center space-x-2.5 p-3 bg-[#1e1e1e] border border-[#3e3e3e] rounded-lg text-gray-400 text-xs font-medium">
-              <div className="w-3.5 h-3.5 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin shrink-0" />
-              <span>AI is parsing description...</span>
+            <div className="flex items-center space-x-2.5 p-3 bg-black rounded-lg text-gray-400 text-xs font-bold">
+              <div className="w-3.5 h-3.5 border-2 border-t-[#ff6b00] border-r-transparent border-b-[#ff6b00] border-l-transparent rounded-full animate-spin shrink-0" />
+              <span>AI parsing description...</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center space-x-2 p-3 bg-green-950/40 border border-green-500/30 rounded-lg text-green-400 text-xs font-medium">
+            <div className="flex items-center space-x-2 p-3 bg-green-950/40 rounded-lg text-green-400 text-xs font-bold">
               <CheckCircle2 size={14} className="flex-shrink-0" />
-              <span>Problem loaded.</span>
+              <span>Loaded successfully.</span>
             </div>
           )}
 
-          {/* Controls */}
-          <div className="flex items-center space-x-2 pt-2">
+          <div className="flex items-center space-x-2 pt-1.5">
             <button
               type="submit"
               disabled={isGenerating || !rawText.trim()}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-[#ffa116] hover:bg-[#ffa116]/90 active:bg-[#e68e0f] disabled:bg-[#ffa116]/40 disabled:text-black/50 text-black font-bold rounded-md text-xs transition-all shadow-md disabled:cursor-not-allowed cursor-pointer"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#ff6b00] hover:bg-[#ff8533] disabled:bg-[#ff6b00]/40 disabled:text-black/50 text-black font-extrabold rounded-md text-xs transition-all disabled:cursor-not-allowed cursor-pointer"
             >
               <Sparkles size={13} fill="currentColor" />
-              <span>{isGenerating ? "NIM AI Parsing..." : "Parse & Render Problem"}</span>
+              <span>{isGenerating ? "Parsing..." : "Parse & Render"}</span>
             </button>
           </div>
         </form>
-      )}
-
-      {/* AI Prompt Modal Glassmorphic Overlay */}
-      {showPromptModal && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#2d2d2d] border border-[#444] rounded-xl shadow-2xl w-full max-w-md max-h-[85%] flex flex-col overflow-hidden animate-zoom-in">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#3e3e3e] bg-[#222]">
-              <div className="flex items-center space-x-2 text-white font-semibold text-xs">
-                <Sparkles size={14} className="text-[#ffa116]" fill="#ffa116" />
-                <span>AI Prompt Generator Helper</span>
-              </div>
-              <button
-                onClick={() => setShowPromptModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-4 flex-1 overflow-y-auto space-y-4 text-xs scrollbar-thin">
-              <p className="text-gray-300 leading-relaxed font-sans">
-                Use this prompt template to convert any LeetCode problem copy-paste into the required JSON schema.
-              </p>
-
-              <div className="relative bg-[#1e1e1e] p-3 rounded-lg border border-[#3e3e3e] font-mono text-[10px] text-gray-400 select-all max-h-[220px] overflow-y-auto scrollbar-thin">
-                <pre className="whitespace-pre-wrap leading-relaxed select-text">
-                  {AI_PROMPT_TEXT}
-                </pre>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-3 bg-[#202020] border-t border-[#3e3e3e] flex items-center justify-end space-x-2 shrink-0">
-              <button
-                onClick={handleCopyPrompt}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-[#ffa116] hover:bg-[#ffa116]/95 active:bg-[#e68e0f] text-black font-bold rounded-md text-xs transition-all shadow-md cursor-pointer"
-              >
-                {copiedPrompt ? (
-                  <>
-                    <Check size={13} className="text-black" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={13} className="text-black" />
-                    <span>Copy Prompt</span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                onClick={() => setShowPromptModal(false)}
-                className="px-3 py-2 text-xs bg-[#3a3a3a] hover:bg-[#484848] text-white rounded-md font-semibold transition-all border border-[#4d4d4d]"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

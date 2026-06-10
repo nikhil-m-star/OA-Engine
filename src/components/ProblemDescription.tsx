@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ProblemData } from "@/app/types";
-import { Tag, ThumbsUp, ThumbsDown, Star, Briefcase, Edit2, Save, X, Plus } from "lucide-react";
+import { Tag, Briefcase, Edit2, Save, X, Plus } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 interface ProblemDescriptionProps {
@@ -10,11 +10,6 @@ interface ProblemDescriptionProps {
 }
 
 export default function ProblemDescription({ problem }: ProblemDescriptionProps) {
-  const [liked, setLiked] = useState<boolean | null>(null);
-  const [starred, setStarred] = useState(false);
-  const [likesCount, setLikesCount] = useState(1432);
-  const [dislikesCount, setDislikesCount] = useState(87);
-
   const { user } = useUser();
   const emails = user?.emailAddresses.map(e => e.emailAddress.toLowerCase()) || [];
   const isAdmin = emails.includes("nikhilm9110@gmail.com");
@@ -66,7 +61,6 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
     }
   };
 
-  // Difficulty badge colors
   const getDifficultyStyles = (diff: string) => {
     switch (diff.toLowerCase()) {
       case "easy":
@@ -82,83 +76,40 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
 
   const diffStyle = getDifficultyStyles(problem.difficulty);
 
-  const handleLike = () => {
-    if (liked === true) {
-      setLiked(null);
-      setLikesCount(prev => prev - 1);
-    } else {
-      if (liked === false) setDislikesCount(prev => prev - 1);
-      setLiked(true);
-      setLikesCount(prev => prev + 1);
-    }
-  };
-
-  const handleDislike = () => {
-    if (liked === false) {
-      setLiked(null);
-      setDislikesCount(prev => prev - 1);
-    } else {
-      if (liked === true) setLikesCount(prev => prev - 1);
-      setLiked(false);
-      setDislikesCount(prev => prev + 1);
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full bg-[#282828] text-gray-200 overflow-y-auto scrollbar-thin select-text">
+    <div className="flex flex-col h-full bg-[#0a0a0a] text-[#eff2f6f2] overflow-y-auto scrollbar-thin select-text font-sans">
       {/* Tab Header */}
-      <div className="flex items-center px-4 border-b border-[#3e3e3e] bg-[#2d2d2d] text-xs h-[37px] shrink-0">
-        <div className="text-white font-semibold border-b-2 border-[#ffa116] h-full px-2 flex items-center select-none">
-          Problem Description
+      <div className="flex items-center px-4 bg-[#050505] text-sm h-[40px] shrink-0">
+        <div className="text-[#ff6b00] font-bold h-full px-2 flex items-center select-none">
+          Description
         </div>
       </div>
 
       {/* Content Area */}
       <div className="flex-1 p-6 space-y-6">
         {/* Title & Metadata */}
-        <div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">
+        <div className="space-y-3">
+          <h1 className="text-2xl font-black text-white tracking-tight">
             {problem.id}. {problem.title}
           </h1>
           
-          <div className="flex flex-wrap items-center gap-3 mt-3">
-            {/* Difficulty Badge */}
-            <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${diffStyle.bg} ${diffStyle.text}`}>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`px-3 py-1 text-xs font-bold rounded ${diffStyle.bg} ${diffStyle.text}`}>
               {problem.difficulty}
             </span>
-
-            {/* Mock stats to look exactly like LeetCode */}
-            <div className="flex items-center space-x-1 text-xs text-gray-400 bg-[#3a3a3a]/30 px-2 py-0.5 rounded border border-[#3e3e3e]">
-              <button onClick={handleLike} className={`hover:text-white transition-colors p-1 ${liked === true ? "text-green-400" : ""}`}>
-                <ThumbsUp size={13} />
-              </button>
-              <span className="px-1">{likesCount}</span>
-              <div className="h-3 w-[1px] bg-gray-600" />
-              <button onClick={handleDislike} className={`hover:text-white transition-colors p-1 ${liked === false ? "text-red-400" : ""}`}>
-                <ThumbsDown size={13} />
-              </button>
-              <span className="px-1">{dislikesCount}</span>
-            </div>
-
-            <button 
-              onClick={() => setStarred(!starred)} 
-              className={`text-xs text-gray-400 bg-[#3a3a3a]/30 p-1.5 rounded border border-[#3e3e3e] hover:text-white transition-colors ${starred ? "text-[#ffa116]" : ""}`}
-            >
-              <Star size={13} fill={starred ? "#ffa116" : "none"} />
-            </button>
           </div>
         </div>
 
         {/* Tags and Companies */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {problem.tags && problem.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 py-0.5">
+            <div className="flex flex-wrap gap-2">
               {problem.tags.map((tag, idx) => (
                 <span 
                   key={idx} 
-                  className="flex items-center space-x-1 px-2.5 py-1 text-[11px] font-medium text-gray-300 bg-[#3a3a3a] rounded-full border border-[#444] hover:bg-[#484848] transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 px-3 py-1 text-xs font-bold text-gray-300 bg-[#111111] rounded hover:bg-[#222] transition-colors cursor-pointer"
                 >
-                  <Tag size={10} className="text-gray-400" />
+                  <Tag size={12} className="text-gray-400" />
                   <span>{tag}</span>
                 </span>
               ))}
@@ -166,27 +117,25 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
           )}
 
           {isEditingCompanies ? (
-            <div className="pt-2.5 pb-2.5 border-t border-[#3a3a3a]/40 space-y-3">
+            <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-500 uppercase flex items-center space-x-1">
-                  <Briefcase size={10} className="text-gray-500" />
-                  <span>Edit Companies:</span>
+                <span className="text-xs font-bold text-gray-500 uppercase flex items-center space-x-1">
+                  <Briefcase size={12} />
+                  <span>Edit Companies</span>
                 </span>
-                <div className="flex items-center space-x-1.5">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={handleSaveCompanies}
                     disabled={isSaving}
-                    className="p-1 rounded bg-[#00b8a3] hover:bg-[#00b8a3]/90 text-black font-bold transition-all flex items-center space-x-1 text-[10px] px-2.5 cursor-pointer disabled:opacity-50"
+                    className="py-1 px-3 rounded bg-[#00b8a3] hover:bg-[#00b8a3]/90 text-black font-bold text-xs transition-all disabled:opacity-50"
                   >
-                    <Save size={10} />
-                    <span>Save</span>
+                    Save
                   </button>
                   <button
                     onClick={() => setIsEditingCompanies(false)}
-                    className="p-1 rounded bg-[#3a3a3a] hover:bg-[#444] text-gray-300 transition-all flex items-center space-x-1 text-[10px] px-2.5 cursor-pointer"
+                    className="py-1 px-3 rounded bg-[#111111] text-gray-300 text-xs font-bold"
                   >
-                    <X size={10} />
-                    <span>Cancel</span>
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -195,14 +144,14 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                 {editedCompanies.map((company, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 text-[10px] font-bold text-gray-300 bg-[#ffa116]/10 border border-[#ffa116]/20 rounded flex items-center space-x-1 select-none"
+                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#ff6b00]/10 rounded flex items-center space-x-1"
                   >
                     <span>{company}</span>
                     <button
                       onClick={() => handleRemoveCompany(company)}
                       className="text-red-400 hover:text-red-300 ml-1.5 cursor-pointer"
                     >
-                      <X size={8} />
+                      <X size={10} />
                     </button>
                   </span>
                 ))}
@@ -220,20 +169,20 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                     }
                   }}
                   placeholder="e.g. Google"
-                  className="bg-[#1e1e1e] border border-[#3e3e3e] rounded px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-[#ffa116] outline-none"
+                  className="bg-black rounded px-3 py-2 text-xs text-white placeholder-gray-600 focus:ring-1 focus:ring-[#ff6b00] outline-none"
                 />
                 <button
                   onClick={handleAddCompany}
-                  className="p-1 rounded bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white transition-colors cursor-pointer"
+                  className="p-2 rounded bg-[#111111] hover:bg-[#222] text-white transition-colors cursor-pointer"
                 >
                   <Plus size={14} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5 border-t border-[#3a3a3a]/40">
-              <span className="text-[10px] font-bold text-gray-500 uppercase select-none mr-1.5 flex items-center space-x-1">
-                <Briefcase size={10} className="text-gray-500" />
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-xs font-bold text-gray-500 uppercase flex items-center space-x-1.5 mr-1 select-none">
+                <Briefcase size={12} className="text-gray-500" />
                 <span>Companies:</span>
               </span>
               
@@ -241,33 +190,31 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
                 problem.companies.map((company, idx) => (
                   <span 
                     key={idx} 
-                    className="px-2.5 py-0.5 text-[10px] font-bold text-gray-300 bg-[#ffa116]/10 border border-[#ffa116]/25 rounded hover:bg-[#ffa116]/20 transition-all cursor-default select-none shadow-sm"
+                    className="px-2.5 py-1 text-xs font-bold text-gray-300 bg-[#ff6b00]/15 rounded hover:bg-[#ff6b00]/25 transition-all"
                   >
                     {company}
                   </span>
                 ))
               ) : (
-                <span className="text-gray-500 italic text-[10px] mr-2">None</span>
+                <span className="text-gray-600 italic text-xs">None</span>
               )}
 
               {isAdmin && (
                 <button
                   onClick={startEditing}
-                  className="p-1 text-gray-500 hover:text-[#ffa116] transition-colors rounded hover:bg-[#333] ml-2 cursor-pointer"
+                  className="p-1.5 text-gray-500 hover:text-[#ff6b00] transition-colors rounded hover:bg-[#111111] ml-2"
                   title="Edit companies"
                 >
-                  <Edit2 size={10} />
+                  <Edit2 size={12} />
                 </button>
               )}
             </div>
           )}
         </div>
 
-        <hr className="border-[#3e3e3e]" />
-
         {/* HTML Description */}
         <div 
-          className="prose prose-invert max-w-none text-sm leading-relaxed text-gray-300 space-y-4 problem-description-html"
+          className="prose prose-invert max-w-none text-[15px] leading-relaxed text-gray-300 space-y-4 problem-description-html"
           dangerouslySetInnerHTML={{ __html: problem.description }}
         />
 
@@ -276,20 +223,20 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
           <div className="space-y-4">
             {problem.examples.map((example, idx) => (
               <div key={idx} className="space-y-2">
-                <span className="text-sm font-semibold text-white">Example {idx + 1}:</span>
-                <div className="bg-[#3a3a3a] rounded-lg p-4 font-mono text-xs text-white font-bold border border-[#4d4d4d] space-y-2 select-text overflow-x-auto leading-relaxed shadow-md">
+                <span className="text-sm font-bold text-white">Example {idx + 1}</span>
+                <div className="bg-[#111111] rounded-xl p-4 font-mono text-sm text-[#eff2f6f2] space-y-2 select-text overflow-x-auto leading-relaxed">
                   <div>
-                    <span className="text-gray-300 font-bold select-none">Input: </span>
-                    <span className="text-white font-bold">{example.input}</span>
+                    <span className="text-gray-400 font-bold select-none">Input: </span>
+                    <span>{example.input}</span>
                   </div>
                   <div>
-                    <span className="text-gray-300 font-bold select-none">Output: </span>
-                    <span className="text-[#00b8a3] font-bold">{example.output}</span>
+                    <span className="text-gray-400 font-bold select-none">Output: </span>
+                    <span className="text-[#ff6b00] font-bold">{example.output}</span>
                   </div>
                   {example.explanation && (
-                    <div className="whitespace-pre-line mt-1">
-                      <span className="text-gray-300 font-bold select-none">Explanation: </span>
-                      <span className="text-white font-bold">{example.explanation}</span>
+                    <div className="whitespace-pre-line mt-1 text-[#c5c8c6]">
+                      <span className="text-gray-400 font-bold select-none">Explanation: </span>
+                      <span>{example.explanation}</span>
                     </div>
                   )}
                 </div>
@@ -301,11 +248,11 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
         {/* Constraints */}
         {problem.constraints && problem.constraints.length > 0 && (
           <div className="space-y-3 pt-2">
-            <span className="text-sm font-bold text-white">Constraints:</span>
-            <ul className="list-disc pl-5 text-xs text-gray-300 space-y-2 font-mono">
+            <span className="text-sm font-bold text-white">Constraints</span>
+            <ul className="list-disc pl-5 text-sm text-gray-300 space-y-2 font-mono">
               {problem.constraints.map((constraint, idx) => (
                 <li key={idx} className="leading-relaxed">
-                  <span className="bg-[#2d2d2d] px-1.5 py-0.5 rounded text-gray-200 border border-[#3e3e3e]">
+                  <span className="bg-[#111111] px-2 py-0.5 rounded text-gray-200">
                     {constraint}
                   </span>
                 </li>
@@ -316,9 +263,9 @@ export default function ProblemDescription({ problem }: ProblemDescriptionProps)
 
         {/* Follow-up */}
         {problem.follow_up && (
-          <div className="p-4 bg-[#3a3a3a]/20 border border-[#3e3e3e] rounded-lg text-xs leading-relaxed text-gray-300 mt-4 shadow-sm">
-            <span className="font-bold text-white block mb-1">Follow-up:</span>
-            <p className="italic text-gray-300">{problem.follow_up}</p>
+          <div className="p-4 bg-[#111111] rounded-xl text-sm leading-relaxed text-gray-300 mt-4">
+            <span className="font-bold text-white block mb-1">Follow-up</span>
+            <p className="italic">{problem.follow_up}</p>
           </div>
         )}
       </div>

@@ -39,13 +39,13 @@ export default function DeleteProblemButton({ slug, title }: DeleteProblemButton
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      className="inline-flex items-center justify-center w-7 h-7 bg-[#4a151b]/40 hover:bg-red-600 rounded-full text-red-400 hover:text-white transition-all shadow border border-red-500/20 disabled:opacity-50"
+      className="inline-flex items-center justify-center w-8 h-8 bg-red-950/40 hover:bg-red-600 rounded text-red-400 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
       title="Delete Problem"
     >
       {isDeleting ? (
-        <Loader2 size={11} className="animate-spin" />
+        <Loader2 size={12} className="animate-spin" />
       ) : (
-        <Trash2 size={11} />
+        <Trash2 size={12} />
       )}
     </button>
   );

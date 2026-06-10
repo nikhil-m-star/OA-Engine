@@ -96,14 +96,13 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         body: JSON.stringify({
           code,
           input: customInput,
-          starterCode: problem.starter_code.cpp, // C++ starter template is parsed on server for method sigs
+          starterCode: problem.starter_code.cpp,
           language,
         }),
       });
 
       const result = await response.json();
       
-      // Determine if there is an expected output for this input
       let expectedOutput = "";
       const matchingExample = problem.examples.find(
         ex => ex.input.trim() === customInput.trim()
@@ -114,7 +113,6 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         expectedOutput = problem.examples[0].output;
       }
 
-      // Check correctness
       let status: "Accepted" | "Wrong Answer" | "Runtime Error" | "Compile Error" = "Accepted";
       let formattedOutput = "";
       
@@ -124,7 +122,6 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         formattedOutput = String(result.output);
 
         if (expectedOutput) {
-          // Normalize formatting for exact comparison
           const cleanOutput = formattedOutput.replace(/\s+/g, "").toLowerCase();
           const cleanExpected = expectedOutput.replace(/\s+/g, "").toLowerCase();
           if (cleanOutput !== cleanExpected) {
@@ -205,9 +202,9 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         status,
         output: outputDetails,
         expected: expectedDetails || undefined,
-        error: errorDetails || undefined,
-        runtime: result.runtime || `${Math.floor(Math.random() * 5) + 10} ms`,
-        memory: result.memory || `${(Math.random() * 1.5 + 4).toFixed(1)} MB`,
+        error: errorDetails,
+        runtime: result.runtime || `${Math.floor(Math.random() * 20) + 10} ms`,
+        memory: result.memory || `${(Math.random() * 2 + 5).toFixed(1)} MB`,
         input: inputDetails
       });
     } catch (err) {
@@ -224,14 +221,14 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1e1e1e] text-gray-200 relative overflow-hidden select-none">
+    <div className="flex flex-col h-full bg-black text-[#eff2f6f2] relative overflow-hidden select-none font-sans text-sm">
       {/* Editor Header */}
-      <div className="flex items-center justify-between px-4 border-b border-[#3e3e3e] bg-[#2d2d2d] text-xs h-[37px] shrink-0">
+      <div className="flex items-center justify-between px-4 bg-[#050505] h-[40px] shrink-0">
         <div className="flex items-center space-x-2 select-none">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript" | "java")}
-            className="bg-[#2a2a2a] text-gray-200 font-semibold px-2 py-1 rounded cursor-pointer border border-[#3e3e3e] focus:border-[#ffa116] outline-none hover:bg-[#333] transition-colors"
+            className="bg-[#111111] text-[#eff2f6f2] font-bold px-3 py-1 rounded cursor-pointer outline-none focus:ring-1 focus:ring-[#ff6b00] transition-colors border-none"
           >
             <option value="cpp">C++ (GCC 13)</option>
             <option value="python">Python (3.11)</option>
@@ -243,14 +240,14 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
         <div className="flex items-center space-x-4">
           <button 
             onClick={handleResetCode} 
-            className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors"
-            title="Reset to starter code"
+            className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors font-bold text-xs"
+            title="Reset code"
           >
             <RotateCcw size={14} />
-            <span className="hidden sm:inline">Reset Code</span>
+            <span className="hidden sm:inline">Reset</span>
           </button>
           
-          <button className="text-gray-400 hover:text-white transition-colors" title="Editor Settings">
+          <button className="text-gray-400 hover:text-white transition-colors" title="Settings">
             <Settings size={14} />
           </button>
         </div>
@@ -271,7 +268,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
             automaticLayout: true,
             scrollBeyondLastLine: false,
             padding: { top: 12, bottom: 12 },
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+            fontFamily: "var(--font-geist-mono), monospace",
             lineNumbers: "on",
             renderLineHighlight: "all",
           }}
@@ -279,27 +276,27 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
 
         {/* Collapsible Console / Run Drawer */}
         <div 
-          className={`absolute bottom-0 left-0 right-0 bg-[#282828] border-t border-[#3e3e3e] transition-all duration-300 ease-in-out z-10 flex flex-col shadow-2xl ${
-            isConsoleOpen ? "h-[280px]" : "h-0 border-t-0"
+          className={`absolute bottom-0 left-0 right-0 bg-[#0a0a0a] transition-all duration-300 ease-in-out z-10 flex flex-col shadow-2xl ${
+            isConsoleOpen ? "h-[280px]" : "h-0"
           }`}
         >
           {isConsoleOpen && (
             <>
               {/* Drawer Header Tabs */}
-              <div className="flex items-center justify-between px-4 bg-[#202020] border-b border-[#3e3e3e] h-[36px] shrink-0">
-                <div className="flex items-center space-x-4 h-full text-xs">
+              <div className="flex items-center justify-between px-4 bg-[#050505] h-[40px] shrink-0">
+                <div className="flex items-center space-x-4 h-full text-xs font-bold">
                   <button 
                     onClick={() => setConsoleTab("testcase")}
-                    className={`font-semibold h-full px-1 border-b-2 transition-colors ${
-                      consoleTab === "testcase" ? "text-white border-[#ffa116]" : "text-gray-400 hover:text-white border-transparent"
+                    className={`h-full px-1.5 transition-colors ${
+                      consoleTab === "testcase" ? "text-[#ff6b00]" : "text-gray-400 hover:text-white"
                     }`}
                   >
                     Testcase
                   </button>
                   <button 
                     onClick={() => setConsoleTab("result")}
-                    className={`font-semibold h-full px-1 border-b-2 transition-colors ${
-                      consoleTab === "result" ? "text-white border-[#ffa116]" : "text-gray-400 hover:text-white border-transparent"
+                    className={`h-full px-1.5 transition-colors ${
+                      consoleTab === "result" ? "text-[#ff6b00]" : "text-gray-400 hover:text-white"
                     }`}
                   >
                     Result
@@ -310,55 +307,54 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                   onClick={() => setIsConsoleOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  <ChevronDown size={16} />
+                  <ChevronDown size={18} />
                 </button>
               </div>
 
               {/* Drawer Content */}
-              <div className="flex-1 p-4 font-mono text-xs overflow-y-auto scrollbar-thin select-text">
+              <div className="flex-1 p-4 font-mono text-sm overflow-y-auto scrollbar-thin select-text">
                 {consoleTab === "testcase" ? (
                   <div className="space-y-2 h-full flex flex-col">
-                    <div className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Standard Input</div>
+                    <div className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Input</div>
                     <textarea
                       value={customInput}
                       onChange={(e) => setCustomInput(e.target.value)}
                       placeholder="e.g. nums = [2,7,11,15], target = 9"
-                      className="flex-1 w-full bg-[#1e1e1e] border border-[#3e3e3e] rounded p-2.5 text-gray-200 font-mono text-xs leading-relaxed outline-none focus:border-[#ffa116] resize-none scrollbar-thin shadow-inner"
+                      className="flex-1 w-full bg-black rounded p-3 text-gray-200 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-[#ff6b00] resize-none border-none"
                       spellCheck="false"
                     />
                   </div>
                 ) : (
                   <div className="h-full">
                     {isRunning ? (
-                      <div className="flex flex-col items-center justify-center h-full space-y-2 text-gray-400">
-                        <Loader2 className="animate-spin text-[#ffa116]" size={24} />
-                        <span>Compiling & Running code...</span>
+                      <div className="flex flex-col items-center justify-center h-full space-y-2.5 text-gray-400">
+                        <Loader2 className="animate-spin text-[#ff6b00]" size={24} />
+                        <span className="font-bold text-xs">Compiling & Running...</span>
                       </div>
                     ) : hasRun && runResult ? (
-                      <div className="space-y-3.5">
-                        <div className="flex items-center justify-between border-b border-[#383838] pb-2">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between pb-2">
                           <div className="flex items-center space-x-2">
                             {runResult.status === "Accepted" ? (
                               <>
                                 <CheckCircle2 size={16} className="text-[#00b8a3]" />
-                                <span className="text-[#00b8a3] font-bold text-sm">Accepted</span>
+                                <span className="text-[#00b8a3] font-bold text-base">Accepted</span>
                               </>
                             ) : runResult.status === "Wrong Answer" ? (
                               <>
                                 <XCircle size={16} className="text-[#ff375f]" />
-                                <span className="text-[#ff375f] font-bold text-sm">Wrong Answer</span>
+                                <span className="text-[#ff375f] font-bold text-base">Wrong Answer</span>
                               </>
                             ) : (
                               <>
                                 <AlertCircle size={16} className="text-[#ff375f]" />
-                                <span className="text-[#ff375f] font-bold text-sm">{runResult.status}</span>
+                                <span className="text-[#ff375f] font-bold text-base">{runResult.status}</span>
                               </>
                             )}
                             
                             {runResult.success && (
-                              <div className="flex items-center space-x-2 text-[10px] text-gray-400 bg-[#3e3e3e]/40 px-2 py-0.5 rounded border border-[#3e3e3e] ml-2">
+                              <div className="flex items-center space-x-2.5 text-xs text-gray-400 bg-[#111111] px-3 py-1 rounded ml-2 font-bold">
                                 <span>Runtime: {runResult.runtime}</span>
-                                <span className="h-2 w-[1px] bg-gray-500" />
                                 <span>Memory: {runResult.memory}</span>
                               </div>
                             )}
@@ -368,22 +364,22 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                         {!runResult.success ? (
                           <div className="space-y-1">
                             <span className="text-[10px] text-red-400 font-bold block uppercase tracking-wider">Error Details</span>
-                            <pre className="bg-[#4a151b]/20 border border-red-500/30 text-red-300 p-3 rounded leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-[175px] scrollbar-thin">
+                            <pre className="bg-red-950/20 text-red-300 p-4 rounded leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-[175px] font-mono text-xs">
                               {runResult.error}
                             </pre>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
-                              <span className="text-[10px] text-gray-400 font-semibold block">Input</span>
-                              <div className="bg-[#1e1e1e] p-2.5 rounded border border-[#3e3e3e] text-gray-200 overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed shadow-inner">
+                              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Input</span>
+                              <div className="bg-black p-3 rounded text-gray-200 overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed font-mono text-xs">
                                 {runResult.input}
                               </div>
                             </div>
                             
                             <div className="space-y-1">
-                              <span className="text-[10px] text-gray-400 font-semibold block">Output</span>
-                              <div className={`bg-[#1e1e1e] p-2.5 rounded border border-[#3e3e3e] overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed shadow-inner font-bold ${
+                              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Output</span>
+                              <div className={`bg-black p-3 rounded overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed font-mono text-xs font-bold ${
                                 runResult.status === "Accepted" ? "text-[#00b8a3]" : "text-[#ff375f]"
                               }`}>
                                 {runResult.output}
@@ -391,9 +387,9 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                             </div>
 
                             <div className="space-y-1">
-                              <span className="text-[10px] text-gray-400 font-semibold block">Expected</span>
-                              <div className="bg-[#1e1e1e] p-2.5 rounded border border-[#3e3e3e] text-gray-200 overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed shadow-inner">
-                                {runResult.expected || "N/A (Custom Testcase)"}
+                              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Expected</span>
+                              <div className="bg-black p-3 rounded text-gray-200 overflow-x-auto select-all max-h-[110px] whitespace-pre-wrap leading-relaxed font-mono text-xs">
+                                {runResult.expected || "N/A"}
                               </div>
                             </div>
                           </div>
@@ -402,7 +398,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full space-y-2 text-gray-400 text-center py-6">
                         <PlayCircle size={32} className="text-gray-500" />
-                        <span>Please run your code first to view the run results.</span>
+                        <span className="font-bold text-xs">Run code to view results.</span>
                       </div>
                     )}
                   </div>
@@ -414,29 +410,29 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
       </div>
 
       {/* Editor Footer */}
-      <div className="flex items-center justify-between px-4 border-t border-[#3e3e3e] bg-[#2d2d2d] h-[48px] shrink-0 z-20">
+      <div className="flex items-center justify-between px-4 bg-[#050505] h-[50px] shrink-0 z-20">
         <button
           onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-          className="flex items-center space-x-1 px-3 py-1.5 rounded bg-[#3e3e3e] hover:bg-[#4a4a4a] text-xs font-semibold text-gray-300 transition-colors border border-[#4d4d4d]"
+          className="flex items-center space-x-1 px-3.5 py-1.5 rounded bg-[#111111] hover:bg-[#222] text-sm font-bold text-gray-300 transition-colors"
         >
           <span>Console</span>
           {isConsoleOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           <button
             onClick={handleRunCode}
             disabled={isRunning}
-            className="flex items-center space-x-1 px-4 py-1.5 rounded bg-[#3a3a3a] hover:bg-[#4a4a4a] active:bg-[#2c2c2c] disabled:opacity-50 text-xs font-semibold text-white transition-all border border-[#4d4d4d]"
+            className="flex items-center space-x-1.5 px-4.5 py-1.5 rounded bg-[#111111] hover:bg-[#222] active:bg-[#000] disabled:opacity-50 text-sm font-bold text-white transition-all"
           >
-            <Play size={10} fill="white" />
-            <span>Run Code</span>
+            <Play size={11} fill="white" />
+            <span>Run</span>
           </button>
           
           <button
             onClick={handleSubmitCode}
             disabled={isRunning || !problem.test_cases || problem.test_cases.length === 0}
-            className="px-4 py-1.5 rounded bg-[#00b8a3] hover:bg-[#00b8a3]/90 active:bg-[#009c8a] disabled:opacity-50 text-xs font-bold text-black transition-all shadow-md cursor-pointer flex items-center space-x-1"
+            className="px-5 py-1.5 rounded bg-[#00b8a3] hover:bg-[#00c9b2] active:bg-[#009c8a] disabled:opacity-50 text-sm font-extrabold text-black transition-all cursor-pointer flex items-center space-x-1"
           >
             {isRunning ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
             <span>Submit</span>
