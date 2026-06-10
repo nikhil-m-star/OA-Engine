@@ -1,101 +1,191 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import JSONInput from "@/components/JSONInput";
+import ProblemDescription from "@/components/ProblemDescription";
+import { ProblemData, SavedProblemState } from "@/app/types";
+import { Code, BookOpen, AlertTriangle } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const CodeEditor = dynamic(() => import("@/components/CodeEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex flex-col items-center justify-center bg-[#1e1e1e] text-gray-400 font-mono text-xs">
+      <div className="w-6 h-6 border-2 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin mb-2" />
+      <span>Initializing Monaco Workspace...</span>
+    </div>
+  )
+});
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [problem, setProblem] = useState<ProblemData | null>(null);
+  const [activeTab, setActiveTab] = useState<"description" | "json">("json");
+  const [code, setCode] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Check query parameter on mount
+  useEffect(() => {
+    async function loadWorkspace() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const problemSlug = params.get("problem");
+
+        if (problemSlug) {
+          // If a query parameter slug is provided, fetch details from Neon DB
+          const res = await fetch(`/api/problems/${problemSlug}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              setProblem(json.data);
+              setCode(json.data.starter_code.cpp || "");
+              setActiveTab("description");
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error reading initial workspace state:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadWorkspace();
+  }, []);
+
+  const handleRenderProblem = async (data: ProblemData) => {
+    // Update state immediately
+    setProblem(data);
+    setCode(data.starter_code.cpp || "");
+    setActiveTab("description");
+
+    // Post to Neon DB in the background
+    try {
+      const response = await fetch("/api/problems", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json();
+        console.error("Failed to store problem on Neon DB:", errJson.error);
+      } else {
+        console.log("Successfully stored problem on Neon DB:", data.slug);
+      }
+    } catch (err) {
+      console.error("Failed to POST problem to Neon DB:", err);
+    }
+  };
+
+  const handleResetData = () => {
+    setProblem(null);
+    setCode("");
+    setActiveTab("json");
+    // Clear problem slug from URL
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", "/");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#1a1a1a] text-gray-400 font-mono text-sm">
+        <div className="flex flex-col items-center space-y-2">
+          <div className="w-8 h-8 border-4 border-t-[#ffa116] border-r-transparent border-b-[#ffa116] border-l-transparent rounded-full animate-spin" />
+          <span>Loading LeetCode Workspace...</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden bg-[#1a1a1a] select-none text-gray-200">
+      {/* Top Navbar */}
+      <Navbar
+        problemId={problem?.id}
+        problemTitle={problem?.title}
+        onReset={handleResetData}
+        hasProblem={!!problem}
+      />
+
+      {/* Main Split Layout Workspace */}
+      <div className="flex-1 flex w-full overflow-hidden p-1.5 gap-1.5 bg-[#1a1a1a]">
+        
+        {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
+        <div className="w-[40%] min-w-[320px] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
+          
+          {/* Main Left Tabs (Description vs JSON Input) */}
+          <div className="flex items-center bg-[#2d2d2d] border-b border-[#3e3e3e] h-[37px] shrink-0 text-xs px-2 space-x-1 select-none">
+            <button
+              onClick={() => {
+                if (problem) setActiveTab("description");
+              }}
+              disabled={!problem}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold ${
+                activeTab === "description"
+                  ? "bg-[#3e3e3e] text-white"
+                  : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
+              }`}
+            >
+              <BookOpen size={13} />
+              <span>Description</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("json")}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded transition-all font-semibold cursor-pointer ${
+                activeTab === "json"
+                  ? "bg-[#3e3e3e] text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Code size={13} />
+              <span>JSON Input</span>
+            </button>
+          </div>
+
+          {/* Left Panel Body Content */}
+          <div className="flex-1 overflow-hidden relative">
+            {activeTab === "description" && problem ? (
+              <ProblemDescription problem={problem} />
+            ) : (
+              <JSONInput
+                onRender={handleRenderProblem}
+                initialValue={problem ? JSON.stringify(problem, null, 2) : undefined}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
+        <div className="w-[60%] flex flex-col h-full bg-[#282828] rounded-lg border border-[#383838] overflow-hidden">
+          {problem ? (
+            <CodeEditor
+              problem={problem}
+              code={code}
+              onChange={setCode}
+            />
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-[#1e1e1e] text-gray-400 font-sans space-y-4">
+              <div className="p-4 bg-[#2d2d2d] rounded-full border border-[#3e3e3e] text-[#ffa116]">
+                <AlertTriangle size={32} />
+              </div>
+              <div className="space-y-1 max-w-sm">
+                <h3 className="text-white font-semibold text-sm">No Problem Rendered</h3>
+                <p className="text-xs leading-relaxed text-gray-500">
+                  Paste a problem JSON on the left panel and click <strong className="text-[#ffa116]">Render Problem</strong> to initialize the C++ code editor workspace.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   );
 }

@@ -3,25 +3,87 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #1a1a1a;
+  --foreground: #eff2f6f2;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Custom Scrollbar Styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #3e3e3e;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* LeetCode Problem Description HTML Styles */
+.problem-description-html p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.problem-description-html code {
+  background-color: #2d2d2d;
+  color: #ffffff;
+  font-weight: bold;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 85%;
+  border: 1px solid #3e3e3e;
+}
+
+.problem-description-html b,
+.problem-description-html strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.problem-description-html i,
+.problem-description-html em {
+  font-style: italic;
+}
+
+.problem-description-html ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.problem-description-html li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Micro-animations */
+@keyframes spin-hover {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
+
+.animate-spin-hover:hover {
+  animation: spin-hover 0.8s linear infinite;
+}
+
