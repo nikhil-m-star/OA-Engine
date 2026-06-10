@@ -66,6 +66,7 @@ A LEGITIMATE problem must have:
 - A clear problem statement describing what to compute/solve
 - Input/output format or examples
 - It should be an actual algorithmic/data structure/coding challenge
+- Verify that it is possible to create verifiable test cases for this
 
 NOT legitimate:
 - Random text, essays, articles, or spam

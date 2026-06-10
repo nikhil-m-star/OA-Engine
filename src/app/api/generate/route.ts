@@ -40,6 +40,7 @@ Your task is to parse this information and output a single, raw, valid JSON obje
   "companies": ["Google", "Meta"], // array of company names (strings) where this question was asked, extracted from any text headers, assessment titles, or standard company associations. Return an empty array [] if no company associations are mentioned.
   "test_cases": [
     // MUST contain a minimum of 30 diverse and comprehensive test cases for verifying code correctness.
+    // VERIFY ALL TEST CASES CAREFULLY! Make sure the expected output accurately corresponds to the input for every single testcase.
     // Cover boundary values, small lists, large lists, negative numbers, zeros, duplicates, etc.
     // Follow the input/output formatting of the examples exactly. Generates at least 30 test cases!
     {
