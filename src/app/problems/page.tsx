@@ -1,13 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { sql, initDb } from "@/lib/db";
-import { Play, Tag, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import DeleteProblemButton from "@/components/DeleteProblemButton";
 import AddProblemButton from "@/components/AddProblemButton";
 
-// Force dynamic rendering to query Neon Postgres directly on every load
 export const dynamic = "force-dynamic";
 
 interface ProblemSummary {
@@ -67,18 +66,13 @@ export default async function ProblemsPage() {
     <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
       <Navbar />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6 animate-page-in">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-5 animate-page-in">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
-          <h1 className="text-3xl font-black text-white uppercase tracking-wider">Problems</h1>
-          
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Problems</h1>
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 text-sm text-gray-400 bg-[#0a0a0a] px-4 py-2 rounded-lg font-bold">
-              <span className="text-[#E8730C]">{problems.length}</span>
-              <span>Total</span>
-            </div>
+            <span className="text-sm text-gray-500 font-medium">{problems.length} problems</span>
             <AddProblemButton variant="inline" />
           </div>
         </div>
@@ -89,97 +83,77 @@ export default async function ProblemsPage() {
             <p className="mt-1">{error}</p>
           </div>
         ) : problems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-[#0a0a0a] rounded-2xl">
-            <HelpCircle size={44} className="text-gray-600 animate-bounce" />
-            <h3 className="text-white font-bold text-base">No Saved Problems</h3>
-            <Link
-              href="/workspace"
-              className="px-5 py-2.5 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold text-xs rounded transition-all cursor-pointer"
-            >
-              Add Problem
-            </Link>
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-5">
+            <HelpCircle size={40} className="text-gray-700" />
+            <p className="text-gray-500 text-sm">No problems yet</p>
+            <AddProblemButton variant="inline" />
           </div>
         ) : (
-          <div className="bg-[#0a0a0a] rounded-2xl overflow-hidden">
-            <table className="w-full text-left border-collapse text-sm select-text">
-              <thead>
-                <tr className="bg-[#050505] text-gray-400 font-bold uppercase tracking-wider text-xs">
-                  <th className="py-4 px-6 w-20">ID</th>
-                  <th className="py-4 px-6">Title</th>
-                  <th className="py-4 px-6 w-28">Difficulty</th>
-                  <th className="py-4 px-6 hidden md:table-cell">Tags</th>
-                  <th className="py-4 px-6 hidden lg:table-cell">Companies</th>
-                  <th className="py-4 px-6 w-24 text-center">Action</th>
-                  {isAdmin && <th className="py-4 px-6 w-20 text-center">Admin</th>}
-                </tr>
-              </thead>
-              <tbody className="font-bold">
-                {problems.map((problem) => (
-                  <tr 
-                    key={problem.slug} 
-                    className="hover:bg-[#121212] transition-colors group"
-                  >
-                    <td className="py-4.5 px-6 text-gray-500 font-mono">{problem.id}</td>
-                    <td className="py-4.5 px-6">
-                      <Link 
-                        href={`/workspace?problem=${problem.slug}`}
-                        className="text-white hover:text-[#E8730C] transition-colors text-base"
-                      >
-                        {problem.title}
-                      </Link>
-                    </td>
-                    <td className="py-4.5 px-6">
-                      <span className={`${getDiffColor(problem.difficulty)}`}>
-                        {problem.difficulty}
-                      </span>
-                    </td>
-                    <td className="py-4.5 px-6 hidden md:table-cell">
-                      <div className="flex flex-wrap gap-1.5">
-                        {problem.tags.map((tag, idx) => (
-                          <span 
-                            key={idx}
-                            className="flex items-center space-x-1 px-2.5 py-0.5 text-xs bg-[#111111] text-gray-300 rounded"
-                          >
-                            <Tag size={10} className="text-gray-500" />
-                            <span>{tag}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-4.5 px-6 hidden lg:table-cell">
-                      <div className="flex flex-wrap gap-1.5">
-                        {problem.companies && problem.companies.length > 0 ? (
-                          problem.companies.map((company, idx) => (
-                            <span 
-                              key={idx}
-                              className="px-2.5 py-0.5 text-xs bg-[#E8730C]/10 text-gray-300 rounded font-bold"
-                            >
-                              {company}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-600 text-xs italic">None</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4.5 px-6 text-center">
-                      <Link
-                        href={`/workspace?problem=${problem.slug}`}
-                        className="inline-flex items-center justify-center w-8 h-8 bg-[#111111] group-hover:bg-[#E8730C] rounded text-gray-400 group-hover:text-black transition-all"
-                        title="Solve Problem"
-                      >
-                        <Play size={13} fill="currentColor" className="ml-0.5" />
-                      </Link>
-                    </td>
-                    {isAdmin && (
-                      <td className="py-4.5 px-6 text-center">
-                        <DeleteProblemButton slug={problem.slug} title={problem.title} />
-                      </td>
+          <div className="space-y-1">
+            {problems.map((problem, index) => (
+              <Link
+                key={problem.slug}
+                href={`/workspace?problem=${problem.slug}`}
+                className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-colors group cursor-pointer ${
+                  index % 2 === 0 ? "bg-transparent" : "bg-[#0a0a0a]"
+                } hover:bg-[#111111]`}
+              >
+                {/* Left: ID + Title + Difficulty */}
+                <div className="flex items-center space-x-4 min-w-0 flex-1">
+                  <span className="text-gray-600 text-sm font-medium w-8 shrink-0 tabular-nums">{problem.id}</span>
+                  <span className="text-white text-[15px] font-medium group-hover:text-[#E8730C] transition-colors truncate">
+                    {problem.title}
+                  </span>
+                </div>
+
+                {/* Right: Tags + Difficulty + Admin */}
+                <div className="flex items-center space-x-4 shrink-0 ml-4">
+                  {/* Companies */}
+                  <div className="hidden lg:flex items-center space-x-1.5">
+                    {problem.companies && problem.companies.length > 0 ? (
+                      problem.companies.slice(0, 2).map((company, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
+                        >
+                          {company}
+                        </span>
+                      ))
+                    ) : null}
+                    {problem.companies && problem.companies.length > 2 && (
+                      <span className="text-[11px] text-gray-600">+{problem.companies.length - 2}</span>
                     )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </div>
+
+                  {/* Tags - show first 2 */}
+                  <div className="hidden md:flex items-center space-x-1.5">
+                    {problem.tags.slice(0, 2).map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {problem.tags.length > 2 && (
+                      <span className="text-[11px] text-gray-600">+{problem.tags.length - 2}</span>
+                    )}
+                  </div>
+
+                  {/* Difficulty */}
+                  <span className={`text-sm font-medium w-16 text-right ${getDiffColor(problem.difficulty)}`}>
+                    {problem.difficulty}
+                  </span>
+
+                  {/* Admin delete */}
+                  {isAdmin && (
+                    <div onClick={(e) => e.preventDefault()}>
+                      <DeleteProblemButton slug={problem.slug} title={problem.title} />
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </main>

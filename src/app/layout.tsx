@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Rubik } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-const rubik = Rubik({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-rubik",
+  variable: "--font-poppins",
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${rubik.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${poppins.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider>
           <div className="flex flex-col min-h-screen bg-black">
             <div className="flex-1 flex flex-col min-h-0">
