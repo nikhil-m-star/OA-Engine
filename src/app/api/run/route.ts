@@ -12,7 +12,7 @@ const LANGUAGE_IDS: Record<string, number> = {
 };
 
 const WANDBOX_COMPILERS: Record<string, string> = {
-  cpp: "gcc-13.2.0",
+  cpp: "gcc-head",
   python: "cpython-3.11.10",
   javascript: "nodejs-20.17.0",
   java: "openjdk-jdk-21.0.2"
@@ -867,12 +867,12 @@ function generateCppMultiSource(userCode: string, methodName: string, returnType
     params.forEach((param: { name: string; type: string }) => {
       const val = argsMap[param.name];
       const cppVal = formatValueToCpp(val, param.type);
-      const cleanType = param.type.replace(/[&*]/g, "").trim();
+      const cleanType = param.type.replace(/[&*]/g, "").trim().replace(/^const\s+/, "").trim();
       
       if (cleanType === "ListNode" || cleanType === "TreeNode") {
         cppArgsDeclarations += `    ${cleanType}* ${param.name} = ${cppVal};\n`;
       } else {
-        cppArgsDeclarations += `    ${param.type} ${param.name} = ${cppVal};\n`;
+        cppArgsDeclarations += `    ${cleanType} ${param.name} = ${cppVal};\n`;
       }
       argsValuesPassed.push(param.name);
     });
@@ -1675,12 +1675,12 @@ export async function POST(req: NextRequest) {
         params.forEach((param: { name: string; type: string }) => {
           const val = argsMap[param.name];
           const cppVal = formatValueToCpp(val, param.type);
-          const cleanType = param.type.replace(/[&*]/g, "").trim();
+          const cleanType = param.type.replace(/[&*]/g, "").trim().replace(/^const\s+/, "").trim();
           
           if (cleanType === "ListNode" || cleanType === "TreeNode") {
             cppArgsDeclarations += `    ${cleanType}* ${param.name} = ${cppVal};\n`;
           } else {
-            cppArgsDeclarations += `    ${param.type} ${param.name} = ${cppVal};\n`;
+            cppArgsDeclarations += `    ${cleanType} ${param.name} = ${cppVal};\n`;
           }
           argsValuesPassed.push(param.name);
         });
@@ -1824,7 +1824,7 @@ export async function POST(req: NextRequest) {
 
       fs.writeFileSync(sourceFilePath, fullSourceCode);
 
-      const compileCmd = `g++ -std=c++17 "${sourceFilePath}" -o "${binaryFilePath}"`;
+      const compileCmd = `g++ -std=c++20 "${sourceFilePath}" -o "${binaryFilePath}"`;
       const compileRes = await runCommand(compileCmd, tempDir);
 
       if (compileRes.code !== 0) {
