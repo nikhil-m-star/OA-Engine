@@ -4,6 +4,7 @@ import { sql, initDb } from "@/lib/db";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Navbar from "@/components/Navbar";
 import { Terminal, Database, User, ArrowRight } from "lucide-react";
+import AddProblemButton from "@/components/AddProblemButton";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +87,7 @@ export default async function HomePage() {
         </div>
 
         {/* Navigation Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto w-full">
           
           {/* Card 1: Workspace Editor */}
           <Link
@@ -143,6 +144,9 @@ export default async function HomePage() {
               <ArrowRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
+
+          {/* Card 4: Add Problem */}
+          <AddProblemButton variant="card" />
 
         </div>
 

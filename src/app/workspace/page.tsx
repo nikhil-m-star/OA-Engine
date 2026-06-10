@@ -66,7 +66,7 @@ export default function WorkspacePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, allowOverwrite: true }),
       });
 
       if (!response.ok) {

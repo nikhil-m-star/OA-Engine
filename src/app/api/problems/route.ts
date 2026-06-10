@@ -22,18 +22,34 @@ export async function GET() {
   }
 }
 
-// POST handler: Upserts a problem into the database
+// POST handler: Inserts a problem into the database with duplicate detection
 export async function POST(req: NextRequest) {
   try {
     await initDb();
     
-    const problem = await req.json();
+    const body = await req.json();
+    const problem = body;
+    const allowOverwrite = body.allowOverwrite === true;
 
     // Validate request schema
     const requiredKeys = ["id", "title", "slug", "difficulty", "tags", "description", "constraints", "examples", "starter_code"];
     for (const key of requiredKeys) {
       if (!(key in problem)) {
         return NextResponse.json({ success: false, error: `Missing required field: "${key}"` }, { status: 400 });
+      }
+    }
+
+    // Duplicate detection (skip if workspace overwrite mode)
+    if (!allowOverwrite) {
+      const existing = await sql`
+        SELECT id, title, slug FROM problems WHERE slug = ${problem.slug} LIMIT 1
+      `;
+      if (existing.length > 0) {
+        return NextResponse.json({
+          success: false,
+          error: `Duplicate: "${existing[0].title}" already exists with slug "${problem.slug}".`,
+          isDuplicate: true,
+        }, { status: 409 });
       }
     }
 
@@ -67,3 +83,4 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 }
+

@@ -5,6 +5,7 @@ import { Play, Tag, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import DeleteProblemButton from "@/components/DeleteProblemButton";
+import AddProblemButton from "@/components/AddProblemButton";
 
 // Force dynamic rendering to query Neon Postgres directly on every load
 export const dynamic = "force-dynamic";
@@ -73,9 +74,12 @@ export default async function ProblemsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
           <h1 className="text-3xl font-black text-white uppercase tracking-wider">Problems</h1>
           
-          <div className="flex items-center space-x-2 text-sm text-gray-400 bg-[#0a0a0a] px-4 py-2 rounded-lg font-bold">
-            <span className="text-[#E8730C]">{problems.length}</span>
-            <span>Total</span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 text-sm text-gray-400 bg-[#0a0a0a] px-4 py-2 rounded-lg font-bold">
+              <span className="text-[#E8730C]">{problems.length}</span>
+              <span>Total</span>
+            </div>
+            <AddProblemButton variant="inline" />
           </div>
         </div>
 
