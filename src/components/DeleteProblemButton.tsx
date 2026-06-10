@@ -13,7 +13,9 @@ export default function DeleteProblemButton({ slug, title }: DeleteProblemButton
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (window.confirm(`Are you sure you want to permanently delete "${title}"?`)) {
       setIsDeleting(true);
       try {

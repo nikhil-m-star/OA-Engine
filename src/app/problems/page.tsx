@@ -145,7 +145,7 @@ export default async function ProblemsPage() {
                     </span>
 
                     {isAdmin && (
-                      <div onClick={(e) => e.preventDefault()}>
+                      <div className="flex items-center">
                         <DeleteProblemButton slug={problem.slug} title={problem.title} />
                       </div>
                     )}
