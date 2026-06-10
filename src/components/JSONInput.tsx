@@ -26,6 +26,13 @@ const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a str
   ],
   "follow_up": "Can you solve it in O(n) time complexity?",
   "companies": ["Google", "Meta"],
+  "test_cases": [
+    // Must contain a minimum of 30 diverse and comprehensive test cases
+    {
+      "input": "nums = [2,7,11,15], target = 9",
+      "output": "[0,1]"
+    }
+  ],
   "starter_code": {
     "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
   }
@@ -63,6 +70,11 @@ const DEFAULT_TEMPLATE: ProblemData = {
       "input": "nums = [3,3], target = 6",
       "output": "[0,1]"
     }
+  ],
+  test_cases: [
+    { "input": "nums = [2,7,11,15], target = 9", "output": "[0,1]" },
+    { "input": "nums = [3,2,4], target = 6", "output": "[1,2]" },
+    { "input": "nums = [3,3], target = 6", "output": "[0,1]" }
   ],
   follow_up: "Can you solve it in O(n) time complexity?",
   starter_code: {
