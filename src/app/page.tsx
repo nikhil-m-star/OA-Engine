@@ -73,7 +73,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin">
+    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin">
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-24 flex flex-col justify-center space-y-16 sm:space-y-24 z-10 animate-page-in">
