@@ -125,7 +125,7 @@ export default async function HomePage() {
                 {stats.easy}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
-                Easy Slugs
+                Easy
               </div>
             </div>
             <div className="space-y-1 pt-4 md:pt-0">
@@ -133,7 +133,7 @@ export default async function HomePage() {
                 {stats.medium}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
-                Medium Slugs
+                Medium
               </div>
             </div>
             <div className="space-y-1 pt-4 md:pt-0">
@@ -141,7 +141,7 @@ export default async function HomePage() {
                 {stats.hard}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
-                Hard Slugs
+                Hard
               </div>
             </div>
           </div>

@@ -86,7 +86,7 @@ export default function ProfilePage() {
   const mediumCount = problems.filter((p) => p.difficulty.toLowerCase() === "medium").length;
   const hardCount = problems.filter((p) => p.difficulty.toLowerCase() === "hard").length;
 
-  // Track unique solved problem slugs (status === 'Accepted')
+  // Track unique solved problems (status === 'Accepted')
   const solvedSlugs = new Set(
     submissions
       .filter((s) => s.status === "Accepted")
