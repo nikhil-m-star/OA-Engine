@@ -73,33 +73,16 @@ export default async function HomePage() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin"
-      style={{ 
-        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.015) 1px, transparent 0)', 
-        backgroundSize: '32px 32px' 
-      }}
-    >
-      {/* Custom Glowing Ambient Background Orbs */}
-      <div className="absolute top-[8%] left-[-10%] w-[500px] h-[500px] bg-[#E8730C]/5 rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#00b8a3]/5 rounded-full blur-[160px] pointer-events-none z-0" />
-      <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] bg-[#ff375f]/3 rounded-full blur-[140px] pointer-events-none z-0" />
-
+    <div className="min-h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin">
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-24 flex flex-col justify-center space-y-16 sm:space-y-24 z-10 animate-page-in">
         
         {/* Hero Banner Section */}
         <div className="text-center space-y-6 max-w-3xl mx-auto">
-          {/* Slogan Pill Badge */}
-          <div className="inline-flex items-center space-x-1.5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 rounded-full px-4 py-1.5 text-[10px] font-black tracking-widest uppercase text-gray-400 backdrop-blur-md transition-colors cursor-default">
-            <Sparkles size={11} className="text-[#E8730C]" />
-            <span>Developer Sandbox Environment</span>
-          </div>
-
           <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.95] text-white">
             Supercharge your <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-[#E8730C] via-[#f58d33] to-[#F28B2D] bg-clip-text text-transparent">
+            <span className="text-[#E8730C]">
               Online Assessments
             </span>.
           </h1>
@@ -112,7 +95,7 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link 
               href="/workspace" 
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_30px_rgba(232,115,12,0.2)] hover:shadow-[0_0_40px_rgba(232,115,12,0.45)] flex items-center justify-center space-x-2 transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 transform hover:-translate-y-0.5"
             >
               <span>Open Workspace</span>
               <ArrowRight size={14} strokeWidth={3} />
@@ -126,28 +109,11 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Dynamic Database Statistics Panel */}
-        <div className="relative bg-white/[0.015] border border-white/[0.04] rounded-2xl p-6 sm:p-8 backdrop-blur-xl max-w-3xl mx-auto w-full shadow-[0_24px_60px_rgba(0,0,0,0.7)]">
-          {/* Subtle Accent Top Border */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#E8730C]/30 to-transparent" />
-          
-          <div className="flex items-center justify-between border-b border-white/[0.04] pb-4 mb-6">
-            <div className="flex items-center space-x-2">
-              <BarChart3 size={15} className="text-[#E8730C]" />
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Live Database Diagnostics</span>
-            </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00b8a3] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00b8a3]"></span>
-              </span>
-              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Active</span>
-            </div>
-          </div>
-
+        {/* Database Statistics Panel */}
+        <div className="relative bg-[#0a0a0a] border border-white/[0.04] rounded-2xl p-6 sm:p-8 max-w-3xl mx-auto w-full">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center divide-y md:divide-y-0 md:divide-x divide-white/[0.04]">
             <div className="space-y-1 pt-4 md:pt-0">
-              <div className="text-4xl sm:text-5xl font-black text-white font-mono tracking-tighter leading-none">
+              <div className="text-4xl sm:text-5xl font-black text-white leading-none">
                 {stats.total}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
@@ -155,7 +121,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="space-y-1 pt-4 md:pt-0">
-              <div className="text-2xl sm:text-3xl font-bold text-[#00b8a3] font-mono leading-none">
+              <div className="text-2xl sm:text-3xl font-bold text-[#00b8a3] leading-none">
                 {stats.easy}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
@@ -163,7 +129,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="space-y-1 pt-4 md:pt-0">
-              <div className="text-2xl sm:text-3xl font-bold text-[#ffc01e] font-mono leading-none">
+              <div className="text-2xl sm:text-3xl font-bold text-[#ffc01e] leading-none">
                 {stats.medium}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
@@ -171,7 +137,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="space-y-1 pt-4 md:pt-0">
-              <div className="text-2xl sm:text-3xl font-bold text-[#ff375f] font-mono leading-none">
+              <div className="text-2xl sm:text-3xl font-bold text-[#ff375f] leading-none">
                 {stats.hard}
               </div>
               <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest pt-1">
