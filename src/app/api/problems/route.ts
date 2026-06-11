@@ -54,27 +54,36 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Duplicate detection (skip if workspace overwrite mode)
-    if (!allowOverwrite) {
-      const existing = await sql<ExistingProblemRow>`
-        SELECT id, title, slug FROM problems WHERE slug = ${problem.slug} LIMIT 1
-      `;
-      if (existing.length > 0) {
+    const sanitizedDescription = sanitizeProblemDescription(problem.description);
+    if (!sanitizedDescription) {
+      return NextResponse.json({ success: false, error: "Problem description cannot be empty." }, { status: 400 });
+    }
+
+    // Determine ID to assign
+    let finalId = problem.id;
+    const existing = await sql<ExistingProblemRow>`
+      SELECT id, title, slug FROM problems WHERE slug = ${problem.slug} LIMIT 1
+    `;
+
+    if (existing.length > 0) {
+      if (!allowOverwrite) {
         return NextResponse.json({
           success: false,
           error: `Duplicate: "${existing[0].title}" already exists with slug "${problem.slug}".`,
           isDuplicate: true,
         }, { status: 409 });
       }
-    }
-
-    const sanitizedDescription = sanitizeProblemDescription(problem.description);
-    if (!sanitizedDescription) {
-      return NextResponse.json({ success: false, error: "Problem description cannot be empty." }, { status: 400 });
+      finalId = existing[0].id;
+    } else {
+      const maxRow = await sql<{ next_id: number }>`
+        SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM problems
+      `;
+      finalId = maxRow[0].next_id;
     }
 
     const savedProblem = {
       ...problem,
+      id: finalId,
       description: sanitizedDescription,
     };
 
