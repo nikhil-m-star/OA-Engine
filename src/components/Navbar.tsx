@@ -56,6 +56,14 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
           >
             Profile
           </Link>
+          <Link
+            href="/company-questions"
+            className={`px-3.5 py-2 rounded transition-all ${
+              pathname === "/company-questions" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Company Qs
+          </Link>
         </nav>
       </div>
 
