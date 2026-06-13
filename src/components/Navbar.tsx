@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RefreshCw, Terminal } from "lucide-react";
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import { RefreshCw, Terminal, Code2, Database, User, Briefcase } from "lucide-react";
 
 interface NavbarProps {
   problemId?: number;
@@ -18,12 +18,12 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
   return (
     <div className="w-full shrink-0 z-50 pointer-events-none md:mt-2">
-      <header className="pointer-events-auto mx-auto flex h-[58px] items-center justify-between bg-black/90 backdrop-blur-md px-4 md:px-6 text-[#eff2f6f2] select-none border border-[#1a1a1a] shadow-2xl transition-all duration-300
+      <header className="pointer-events-auto mx-auto flex h-[65px] items-center justify-between bg-black/90 backdrop-blur-md px-4 md:px-6 text-[#eff2f6f2] select-none border border-[#1a1a1a] shadow-2xl transition-all duration-300
         fixed bottom-4 left-4 right-4 z-50 rounded-full max-w-[calc(100%-2rem)]
         md:relative md:bottom-auto md:left-auto md:right-auto md:max-w-5xl md:rounded-full md:h-[60px]">
         
         {/* Left section: Logo & Nav Links */}
-        <div className="flex items-center space-x-2 md:space-x-6">
+        <div className="flex items-center space-x-2 md:space-x-6 w-full md:w-auto justify-around md:justify-start">
           <Link href="/" className="hidden md:flex items-center space-x-2 group">
             {/* Stylized OA logo */}
             <img
@@ -35,46 +35,50 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
           </Link>
 
           {/* Navigation Menu */}
-          <nav className="flex items-center space-x-1 text-[11px] md:text-sm font-bold">
+          <nav className="flex items-center space-x-1 text-[9px] md:text-xs font-bold w-full md:w-auto justify-around md:justify-start">
             <Link
               href="/workspace"
-              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname.startsWith("/workspace") 
                   ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
                   : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
               }`}
             >
-              Workspace
+              <Code2 size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
+              <span className="font-black">Workspace</span>
             </Link>
             <Link
               href="/problems"
-              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/problems" 
                   ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
                   : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
               }`}
             >
-              Problems
+              <Database size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
+              <span className="font-black">Problems</span>
             </Link>
             <Link
               href="/profile"
-              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/profile" 
                   ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
                   : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
               }`}
             >
-              Profile
+              <User size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
+              <span className="font-black">Profile</span>
             </Link>
             <Link
               href="/company-questions"
-              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/company-questions" 
                   ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
                   : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
               }`}
             >
-              Company Qs
+              <Briefcase size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
+              <span className="font-black">Company Qs</span>
             </Link>
           </nav>
         </div>

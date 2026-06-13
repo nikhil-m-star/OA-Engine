@@ -147,109 +147,12 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Action Modules Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto w-full">
-          
-          {/* Card 1: Workspace */}
-          <Link
-            href="/workspace"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
-              <Code2 size={120} className="text-[#E8730C]" />
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 text-[#E8730C]">
-                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20">
-                  <Terminal size={18} />
-                </div>
-                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
-                  Workspace
-                </h3>
-              </div>
-              <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                Write solutions in an interactive Monaco editor, run code against 30+ parsed test cases, and analyze execution times.
-              </p>
-            </div>
-
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
-              <span>Open IDE Workspace</span>
-              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
-
-          {/* Card 2: Problems Database */}
-          <Link
-            href="/problems"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
-              <Database size={120} className="text-[#E8730C]" />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 text-[#E8730C]">
-                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20">
-                  <Database size={18} />
-                </div>
-                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors">
-                  Problems DB
-                </h3>
-              </div>
-              <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                Explore the parsed database of technical assessment questions. Search by tags, companies, or difficulty levels.
-              </p>
-            </div>
-
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
-              <span>Browse Database</span>
-              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
-
-          {/* Card 3: Profile & Admin */}
-          <Link
-            href="/profile"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
-              <User size={120} className="text-[#E8730C]" />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 text-[#E8730C]">
-                <div className="p-2 rounded-lg bg-[#E8730C]/10 border border-[#E8730C]/20 flex items-center justify-center">
-                  <User size={18} />
-                </div>
-                <h3 className="text-base font-extrabold text-white group-hover:text-[#E8730C] transition-colors flex items-center space-x-2">
-                  <span>Profile</span>
-                  {isAdmin && (
-                    <span className="bg-red-500/10 text-red-400 text-[8px] px-1.5 py-0.5 rounded font-mono font-black uppercase tracking-wider">
-                      Admin
-                    </span>
-                  )}
-                </h3>
-              </div>
-              <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                Review your recent submission history, success rates, speed analyses, and overall preparation diagnostics.
-              </p>
-            </div>
-
-            <div className="flex items-center text-xs font-bold text-[#E8730C] space-x-1 pt-4">
-              <span>{userName ? "View Diagnostics" : "Authenticate Account"}</span>
-              <ChevronRight size={12} className="transform group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
-
-          {/* Card 4 (Conditional): Add Problem Button */}
-          {isAdmin && (
-            <div className="md:col-span-3 flex justify-center pt-2">
-              <AddProblemButton variant="card" />
-            </div>
-          )}
-
-        </div>
+        {/* Admin Section */}
+        {isAdmin && (
+          <div className="flex justify-center pt-2">
+            <AddProblemButton variant="inline" />
+          </div>
+        )}
 
         {/* Bottom footer metadata */}
         <div className="border-t border-white/[0.04] pt-8 flex flex-col md:flex-row items-center justify-between text-gray-600 text-[10px] font-mono uppercase tracking-wider">
