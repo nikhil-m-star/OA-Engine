@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Poppins } from "next/font/google";
+import { Josefin_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-const poppins = Poppins({
+const josefinSans = Josefin_Sans({
   subsets: ["latin"],
-  variable: "--font-poppins",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-josefin-sans",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const geistMono = localFont({
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${josefinSans.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider>
           <div className="flex flex-col min-h-screen bg-black">
             <div className="flex-1 flex flex-col min-h-0">
