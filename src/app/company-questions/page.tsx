@@ -143,7 +143,7 @@ export default function CompanyQuestionsPage() {
         {/* Title Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Company Questions</h1>
+            <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">Company Questions</h1>
           </div>
         </div>
 

@@ -36,51 +36,51 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
         </div>
 
         {/* Middle section: Navigation Links & Active Problem */}
-        <div className="flex items-center justify-around md:justify-center md:flex-1 w-full md:w-auto">
-          <nav className="flex items-center space-x-1 text-[9px] md:text-xs font-bold w-full md:w-auto justify-around md:justify-center">
+        <div className="flex items-center justify-around md:justify-center md:flex-grow lg:flex-1 w-full md:w-auto">
+          <nav className="flex items-center space-x-0.5 md:space-x-1.5 text-[9px] md:text-xs font-bold w-full md:w-auto justify-around md:justify-center">
             <Link
               href="/workspace"
-              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
+              className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname.startsWith("/workspace") 
-                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
-                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+                  ? "text-[#E8730C] bg-[#E8730C]/10 border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
-              <Code2 size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
-              <span className="font-black">Workspace</span>
+              <Code2 size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-black whitespace-nowrap">Workspace</span>
             </Link>
             <Link
               href="/problems"
-              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
+              className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/problems" 
-                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
-                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+                  ? "text-[#E8730C] bg-[#E8730C]/10 border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
-              <Database size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
-              <span className="font-black">Problems</span>
+              <Database size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-black whitespace-nowrap">Problems</span>
             </Link>
             <Link
               href="/profile"
-              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
+              className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/profile" 
-                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
-                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+                  ? "text-[#E8730C] bg-[#E8730C]/10 border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
-              <User size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
-              <span className="font-black">Profile</span>
+              <User size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-black whitespace-nowrap">Profile</span>
             </Link>
             <Link
               href="/company-questions"
-              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-full transition-all duration-200 active:scale-95 flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
+              className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/company-questions" 
-                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
-                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+                  ? "text-[#E8730C] bg-[#E8730C]/10 border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
-              <Briefcase size={16} className="w-4 h-4 md:w-3.5 md:h-3.5" />
-              <span className="font-black">Company Qs</span>
+              <Briefcase size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-black whitespace-nowrap">Company Qs</span>
             </Link>
           </nav>
 

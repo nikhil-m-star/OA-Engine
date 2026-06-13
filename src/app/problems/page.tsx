@@ -70,7 +70,7 @@ export default async function ProblemsPage() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-5 animate-page-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Problems</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">Problems</h1>
           <div className="flex items-center space-x-3">
             <span className="text-sm text-gray-500 font-medium">{problems.length} problems</span>
             {isAdmin && <AddProblemButton variant="inline" />}
@@ -98,9 +98,9 @@ export default async function ProblemsPage() {
                 <Link
                   key={problem.slug}
                   href={`/workspace?problem=${problem.slug}`}
-                  className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-colors group cursor-pointer ${
+                  className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group cursor-pointer ${
                     index % 2 === 0 ? "bg-transparent" : "bg-[#0a0a0a]"
-                  } hover:bg-[#111111]`}
+                  } hover:bg-[#111111] hover:scale-[1.01] active:scale-98`}
                 >
                   <div className="flex items-center space-x-4 min-w-0 flex-1">
                     <span className="text-gray-600 text-sm font-medium w-8 shrink-0 tabular-nums">{problem.id}</span>
