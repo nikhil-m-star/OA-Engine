@@ -115,14 +115,14 @@ export default async function ProblemsPage() {
                         companies.slice(0, 2).map((company, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
+                            className="px-2.5 py-0.5 text-[11px] text-gray-400 bg-white/[0.03] border border-white/[0.04] rounded-full font-medium"
                           >
                             {company}
                           </span>
                         ))
                       ) : null}
                       {companies.length > 2 && (
-                        <span className="text-[11px] text-gray-600">+{companies.length - 2}</span>
+                        <span className="text-[10px] text-gray-500 font-bold select-none">+{companies.length - 2}</span>
                       )}
                     </div>
 
@@ -130,13 +130,13 @@ export default async function ProblemsPage() {
                       {tags.slice(0, 2).map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 text-[11px] text-gray-500 bg-[#0f0f0f] rounded font-medium"
+                          className="px-2.5 py-0.5 text-[11px] text-gray-400 bg-white/[0.03] border border-white/[0.04] rounded-full font-medium"
                         >
                           {tag}
                         </span>
                       ))}
                       {tags.length > 2 && (
-                        <span className="text-[11px] text-gray-600">+{tags.length - 2}</span>
+                        <span className="text-[10px] text-gray-500 font-bold select-none">+{tags.length - 2}</span>
                       )}
                     </div>
 

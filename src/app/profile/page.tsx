@@ -104,7 +104,7 @@ export default function ProfilePage() {
       <div className="h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none">
         <Navbar />
         <main className="flex-grow flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-[#0a0a0a] rounded-3xl border border-[#111] p-8 text-center space-y-6">
+          <div className="max-w-md w-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-3xl border border-white/[0.04] p-8 text-center space-y-6 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
             <div className="inline-flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-full">
               <ShieldAlert size={36} />
             </div>
@@ -137,7 +137,7 @@ export default function ProfilePage() {
             
             {/* Left Column: Profile Avatar Details */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 relative overflow-hidden">
+              <div className="bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-3xl border border-white/[0.04] p-6 relative overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
                 <div className="flex flex-col items-center text-center space-y-4 pt-2">
                   <div className="relative">
                     {user?.imageUrl ? (
@@ -204,7 +204,7 @@ export default function ProfilePage() {
             <div className="lg:col-span-2 space-y-6">
               
               {/* LeetCode stats ring and progress bars */}
-               <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-6">
+               <div className="bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-3xl border border-white/[0.04] p-6 space-y-6 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center space-x-2 pb-3">
                   <Layers size={16} className="text-[#E8730C]" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Progress Stats</h3>
@@ -287,7 +287,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Explorer database cards list */}
-              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-4">
+              <div className="bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-3xl border border-white/[0.04] p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center justify-between pb-3">
                   <div className="flex items-center space-x-2">
                     <BookOpen size={16} className="text-[#E8730C]" />
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                       <Link
                         key={problem.slug}
                         href={`/workspace?problem=${problem.slug}`}
-                         className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-2xl p-4 transition-colors group cursor-pointer"
+                         className="flex items-center justify-between bg-black border border-white/[0.02] hover:border-white/[0.08] hover:bg-[#121212] hover:scale-[1.02] active:scale-[0.98] rounded-2xl p-4 transition-all duration-300 group cursor-pointer"
                       >
                         <div className="space-y-1 pr-2">
                           <div className="text-sm font-bold text-white group-hover:text-[#E8730C] transition-colors truncate max-w-[180px]">
@@ -334,7 +334,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Submissions Stats */}
-              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-4">
+              <div className="bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-3xl border border-white/[0.04] p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center space-x-2 pb-3">
                   <Activity size={16} className="text-[#E8730C]" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Submissions</h3>

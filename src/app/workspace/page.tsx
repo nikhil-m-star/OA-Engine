@@ -137,7 +137,7 @@ export default function WorkspacePage() {
       <div className="flex-1 flex flex-col md:flex-row w-full overflow-hidden p-2 gap-2 bg-black pb-24 md:pb-2">
         
         {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
-        <div className={`w-full md:w-[40%] md:min-w-[320px] flex flex-col h-full bg-[#0a0a0a] rounded-2xl border border-[#111111] overflow-hidden ${
+        <div className={`w-full md:w-[40%] md:min-w-[320px] flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
           mobileTab === "docs" ? "flex" : "hidden md:flex"
         }`}>
           
@@ -148,9 +148,9 @@ export default function WorkspacePage() {
                 if (problem) setActiveTab("description");
               }}
               disabled={!problem}
-              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all font-bold cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all duration-300 font-bold cursor-pointer hover:scale-[1.02] active:scale-95 ${
                 activeTab === "description"
-                  ? "bg-[#111111] text-[#E8730C] border border-[#222]"
+                  ? "bg-[#E8730C]/10 text-[#E8730C] border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]"
                   : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 disabled:cursor-not-allowed"
               }`}
             >
@@ -160,9 +160,9 @@ export default function WorkspacePage() {
 
             <button
               onClick={() => setActiveTab("json")}
-              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all font-bold cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all duration-300 font-bold cursor-pointer hover:scale-[1.02] active:scale-95 ${
                 activeTab === "json"
-                  ? "bg-[#111111] text-[#E8730C] border border-[#222]"
+                  ? "bg-[#E8730C]/10 text-[#E8730C] border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -172,7 +172,7 @@ export default function WorkspacePage() {
           </div>
 
           {/* Left Panel Body Content */}
-          <div className="flex-1 overflow-hidden relative bg-[#0a0a0a]">
+          <div className="flex-1 overflow-hidden relative bg-transparent">
             {activeTab === "description" && problem ? (
               <ProblemDescription problem={problem} code={code} />
             ) : (
@@ -185,7 +185,7 @@ export default function WorkspacePage() {
         </div>
 
         {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
-        <div className={`w-full md:w-[60%] flex flex-col h-full bg-[#0a0a0a] rounded-2xl border border-[#111111] overflow-hidden ${
+        <div className={`w-full md:w-[60%] flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
           mobileTab === "editor" ? "flex" : "hidden md:flex"
         }`}>
           {problem ? (
@@ -195,7 +195,7 @@ export default function WorkspacePage() {
               onChange={setCode}
             />
           ) : (
-            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0a] text-gray-400 font-sans space-y-4">
+            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-transparent text-gray-400 font-sans space-y-4">
               <div className="p-4 bg-[#111111] rounded-2xl text-[#E8730C] border border-[#222]">
                 <AlertTriangle size={32} />
               </div>

@@ -82,7 +82,7 @@ export default async function HomePage() {
         <div className="text-center space-y-6 max-w-3xl mx-auto">
           <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.95] text-white">
             Supercharge your <br className="hidden sm:inline" />
-            <span className="text-[#E8730C]">
+            <span className="bg-gradient-to-r from-[#E8730C] to-[#F28B2D] bg-clip-text text-transparent">
               Online Assessments
             </span>.
           </h1>
@@ -95,14 +95,14 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link 
               href="/workspace" 
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 transform hover:-translate-y-0.5 active:scale-95"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#E8730C] to-[#F28B2D] hover:shadow-[0_0_25px_rgba(232,115,12,0.35)] text-black font-black text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center space-x-2 transform hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95"
             >
               <span>Open Workspace</span>
               <ArrowRight size={14} strokeWidth={3} />
             </Link>
             <Link 
               href="/problems" 
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-gray-300 hover:text-white font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 backdrop-blur-md active:scale-95"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 hover:scale-[1.03] text-gray-300 hover:text-white font-black text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center space-x-2 backdrop-blur-md active:scale-95"
             >
               <span>Browse Problems</span>
             </Link>
@@ -110,9 +110,9 @@ export default async function HomePage() {
         </div>
 
         {/* Database Statistics Panel */}
-        <div className="relative bg-[#0a0a0a] border border-white/[0.04] rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto w-full">
+        <div className="relative bg-gradient-to-b from-[#0a0a0a] to-[#040404] border border-white/[0.04] rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto w-full shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center divide-y md:divide-y-0 md:divide-x divide-white/[0.04]">
-            <div className="space-y-1 pt-4 md:pt-0">
+            <div className="space-y-1 pt-4 md:pt-0 hover:scale-[1.05] transition-transform duration-300 cursor-default">
               <div className="text-4xl sm:text-5xl font-black text-white leading-none">
                 {stats.total}
               </div>
@@ -120,7 +120,7 @@ export default async function HomePage() {
                 Total Problems
               </div>
             </div>
-            <div className="space-y-1 pt-4 md:pt-0">
+            <div className="space-y-1 pt-4 md:pt-0 hover:scale-[1.05] transition-transform duration-300 cursor-default">
               <div className="text-2xl sm:text-3xl font-bold text-[#00b8a3] leading-none">
                 {stats.easy}
               </div>
@@ -128,7 +128,7 @@ export default async function HomePage() {
                 Easy
               </div>
             </div>
-            <div className="space-y-1 pt-4 md:pt-0">
+            <div className="space-y-1 pt-4 md:pt-0 hover:scale-[1.05] transition-transform duration-300 cursor-default">
               <div className="text-2xl sm:text-3xl font-bold text-[#ffc01e] leading-none">
                 {stats.medium}
               </div>
@@ -136,7 +136,7 @@ export default async function HomePage() {
                 Medium
               </div>
             </div>
-            <div className="space-y-1 pt-4 md:pt-0">
+            <div className="space-y-1 pt-4 md:pt-0 hover:scale-[1.05] transition-transform duration-300 cursor-default">
               <div className="text-2xl sm:text-3xl font-bold text-[#ff375f] leading-none">
                 {stats.hard}
               </div>

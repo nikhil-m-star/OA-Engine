@@ -148,16 +148,16 @@ export default function CompanyQuestionsPage() {
         </div>
 
         {/* Filters Controls Panel */}
-        <div className="bg-[#0a0a0a] border border-[#111111] rounded-3xl p-6 space-y-4">
+        <div className="bg-gradient-to-b from-[#0a0a0a] to-[#040404] border border-white/[0.04] rounded-3xl p-6 space-y-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* Company selection */}
             <div className="flex flex-col space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Company</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Company</label>
               <select
                 value={selectedCompany}
                 onChange={(e) => setSelectedCompany(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] focus:ring-1 focus:ring-[#E8730C]/30 hover:border-[#333] transition-all duration-300 cursor-pointer"
               >
                 {COMPANIES.map((company) => (
                   <option key={company.id} value={company.id}>
@@ -169,11 +169,11 @@ export default function CompanyQuestionsPage() {
 
             {/* Recency selection */}
             <div className="flex flex-col space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Timeframe</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Timeframe</label>
               <select
                 value={selectedRecency}
                 onChange={(e) => setSelectedRecency(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] focus:ring-1 focus:ring-[#E8730C]/30 hover:border-[#333] transition-all duration-300 cursor-pointer"
               >
                 {RECENCIES.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -185,11 +185,11 @@ export default function CompanyQuestionsPage() {
 
             {/* Difficulty selection */}
             <div className="flex flex-col space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Difficulty</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Difficulty</label>
               <select
                 value={selectedDifficulty}
                 onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] focus:ring-1 focus:ring-[#E8730C]/30 hover:border-[#333] transition-all duration-300 cursor-pointer"
               >
                 {DIFFICULTIES.map((d) => (
                   <option key={d} value={d}>
@@ -201,7 +201,7 @@ export default function CompanyQuestionsPage() {
 
             {/* Search filter input */}
             <div className="flex flex-col space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Search</label>
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
@@ -209,7 +209,7 @@ export default function CompanyQuestionsPage() {
                   placeholder="Filter by title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-black border border-[#222] text-white rounded-2xl pl-9 pr-4 py-3 text-sm font-bold placeholder-gray-600 focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200"
+                  className="w-full bg-black border border-[#222] text-white rounded-2xl pl-9 pr-4 py-3 text-sm font-bold placeholder-gray-600 focus:outline-none focus:border-[#E8730C] focus:ring-1 focus:ring-[#E8730C]/30 hover:border-[#333] transition-all duration-300"
                 />
               </div>
             </div>
@@ -276,10 +276,10 @@ export default function CompanyQuestionsPage() {
             </div>
 
             {/* Questions Table */}
-            <div className="overflow-x-auto rounded-3xl border border-[#111111] bg-[#0a0a0a] scrollbar-thin">
+            <div className="overflow-x-auto rounded-3xl border border-white/[0.04] bg-gradient-to-b from-[#0a0a0a] to-[#040404] shadow-[0_4px_30px_rgba(0,0,0,0.5)] scrollbar-thin">
               <table className="w-full text-left border-collapse table-auto">
                 <thead>
-                  <tr className="border-b border-[#111111] text-xs font-bold text-gray-400 uppercase select-none">
+                  <tr className="border-b border-white/[0.04] text-xs font-bold text-gray-400 uppercase select-none">
                     {/* ID Header */}
                     <th className="px-5 py-4 w-20">
                       <button
@@ -332,11 +332,11 @@ export default function CompanyQuestionsPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#111111] text-[14px]">
+                <tbody className="divide-y divide-white/[0.04] text-[14px]">
                   {processedQuestions.map((question) => (
                     <tr
                       key={question.id}
-                      className="hover:bg-[#111111]/60 transition-colors group"
+                      className="hover:bg-white/[0.02] hover:scale-[1.003] active:scale-[0.998] transition-all duration-300 group"
                     >
                       {/* ID Cell */}
                       <td className="px-5 py-3.5 text-gray-500 font-semibold font-mono tabular-nums">
