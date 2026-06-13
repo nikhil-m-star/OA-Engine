@@ -18,12 +18,12 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
   return (
     <div className="w-full shrink-0 z-50 pointer-events-none md:mt-2">
-      <header className="pointer-events-auto mx-auto flex h-[65px] items-center justify-between bg-black/90 backdrop-blur-md px-4 md:px-6 text-[#eff2f6f2] select-none border border-[#1a1a1a] shadow-2xl transition-all duration-300
-        fixed bottom-4 left-4 right-4 z-50 rounded-full max-w-[calc(100%-2rem)]
-        md:relative md:bottom-auto md:left-auto md:right-auto md:max-w-5xl md:rounded-full md:h-[60px]">
+      <header className="pointer-events-auto mx-auto flex h-[60px] items-center bg-black/90 backdrop-blur-md px-5 text-[#eff2f6f2] select-none border border-white/[0.04] shadow-2xl transition-all duration-300
+        fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full w-fit max-w-[calc(100%-2rem)] gap-4
+        md:relative md:bottom-auto md:left-auto md:right-auto md:translate-x-0 md:max-w-5xl md:h-[54px] md:gap-8">
         
         {/* Left section: Logo */}
-        <div className="hidden md:flex md:flex-1 items-center justify-start">
+        <div className="hidden md:flex items-center shrink-0">
           <Link href="/" className="flex items-center space-x-2 group">
             {/* Stylized OA logo */}
             <img
@@ -36,8 +36,8 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
         </div>
 
         {/* Middle section: Navigation Links & Active Problem */}
-        <div className="flex items-center justify-around md:justify-center md:flex-grow lg:flex-1 w-full md:w-auto">
-          <nav className="flex items-center space-x-0.5 md:space-x-1.5 text-[9px] md:text-xs font-bold w-full md:w-auto justify-around md:justify-center">
+        <div className="flex items-center justify-center shrink-0">
+          <nav className="flex items-center space-x-0.5 md:space-x-1.5 text-[9px] md:text-xs font-bold w-fit justify-center">
             <Link
               href="/workspace"
               className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
@@ -86,7 +86,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
           {/* Active Problem Info badge next to Nav links on desktop */}
           {pathname.startsWith("/workspace") && hasProblem && problemTitle && (
-            <div className="hidden lg:flex items-center space-x-2 bg-[#111111] px-4 py-1.5 rounded-full text-xs font-bold text-white border border-[#222] ml-4">
+            <div className="hidden lg:flex items-center space-x-2 bg-[#E8730C]/10 px-4 py-1.5 rounded-full text-xs font-bold text-[#E8730C] border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)] ml-4">
               <Terminal size={12} className="text-[#E8730C]" />
               <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
             </div>
@@ -94,7 +94,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
         </div>
 
         {/* Right section: Reset controls & Clerk Session */}
-        <div className="flex items-center justify-end md:flex-1 space-x-2 md:space-x-4">
+        <div className="flex items-center shrink-0 space-x-2 md:space-x-4">
           {pathname.startsWith("/workspace") && hasProblem && onReset && (
             <button
               onClick={onReset}
