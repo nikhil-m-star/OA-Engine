@@ -5,24 +5,7 @@ import { parseCompanyCSV, CompanyQuestion } from "@/lib/parseCompanyCSV";
 import Navbar from "@/components/Navbar";
 import { Search, Loader2, ExternalLink, ChevronUp, ChevronDown, ArrowUpDown, AlertCircle, RefreshCw } from "lucide-react";
 
-// Hardcoded supported companies
-const COMPANIES = [
-  { id: "adobe", name: "Adobe" },
-  { id: "amazon", name: "Amazon" },
-  { id: "atlassian", name: "Atlassian" },
-  { id: "flipkart", name: "Flipkart" },
-  { id: "goldman-sachs", name: "Goldman Sachs" },
-  { id: "google", name: "Google" },
-  { id: "groww", name: "Groww" },
-  { id: "intuit", name: "Intuit" },
-  { id: "jpmorgan", name: "JPMorgan" },
-  { id: "microsoft", name: "Microsoft" },
-  { id: "oracle", name: "Oracle" },
-  { id: "paypal", name: "PayPal" },
-  { id: "razorpay", name: "Razorpay" },
-  { id: "salesforce", name: "Salesforce" },
-  { id: "uber", name: "Uber" },
-];
+import COMPANIES from "@/lib/companies.json";
 
 const RECENCIES = [
   { id: "30days", label: "30 Days" },
@@ -165,10 +148,6 @@ export default function CompanyQuestionsPage() {
               Explore high-frequency LeetCode questions by company and timeframe, fetched dynamically.
             </p>
           </div>
-          <div className="flex items-center space-x-2.5 text-xs text-gray-500 font-semibold bg-[#0a0a0a] border border-[#111] px-4 py-2 rounded-lg">
-            <span className="w-1.5 h-1.5 bg-[#E8730C] rounded-full animate-ping" />
-            <span>Fetched from GitHub</span>
-          </div>
         </div>
 
         {/* Filters Controls Panel */}
@@ -289,7 +268,6 @@ export default function CompanyQuestionsPage() {
             {/* Meta status bar */}
             <div className="flex justify-between items-center text-xs font-bold text-gray-500 px-1">
               <span>Showing {processedQuestions.length} of {questions.length} questions</span>
-              <span className="font-mono">Cache hit: Fast re-renders active</span>
             </div>
 
             {/* Questions Table */}
