@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Josefin_Sans } from "next/font/google";
+import { Urbanist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-const josefinSans = Josefin_Sans({
+const urbanist = Urbanist({
   subsets: ["latin"],
-  variable: "--font-josefin-sans",
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-urbanist",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const geistMono = localFont({
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${josefinSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${urbanist.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider>
           <div className="flex flex-col min-h-screen bg-black">
             <div className="flex-1 flex flex-col min-h-0">
