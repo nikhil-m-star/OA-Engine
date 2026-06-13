@@ -34,6 +34,9 @@ export async function parseCompanyCSV(company: string, recency: string): Promise
 
   const response = await fetch(url);
   if (!response.ok) {
+    if (response.status === 404) {
+      return [];
+    }
     throw new Error(`Failed to fetch data for ${company} (${recency}): ${response.statusText}`);
   }
 

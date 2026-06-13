@@ -252,16 +252,24 @@ export default function CompanyQuestionsPage() {
           </div>
         ) : processedQuestions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-28 text-center bg-[#0a0a0a] border border-[#111] rounded-xl space-y-3">
-            <span className="text-gray-500 text-sm font-bold">No questions found matching your filter criteria</span>
-            <button 
-              onClick={() => {
-                setSelectedDifficulty("All");
-                setSearchQuery("");
-              }}
-              className="text-xs text-[#E8730C] hover:underline font-bold"
-            >
-              Reset filters
-            </button>
+            {questions.length === 0 ? (
+              <span className="text-gray-500 text-sm font-bold">
+                No questions recorded for {currentCompanyName} in this timeframe.
+              </span>
+            ) : (
+              <>
+                <span className="text-gray-500 text-sm font-bold">No questions found matching your filter criteria</span>
+                <button 
+                  onClick={() => {
+                    setSelectedDifficulty("All");
+                    setSearchQuery("");
+                  }}
+                  className="text-xs text-[#E8730C] hover:underline font-bold"
+                >
+                  Reset filters
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
