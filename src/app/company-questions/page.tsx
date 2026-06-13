@@ -144,9 +144,6 @@ export default function CompanyQuestionsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold text-white tracking-tight">Company Questions</h1>
-            <p className="text-sm text-gray-500 font-medium">
-              Explore high-frequency LeetCode questions by company and timeframe, fetched dynamically.
-            </p>
           </div>
         </div>
 
