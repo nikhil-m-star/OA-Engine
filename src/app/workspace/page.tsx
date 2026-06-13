@@ -24,6 +24,8 @@ export default function WorkspacePage() {
   const [code, setCode] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
+  const [mobileTab, setMobileTab] = useState<"docs" | "editor">("docs");
+
   // Check query parameter on mount
   useEffect(() => {
     async function loadWorkspace() {
@@ -39,6 +41,7 @@ export default function WorkspacePage() {
               setProblem(json.data);
               setCode(json.data.starter_code.cpp || "");
               setActiveTab("description");
+              setMobileTab("editor"); // Auto-switch to editor when a problem is selected
               setIsLoading(false);
               return;
             }
@@ -58,6 +61,7 @@ export default function WorkspacePage() {
     setProblem(data);
     setCode(data.starter_code.cpp || "");
     setActiveTab("description");
+    setMobileTab("editor"); // Switch to editor view on mobile after rendering
 
     // Post to Neon DB in the background
     try {
@@ -82,6 +86,7 @@ export default function WorkspacePage() {
     setProblem(null);
     setCode("");
     setActiveTab("json");
+    setMobileTab("docs");
     if (typeof window !== "undefined") {
       window.history.replaceState({}, "", "/workspace");
     }
@@ -99,7 +104,7 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-black select-none text-gray-200 font-sans">
+    <div className="flex flex-col h-screen overflow-hidden bg-black select-none text-gray-200 font-sans pb-1 md:pb-0">
       {/* Top Navbar */}
       <Navbar
         problemId={problem?.id}
@@ -108,11 +113,33 @@ export default function WorkspacePage() {
         hasProblem={!!problem}
       />
 
+      {/* Mobile Tab Swapper */}
+      <div className="flex md:hidden bg-[#050505] p-1.5 rounded-full mx-3 my-2 border border-[#111111] space-x-1 shrink-0">
+        <button
+          onClick={() => setMobileTab("docs")}
+          className={`flex-1 text-center py-2.5 text-xs font-black rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+            mobileTab === "docs" ? "bg-[#E8730C] text-black" : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Description & Input
+        </button>
+        <button
+          onClick={() => setMobileTab("editor")}
+          className={`flex-1 text-center py-2.5 text-xs font-black rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+            mobileTab === "editor" ? "bg-[#E8730C] text-black" : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Code Editor
+        </button>
+      </div>
+
       {/* Main Split Layout Workspace */}
-      <div className="flex-1 flex w-full overflow-hidden p-2 gap-2 bg-black">
+      <div className="flex-1 flex flex-col md:flex-row w-full overflow-hidden p-2 gap-2 bg-black pb-24 md:pb-2">
         
         {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
-        <div className="w-[40%] min-w-[320px] flex flex-col h-full bg-[#0a0a0a] rounded-xl overflow-hidden">
+        <div className={`w-full md:w-[40%] md:min-w-[320px] flex flex-col h-full bg-[#0a0a0a] rounded-2xl border border-[#111111] overflow-hidden ${
+          mobileTab === "docs" ? "flex" : "hidden md:flex"
+        }`}>
           
           {/* Main Left Tabs (Description vs JSON Input) */}
           <div className="flex items-center bg-[#050505] h-[40px] shrink-0 text-sm px-3 space-x-1 select-none">
@@ -121,10 +148,10 @@ export default function WorkspacePage() {
                 if (problem) setActiveTab("description");
               }}
               disabled={!problem}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "description"
-                  ? "bg-[#111111] text-[#E8730C]"
-                  : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
+                  ? "bg-[#111111] text-[#E8730C] border border-[#222]"
+                  : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 disabled:cursor-not-allowed"
               }`}
             >
               <BookOpen size={14} />
@@ -133,9 +160,9 @@ export default function WorkspacePage() {
 
             <button
               onClick={() => setActiveTab("json")}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded transition-all font-bold cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "json"
-                  ? "bg-[#111111] text-[#E8730C]"
+                  ? "bg-[#111111] text-[#E8730C] border border-[#222]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -158,7 +185,9 @@ export default function WorkspacePage() {
         </div>
 
         {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
-        <div className="w-[60%] flex flex-col h-full bg-[#0a0a0a] rounded-xl overflow-hidden">
+        <div className={`w-full md:w-[60%] flex flex-col h-full bg-[#0a0a0a] rounded-2xl border border-[#111111] overflow-hidden ${
+          mobileTab === "editor" ? "flex" : "hidden md:flex"
+        }`}>
           {problem ? (
             <CodeEditor
               problem={problem}
@@ -167,11 +196,12 @@ export default function WorkspacePage() {
             />
           ) : (
             <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0a] text-gray-400 font-sans space-y-4">
-              <div className="p-3.5 bg-[#111111] rounded-full text-[#E8730C]">
-                <AlertTriangle size={28} />
+              <div className="p-4 bg-[#111111] rounded-2xl text-[#E8730C] border border-[#222]">
+                <AlertTriangle size={32} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-white font-bold text-sm">No Problem Loaded</h3>
+                <h3 className="text-white font-bold text-base">No Problem Loaded</h3>
+                <p className="text-xs text-gray-500">Provide a JSON problem structure in JSON Input tab to get started.</p>
               </div>
             </div>
           )}
@@ -180,4 +210,5 @@ export default function WorkspacePage() {
       </div>
     </div>
   );
+
 }

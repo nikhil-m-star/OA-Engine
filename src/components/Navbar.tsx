@@ -17,100 +17,113 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
   const pathname = usePathname();
 
   return (
-    <header className="flex h-[55px] w-full items-center justify-between bg-black px-6 text-[#eff2f6f2] select-none shrink-0 z-30">
-      {/* Left section: Logo & Nav Links */}
-      <div className="flex items-center space-x-8">
-        <Link href="/" className="flex items-center space-x-2.5 group">
-          {/* Stylized OA logo */}
-          <img
-            src="/logo.png"
-            alt="OA Engine Logo"
-            className="h-7 w-7 rounded object-contain transition-transform group-hover:scale-105"
-          />
-          <span className="font-extrabold text-base tracking-wider text-white">OA Engine</span>
-        </Link>
-
-        {/* Navigation Menu */}
-        <nav className="flex items-center space-x-3 text-sm font-bold">
-          <Link
-            href="/workspace"
-            className={`px-3.5 py-2 rounded transition-all ${
-              pathname.startsWith("/workspace") ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Workspace
+    <div className="w-full shrink-0 z-50 pointer-events-none md:mt-2">
+      <header className="pointer-events-auto mx-auto flex h-[58px] items-center justify-between bg-black/90 backdrop-blur-md px-4 md:px-6 text-[#eff2f6f2] select-none border border-[#1a1a1a] shadow-2xl transition-all duration-300
+        fixed bottom-4 left-4 right-4 z-50 rounded-full max-w-[calc(100%-2rem)]
+        md:relative md:bottom-auto md:left-auto md:right-auto md:max-w-5xl md:rounded-full md:h-[60px]">
+        
+        {/* Left section: Logo & Nav Links */}
+        <div className="flex items-center space-x-2 md:space-x-6">
+          <Link href="/" className="hidden md:flex items-center space-x-2 group">
+            {/* Stylized OA logo */}
+            <img
+              src="/logo.png"
+              alt="OA Engine Logo"
+              className="h-6 w-6 rounded object-contain transition-transform group-hover:scale-105"
+            />
+            <span className="font-extrabold text-sm tracking-wider text-white">OA Engine</span>
           </Link>
-          <Link
-            href="/problems"
-            className={`px-3.5 py-2 rounded transition-all ${
-              pathname === "/problems" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Problems
-          </Link>
-          <Link
-            href="/profile"
-            className={`px-3.5 py-2 rounded transition-all ${
-              pathname === "/profile" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Profile
-          </Link>
-          <Link
-            href="/company-questions"
-            className={`px-3.5 py-2 rounded transition-all ${
-              pathname === "/company-questions" ? "text-[#E8730C] bg-[#111111]" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Company Qs
-          </Link>
-        </nav>
-      </div>
 
-      {/* Middle section: Active Problem Info */}
-      <div className="hidden md:flex items-center space-x-2">
-        {pathname.startsWith("/workspace") && hasProblem && problemTitle ? (
-          <div className="flex items-center space-x-2 bg-[#111111] px-4 py-2 rounded text-sm font-bold text-white">
-            <Terminal size={14} className="text-[#E8730C]" />
-            <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
-          </div>
-        ) : null}
-      </div>
+          {/* Navigation Menu */}
+          <nav className="flex items-center space-x-1 text-[11px] md:text-sm font-bold">
+            <Link
+              href="/workspace"
+              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+                pathname.startsWith("/workspace") 
+                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
+                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+              }`}
+            >
+              Workspace
+            </Link>
+            <Link
+              href="/problems"
+              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+                pathname === "/problems" 
+                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
+                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+              }`}
+            >
+              Problems
+            </Link>
+            <Link
+              href="/profile"
+              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+                pathname === "/profile" 
+                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
+                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+              }`}
+            >
+              Profile
+            </Link>
+            <Link
+              href="/company-questions"
+              className={`px-3 py-2 rounded-full transition-all duration-200 active:scale-95 ${
+                pathname === "/company-questions" 
+                  ? "text-[#E8730C] bg-[#111111] border border-[#222]" 
+                  : "text-gray-400 hover:text-white hover:bg-[#111111]/40"
+              }`}
+            >
+              Company Qs
+            </Link>
+          </nav>
+        </div>
 
-      {/* Right section: Reset controls & Clerk Session */}
-      <div className="flex items-center space-x-5">
-        {pathname.startsWith("/workspace") && hasProblem && onReset && (
-          <button
-            onClick={onReset}
-            className="flex items-center space-x-1 text-sm text-red-400 hover:text-red-300 font-bold px-2 py-1 rounded transition-colors"
-            title="Reset problem"
-          >
-            <RefreshCw size={14} className="animate-spin-hover" />
-            <span>Reset</span>
-          </button>
-        )}
+        {/* Middle section: Active Problem Info */}
+        <div className="hidden lg:flex items-center space-x-2">
+          {pathname.startsWith("/workspace") && hasProblem && problemTitle ? (
+            <div className="flex items-center space-x-2 bg-[#111111] px-4 py-1.5 rounded-full text-xs font-bold text-white border border-[#222]">
+              <Terminal size={12} className="text-[#E8730C]" />
+              <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
+            </div>
+          ) : null}
+        </div>
 
-        {/* Clerk Authentication Integration */}
-        <Show when="signed-out">
-          <div className="flex items-center space-x-2.5 text-sm">
-            <SignInButton mode="modal">
-              <button className="px-3.5 py-2 rounded bg-[#111111] hover:bg-[#222] text-gray-300 font-bold transition-all cursor-pointer">
-                Sign In
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-3.5 py-2 rounded bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold transition-all cursor-pointer">
-                Sign Up
-              </button>
-            </SignUpButton>
-          </div>
-        </Show>
-        <Show when="signed-in">
-          <div className="flex items-center space-x-3">
-            <UserButton />
-          </div>
-        </Show>
-      </div>
-    </header>
+        {/* Right section: Reset controls & Clerk Session */}
+        <div className="flex items-center space-x-2 md:space-x-4">
+          {pathname.startsWith("/workspace") && hasProblem && onReset && (
+            <button
+              onClick={onReset}
+              className="flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 font-bold px-3 py-1.5 rounded-full bg-[#1a0c0c]/40 hover:bg-[#1a0c0c] border border-red-950/50 transition-all duration-200 active:scale-95"
+              title="Reset problem"
+            >
+              <RefreshCw size={12} className="animate-spin-hover" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          )}
+
+          {/* Clerk Authentication Integration */}
+          <Show when="signed-out">
+            <div className="flex items-center space-x-1.5 text-xs">
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 rounded-full bg-[#111111] hover:bg-[#222] border border-[#222] text-gray-300 font-bold transition-all duration-200 active:scale-95 cursor-pointer">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="hidden sm:block px-3 py-1.5 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold transition-all duration-200 active:scale-95 cursor-pointer">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+          </Show>
+          <Show when="signed-in">
+            <div className="flex items-center space-x-3 scale-95 md:scale-100">
+              <UserButton />
+            </div>
+          </Show>
+        </div>
+      </header>
+    </div>
   );
 }

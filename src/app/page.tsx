@@ -73,7 +73,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin">
+    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none relative overflow-x-hidden scrollbar-thin pb-24 md:pb-0">
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-24 flex flex-col justify-center space-y-16 sm:space-y-24 z-10 animate-page-in">
@@ -95,14 +95,14 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link 
               href="/workspace" 
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 transform hover:-translate-y-0.5 active:scale-95"
             >
               <span>Open Workspace</span>
               <ArrowRight size={14} strokeWidth={3} />
             </Link>
             <Link 
               href="/problems" 
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-gray-300 hover:text-white font-extrabold text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 backdrop-blur-md"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-gray-300 hover:text-white font-black text-xs tracking-wider uppercase transition-all flex items-center justify-center space-x-2 backdrop-blur-md active:scale-95"
             >
               <span>Browse Problems</span>
             </Link>
@@ -110,7 +110,7 @@ export default async function HomePage() {
         </div>
 
         {/* Database Statistics Panel */}
-        <div className="relative bg-[#0a0a0a] border border-white/[0.04] rounded-2xl p-6 sm:p-8 max-w-3xl mx-auto w-full">
+        <div className="relative bg-[#0a0a0a] border border-white/[0.04] rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto w-full">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center divide-y md:divide-y-0 md:divide-x divide-white/[0.04]">
             <div className="space-y-1 pt-4 md:pt-0">
               <div className="text-4xl sm:text-5xl font-black text-white leading-none">
@@ -153,7 +153,7 @@ export default async function HomePage() {
           {/* Card 1: Workspace */}
           <Link
             href="/workspace"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
               <Code2 size={120} className="text-[#E8730C]" />
@@ -182,7 +182,7 @@ export default async function HomePage() {
           {/* Card 2: Problems Database */}
           <Link
             href="/problems"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
               <Database size={120} className="text-[#E8730C]" />
@@ -211,7 +211,7 @@ export default async function HomePage() {
           {/* Card 3: Profile & Admin */}
           <Link
             href="/profile"
-            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.03] hover:border-[#E8730C]/20 rounded-2xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
+            className="group relative bg-white/[0.01] hover:bg-white/[0.025] border border-white/[0.05] hover:border-[#E8730C]/20 rounded-3xl p-6 flex flex-col justify-between h-[210px] transition-all duration-300 transform hover:-translate-y-1 shadow-md backdrop-blur-sm overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity">
               <User size={120} className="text-[#E8730C]" />

@@ -136,7 +136,7 @@ export default function CompanyQuestionsPage() {
   const currentCompanyName = COMPANIES.find(c => c.id === selectedCompany)?.name || selectedCompany;
 
   return (
-    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
+    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin pb-24 md:pb-0">
       <Navbar />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 space-y-6 animate-page-in">
@@ -148,7 +148,7 @@ export default function CompanyQuestionsPage() {
         </div>
 
         {/* Filters Controls Panel */}
-        <div className="bg-[#0a0a0a] border border-[#111111] rounded-xl p-5 space-y-4">
+        <div className="bg-[#0a0a0a] border border-[#111111] rounded-3xl p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* Company selection */}
@@ -157,7 +157,7 @@ export default function CompanyQuestionsPage() {
               <select
                 value={selectedCompany}
                 onChange={(e) => setSelectedCompany(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#E8730C] transition-colors cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
               >
                 {COMPANIES.map((company) => (
                   <option key={company.id} value={company.id}>
@@ -173,7 +173,7 @@ export default function CompanyQuestionsPage() {
               <select
                 value={selectedRecency}
                 onChange={(e) => setSelectedRecency(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#E8730C] transition-colors cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
               >
                 {RECENCIES.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -189,7 +189,7 @@ export default function CompanyQuestionsPage() {
               <select
                 value={selectedDifficulty}
                 onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="w-full bg-black border border-[#222] text-white rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#E8730C] transition-colors cursor-pointer"
+                className="w-full bg-black border border-[#222] text-white rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200 cursor-pointer"
               >
                 {DIFFICULTIES.map((d) => (
                   <option key={d} value={d}>
@@ -209,7 +209,7 @@ export default function CompanyQuestionsPage() {
                   placeholder="Filter by title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-black border border-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm font-semibold placeholder-gray-600 focus:outline-none focus:border-[#E8730C] transition-colors"
+                  className="w-full bg-black border border-[#222] text-white rounded-2xl pl-9 pr-4 py-3 text-sm font-bold placeholder-gray-600 focus:outline-none focus:border-[#E8730C] hover:border-[#333] transition-all duration-200"
                 />
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function CompanyQuestionsPage() {
                 // Trigger state change or effect reload
                 setSelectedCompany((prev) => prev);
               }}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-[#111] hover:bg-[#222] border border-[#333] hover:border-gray-500 rounded-lg text-xs font-bold text-white transition-all cursor-pointer"
+              className="flex items-center space-x-1.5 px-6 py-3 bg-[#111] hover:bg-[#222] border border-[#333] hover:border-gray-500 rounded-full text-xs font-black text-white transition-all duration-200 active:scale-95 cursor-pointer"
             >
               <RefreshCw size={12} />
               <span>Retry Fetch</span>
@@ -276,7 +276,7 @@ export default function CompanyQuestionsPage() {
             </div>
 
             {/* Questions Table */}
-            <div className="overflow-x-auto rounded-xl border border-[#111111] bg-[#0a0a0a] scrollbar-thin">
+            <div className="overflow-x-auto rounded-3xl border border-[#111111] bg-[#0a0a0a] scrollbar-thin">
               <table className="w-full text-left border-collapse table-auto">
                 <thead>
                   <tr className="border-b border-[#111111] text-xs font-bold text-gray-400 uppercase select-none">
@@ -358,7 +358,7 @@ export default function CompanyQuestionsPage() {
 
                       {/* Difficulty Cell */}
                       <td className="px-5 py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${getDifficultyColor(question.difficulty)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-black ${getDifficultyColor(question.difficulty)}`}>
                           {question.difficulty}
                         </span>
                       </td>

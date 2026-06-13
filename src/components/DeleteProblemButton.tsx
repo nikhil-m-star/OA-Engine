@@ -41,7 +41,7 @@ export default function DeleteProblemButton({ slug, title }: DeleteProblemButton
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      className="inline-flex items-center justify-center w-8 h-8 bg-red-950/40 hover:bg-red-600 rounded text-red-400 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
+      className="inline-flex items-center justify-center w-9 h-9 bg-red-950/40 hover:bg-red-600 rounded-full text-red-400 hover:text-white transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer"
       title="Delete Problem"
     >
       {isDeleting ? (

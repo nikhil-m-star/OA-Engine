@@ -236,7 +236,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript" | "java")}
-            className="bg-[#111111] text-[#eff2f6f2] font-bold px-3 py-1 rounded cursor-pointer outline-none focus:ring-1 focus:ring-[#E8730C] transition-colors border-none"
+            className="bg-[#111111] text-[#eff2f6f2] font-bold px-4 py-1.5 rounded-full cursor-pointer outline-none border border-[#222] focus:ring-1 focus:ring-[#E8730C] hover:border-[#333] transition-all"
           >
             <option value="cpp">C++ (GCC 13)</option>
             <option value="python">Python (3.11)</option>
@@ -418,10 +418,10 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
       </div>
 
       {/* Editor Footer */}
-      <div className="flex items-center justify-between px-4 bg-[#050505] h-[50px] shrink-0 z-20">
+      <div className="flex items-center justify-between px-4 bg-[#050505] h-[58px] md:h-[50px] shrink-0 z-20">
         <button
           onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-          className="flex items-center space-x-1 px-3.5 py-1.5 rounded bg-[#111111] hover:bg-[#222] text-sm font-bold text-gray-300 transition-colors"
+          className="flex items-center space-x-1.5 px-4.5 py-2 rounded-full bg-[#111111] hover:bg-[#222] border border-[#222] text-sm font-bold text-gray-300 transition-all duration-200 active:scale-95 cursor-pointer"
         >
           <span>Console</span>
           {isConsoleOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -431,7 +431,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           <button
             onClick={handleRunCode}
             disabled={isRunning}
-            className="flex items-center space-x-1.5 px-4.5 py-1.5 rounded bg-[#111111] hover:bg-[#222] active:bg-[#000] disabled:opacity-50 text-sm font-bold text-white transition-all"
+            className="flex items-center space-x-2 px-5 py-2 rounded-full bg-[#111111] hover:bg-[#222] border border-[#222] active:bg-[#000] disabled:opacity-50 text-sm font-bold text-white transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <Play size={11} fill="white" />
             <span>Run</span>
@@ -440,7 +440,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           <button
             onClick={handleSubmitCode}
             disabled={isRunning || !problem.test_cases || problem.test_cases.length === 0}
-            className="px-5 py-1.5 rounded bg-[#00b8a3] hover:bg-[#00c9b2] active:bg-[#009c8a] disabled:opacity-50 text-sm font-extrabold text-black transition-all cursor-pointer flex items-center space-x-1"
+            className="px-6 py-2 rounded-full bg-[#00b8a3] hover:bg-[#00c9b2] active:bg-[#009c8a] disabled:opacity-50 text-sm font-black text-black transition-all duration-200 active:scale-95 cursor-pointer flex items-center space-x-1"
           >
             {isRunning ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
             <span>Submit</span>

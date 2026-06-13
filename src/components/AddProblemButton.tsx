@@ -16,7 +16,7 @@ export default function AddProblemButton({ variant = "inline" }: AddProblemButto
       <>
         <button
           onClick={() => setIsOpen(true)}
-          className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer text-left w-full"
+          className="group bg-[#0b0b0b] hover:bg-[#121212] rounded-3xl border border-[#111] p-6 flex flex-col justify-between h-[135px] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer text-left w-full active:scale-95"
         >
           <div className="flex items-center space-x-3 text-[#E8730C]">
             <Plus size={20} />
@@ -37,7 +37,7 @@ export default function AddProblemButton({ variant = "inline" }: AddProblemButto
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center space-x-1.5 px-4 py-2 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold text-xs rounded-lg transition-all cursor-pointer"
+        className="flex items-center space-x-1.5 px-6 py-2.5 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-sm rounded-full transition-all duration-200 active:scale-95 cursor-pointer"
       >
         <Plus size={13} />
         <span>Add Problem</span>

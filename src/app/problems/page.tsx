@@ -65,7 +65,7 @@ export default async function ProblemsPage() {
   };
 
   return (
-    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
+    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin pb-24 md:pb-0">
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-5 animate-page-in">
@@ -78,7 +78,7 @@ export default async function ProblemsPage() {
         </div>
 
         {error ? (
-          <div className="p-4 bg-red-950/40 text-red-400 rounded-lg font-mono text-xs">
+          <div className="p-4 bg-red-950/40 text-red-400 rounded-2xl font-mono text-xs">
             <h3 className="font-bold">Database Error</h3>
             <p className="mt-1">{error}</p>
           </div>
@@ -98,7 +98,7 @@ export default async function ProblemsPage() {
                 <Link
                   key={problem.slug}
                   href={`/workspace?problem=${problem.slug}`}
-                  className={`flex items-center justify-between px-4 py-3.5 rounded-lg transition-colors group cursor-pointer ${
+                  className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-colors group cursor-pointer ${
                     index % 2 === 0 ? "bg-transparent" : "bg-[#0a0a0a]"
                   } hover:bg-[#111111]`}
                 >

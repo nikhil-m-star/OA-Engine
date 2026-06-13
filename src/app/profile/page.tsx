@@ -104,14 +104,14 @@ export default function ProfilePage() {
       <div className="h-screen bg-black text-[#eff2f6f2] flex flex-col font-sans select-none">
         <Navbar />
         <main className="flex-grow flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-[#0a0a0a] rounded-2xl p-8 text-center space-y-6">
+          <div className="max-w-md w-full bg-[#0a0a0a] rounded-3xl border border-[#111] p-8 text-center space-y-6">
             <div className="inline-flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-full">
               <ShieldAlert size={36} />
             </div>
             <h1 className="text-xl font-bold text-white uppercase tracking-wider">Authentication Required</h1>
             <div className="pt-2">
               <SignInButton mode="modal">
-                <button className="w-full py-3 rounded bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold text-sm transition-all cursor-pointer">
+                <button className="w-full py-3.5 px-6 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-sm transition-all duration-200 active:scale-95 cursor-pointer">
                   Sign In
                 </button>
               </SignInButton>
@@ -123,7 +123,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin">
+    <div className="h-screen overflow-y-auto bg-black text-[#eff2f6f2] flex flex-col font-sans select-none scrollbar-thin pb-24 md:pb-0">
       <Navbar />
       
       <main className="flex-grow max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6 animate-page-in">
@@ -137,7 +137,7 @@ export default function ProfilePage() {
             
             {/* Left Column: Profile Avatar Details */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-[#0a0a0a] rounded-2xl p-6 relative overflow-hidden">
+              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 relative overflow-hidden">
                 <div className="flex flex-col items-center text-center space-y-4 pt-2">
                   <div className="relative">
                     {user?.imageUrl ? (
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                       <Award size={14} className="text-gray-500" />
                       <span>Rank</span>
                     </div>
-                    <span className="font-extrabold text-white bg-amber-500/10 px-2.5 py-0.5 rounded font-mono text-xs">
+                     <span className="font-extrabold text-white bg-amber-500/10 px-2.5 py-0.5 rounded-full font-mono text-xs">
                       Master
                     </span>
                   </div>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
             <div className="lg:col-span-2 space-y-6">
               
               {/* LeetCode stats ring and progress bars */}
-              <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-6">
+               <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-6">
                 <div className="flex items-center space-x-2 pb-3">
                   <Layers size={16} className="text-[#E8730C]" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Progress Stats</h3>
@@ -287,7 +287,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Explorer database cards list */}
-              <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-4">
+              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-4">
                 <div className="flex items-center justify-between pb-3">
                   <div className="flex items-center space-x-2">
                     <BookOpen size={16} className="text-[#E8730C]" />
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                       <Link
                         key={problem.slug}
                         href={`/workspace?problem=${problem.slug}`}
-                        className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-xl p-4 transition-colors group cursor-pointer"
+                         className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-2xl p-4 transition-colors group cursor-pointer"
                       >
                         <div className="space-y-1 pr-2">
                           <div className="text-sm font-bold text-white group-hover:text-[#E8730C] transition-colors truncate max-w-[180px]">
@@ -334,7 +334,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Submissions Stats */}
-              <div className="bg-[#0a0a0a] rounded-2xl p-6 space-y-4">
+              <div className="bg-[#0a0a0a] rounded-3xl border border-[#111] p-6 space-y-4">
                 <div className="flex items-center space-x-2 pb-3">
                   <Activity size={16} className="text-[#E8730C]" />
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Submissions</h3>
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                         <Link
                           key={s.id}
                           href={`/workspace?problem=${s.problem_slug}`}
-                          className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-lg px-3 py-2.5 transition-colors group"
+                           className="flex items-center justify-between bg-black hover:bg-[#121212] rounded-2xl px-4 py-2.5 transition-colors group"
                         >
                           <span className="text-sm font-medium text-white group-hover:text-[#E8730C] transition-colors truncate">
                             {s.problem_title || s.problem_slug}
