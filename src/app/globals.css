@@ -10,7 +10,7 @@
 }
 
 html {
-  font-size: 14px; /* Default is 16px; scaling down to 14px shrinks all rem-based sizes globally */
+  font-size: 18px; /* Scaling up to 18px enlarges all rem-based sizes globally */
 }
 
 body {
