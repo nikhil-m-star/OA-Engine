@@ -23,8 +23,9 @@ const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a str
   "companies": ["Google", "Meta"],
   "test_cases": [
     // Generates a MINIMUM of 30 diverse and comprehensive test cases to verify code correctness.
+    // VERIFY ALL TEST CASES CAREFULLY! Make sure the expected output accurately corresponds to the input for every single testcase.
     // Cover edge cases, boundaries, negative numbers, large/small inputs, and zeros.
-    // Make sure expected outputs accurately match the inputs.
+    // Follow the input/output formatting of the examples exactly.
     {
       "input": "nums = [2,7,11,15], target = 9",
       "output": "[0,1]"
@@ -33,7 +34,8 @@ const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a str
   "starter_code": {
     "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};",
     "python": "class Solution:\\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\\n        pass",
-    "javascript": "class Solution {\\n    twoSum(nums, target) {\\n        \\n    }\\n}"
+    "javascript": "class Solution {\\n    twoSum(nums, target) {\\n        \\n    }\\n}",
+    "java": "class Solution {\\n    public int[] twoSum(int[] nums, int target) {\\n        \\n    }\\n}"
   }
 }`;
 
