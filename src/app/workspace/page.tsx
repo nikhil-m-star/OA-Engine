@@ -26,6 +26,52 @@ export default function WorkspacePage() {
 
   const [mobileTab, setMobileTab] = useState<"docs" | "editor">("docs");
 
+  const [leftWidth, setLeftWidth] = useState(40); // percentage
+  const [isResizing, setIsResizing] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
+    return () => window.removeEventListener("resize", checkIsDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const containerWidth = window.innerWidth;
+      if (containerWidth === 0) return;
+      
+      const newWidthPercent = (e.clientX / containerWidth) * 100;
+      
+      // Clamp between 20% and 80% to keep both panels readable
+      if (newWidthPercent >= 20 && newWidthPercent <= 80) {
+        setLeftWidth(newWidthPercent);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isResizing]);
+
   // Check query parameter on mount
   useEffect(() => {
     async function loadWorkspace() {
@@ -134,12 +180,15 @@ export default function WorkspacePage() {
       </div>
 
       {/* Main Split Layout Workspace */}
-      <div className="flex-1 flex flex-col md:flex-row w-full overflow-hidden p-2 gap-2 bg-black pb-24 md:pb-2">
+      <div className="flex-1 flex flex-col md:flex-row w-full overflow-hidden p-2 gap-2 md:gap-0 bg-black pb-24 md:pb-2">
         
-        {/* LEFT PANEL: JSON Input Panel & Problem View (40% width) */}
-        <div className={`w-full md:w-[40%] md:min-w-[320px] flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
-          mobileTab === "docs" ? "flex" : "hidden md:flex"
-        }`}>
+        {/* LEFT PANEL: JSON Input Panel & Problem View (dynamic width on desktop) */}
+        <div 
+          style={isDesktop ? { width: `calc(${leftWidth}% - 4px)` } : {}}
+          className={`w-full flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
+            mobileTab === "docs" ? "flex" : "hidden md:flex"
+          }`}
+        >
           
           {/* Main Left Tabs (Description vs JSON Input) */}
           <div className="flex items-center bg-[#050505] h-[40px] shrink-0 text-sm px-3 space-x-1 select-none">
@@ -184,10 +233,21 @@ export default function WorkspacePage() {
           </div>
         </div>
 
-        {/* RIGHT PANEL: Code Editor & Simulation Output (60% width) */}
-        <div className={`w-full md:w-[60%] flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
-          mobileTab === "editor" ? "flex" : "hidden md:flex"
-        }`}>
+        {/* RESIZER BAR (only on desktop) */}
+        <div
+          onMouseDown={() => setIsResizing(true)}
+          className="hidden md:flex w-2 hover:w-2 items-center justify-center cursor-col-resize group shrink-0 select-none z-20"
+        >
+          <div className="w-[2px] h-12 bg-zinc-800 group-hover:bg-[#E8730C] group-active:bg-[#E8730C] rounded transition-colors" />
+        </div>
+
+        {/* RIGHT PANEL: Code Editor & Simulation Output (dynamic width on desktop) */}
+        <div 
+          style={isDesktop ? { width: `calc(${100 - leftWidth}% - 4px)` } : {}}
+          className={`w-full flex flex-col h-full bg-gradient-to-b from-[#0a0a0a] to-[#040404] rounded-2xl border border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
+            mobileTab === "editor" ? "flex" : "hidden md:flex"
+          }`}
+        >
           {problem ? (
             <CodeEditor
               problem={problem}
