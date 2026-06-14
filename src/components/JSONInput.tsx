@@ -1,6 +1,33 @@
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle2, Play, Code, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Play, Code, Sparkles, Copy, X, Check } from "lucide-react";
 import { ProblemData } from "@/app/types";
+
+const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a structured JSON object. The output must strictly follow the schema below, without any surrounding markdown commentary (just return the raw JSON block).
+
+{
+  "id": 1,
+  "title": "Two Sum",
+  "slug": "two-sum",
+  "difficulty": "Easy",
+  "tags": ["Array", "Hash Map"],
+  "description": "<p>Given an array of integers <code>nums</code> and an integer <code>target</code>...</p>",
+  "constraints": ["2 <= nums.length <= 10^4"],
+  "examples": [
+    {
+      "input": "nums = [2,7,11,15], target = 9",
+      "output": "[0,1]",
+      "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+    }
+  ],
+  "follow_up": "Can you solve it in O(n) time complexity?",
+  "companies": ["Google", "Meta"],
+  "starter_code": {
+    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
+  }
+}
+
+Problem to Convert:
+[Paste your LeetCode problem here]`;
 
 const DEFAULT_TEMPLATE: ProblemData = {
   id: 1,
@@ -58,6 +85,14 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(AI_PROMPT_TEXT);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 2000);
+  };
 
   const handleFormat = () => {
     try {
@@ -222,6 +257,13 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
         </div>
         <div className="flex items-center space-x-3">
           <button
+            onClick={() => setShowPromptModal(true)}
+            className="flex items-center space-x-1 text-xs text-[#E8730C] hover:text-[#F28B2D] transition-colors font-medium cursor-pointer"
+          >
+            <Sparkles size={12} fill="#E8730C" className="animate-pulse" />
+            <span>AI Prompt Helper</span>
+          </button>
+          <button
             onClick={handleLoadDemo}
             className="text-xs font-bold text-gray-400 hover:text-white transition-colors"
           >
@@ -373,6 +415,67 @@ export default function JSONInput({ onRender, initialValue }: JSONInputProps) {
             </button>
           </div>
         </form>
+      )}
+
+      {/* AI Prompt Modal Glassmorphic Overlay */}
+      {showPromptModal && (
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-[#222] rounded-xl shadow-2xl w-full max-w-md max-h-[85%] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#222] bg-black">
+              <div className="flex items-center space-x-2 text-white font-bold text-xs uppercase tracking-wider">
+                <Sparkles size={14} className="text-[#E8730C]" fill="#E8730C" />
+                <span>AI Prompt Helper</span>
+              </div>
+              <button
+                onClick={() => setShowPromptModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 flex-1 overflow-y-auto space-y-4 text-xs scrollbar-thin">
+              <p className="text-gray-400 leading-relaxed font-sans font-medium">
+                Use this prompt template in your AI assistant (e.g. Claude, ChatGPT) to convert any LeetCode problem copy-paste into the exact JSON format required by this workspace.
+              </p>
+
+              <div className="relative bg-black p-3 rounded-lg border border-[#222] font-mono text-[10px] text-gray-400 select-all max-h-[220px] overflow-y-auto scrollbar-thin">
+                <pre className="whitespace-pre-wrap leading-relaxed select-text">
+                  {AI_PROMPT_TEXT}
+                </pre>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3 bg-black border-t border-[#222] flex items-center justify-end space-x-2 shrink-0">
+              <button
+                onClick={handleCopyPrompt}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-[#E8730C] hover:bg-[#F28B2D] text-black font-extrabold rounded-md text-xs transition-all shadow-md cursor-pointer"
+              >
+                {copiedPrompt ? (
+                  <>
+                    <Check size={13} className="text-black font-bold" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={13} className="text-black font-bold" />
+                    <span>Copy Prompt</span>
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={() => setShowPromptModal(false)}
+                className="px-3 py-2 text-xs bg-[#111] hover:bg-[#222] text-white rounded-md font-bold transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
