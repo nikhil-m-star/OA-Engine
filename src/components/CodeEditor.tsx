@@ -50,6 +50,8 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
   const [hasRun, setHasRun] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const [fontSize, setFontSize] = useState(14);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Auto-reset run state, update custom input, and default to C++ when problem changes
   useEffect(() => {
@@ -255,9 +257,39 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
             <span className="hidden sm:inline">Reset</span>
           </button>
           
-          <button className="text-gray-400 hover:text-white transition-colors" title="Settings">
-            <Settings size={14} />
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-gray-400 hover:text-white transition-colors p-1 rounded hover:bg-zinc-800" 
+              title="Settings"
+            >
+              <Settings size={14} />
+            </button>
+            
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 rounded-lg shadow-xl p-3 z-30">
+                <div className="text-xs font-bold text-gray-400 mb-2">Font Size</div>
+                <div className="flex items-center justify-between space-x-1 bg-zinc-900 rounded p-1">
+                  {[12, 14, 16, 18, 20].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        setFontSize(size);
+                        setShowSettings(false);
+                      }}
+                      className={`text-xs px-2 py-1 rounded transition-colors ${
+                        fontSize === size 
+                          ? "bg-[#E8730C] text-white font-bold" 
+                          : "text-gray-400 hover:text-white hover:bg-zinc-800"
+                      }`}
+                    >
+                      {size}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -270,7 +302,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
           value={code}
           onChange={(val) => onChange(val || "")}
           options={{
-            fontSize: 14,
+            fontSize: fontSize,
             fontWeight: "bold",
             minimap: { enabled: false },
             automaticLayout: true,
