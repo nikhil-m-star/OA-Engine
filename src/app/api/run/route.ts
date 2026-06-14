@@ -49,6 +49,68 @@ function runCommand(cmd: string, cwd: string): Promise<{ stdout: string; stderr:
   });
 }
 
+// Normalize and repair parameter/return types from C++ starter code templates
+function normalizeCppType(type: string, val: unknown): string {
+  let clean = type.replace(/[&*]/g, "").trim().replace(/^const\s+/, "").trim();
+  
+  if (clean === "ListNode" || clean === "TreeNode") {
+    return clean;
+  }
+  
+  const valArr = val as any[];
+  if (clean === "vector<vector>") {
+    let innerType = "int";
+    if (Array.isArray(valArr) && valArr.length > 0) {
+      const row = valArr[0];
+      if (Array.isArray(row) && row.length > 0) {
+        const cell = row[0];
+        if (typeof cell === "string") {
+          innerType = "string";
+        } else if (typeof cell === "boolean") {
+          innerType = "bool";
+        } else if (typeof cell === "number") {
+          innerType = Number.isInteger(cell) ? "int" : "double";
+        }
+      }
+    }
+    return `vector<vector<${innerType}>>`;
+  }
+  
+  if (clean === "vector") {
+    let innerType = "int";
+    if (Array.isArray(valArr) && valArr.length > 0) {
+      const cell = valArr[0];
+      if (Array.isArray(cell)) {
+        let nestedType = "int";
+        if (cell.length > 0) {
+          const subCell = cell[0];
+          if (typeof subCell === "string") nestedType = "string";
+          else if (typeof subCell === "boolean") nestedType = "bool";
+          else if (typeof subCell === "number") {
+            nestedType = Number.isInteger(subCell) ? "int" : "double";
+          }
+        }
+        return `vector<vector<${nestedType}>>`;
+      } else {
+        if (typeof cell === "string") {
+          innerType = "string";
+        } else if (typeof cell === "boolean") {
+          innerType = "bool";
+        } else if (typeof cell === "number") {
+          innerType = Number.isInteger(cell) ? "int" : "double";
+        }
+      }
+    }
+    return `vector<${innerType}>`;
+  }
+  
+  if (clean.includes("<>")) {
+    clean = clean.replace("<>", "<int>");
+  }
+  
+  return clean;
+}
+
 // Format JS values into C++ initializer syntax or basic literals
 function formatValueToCpp(val: unknown, type: string): string {
   const cleanType = type.replace(/[&*]/g, "").trim();
@@ -1638,7 +1700,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Could not locate standard LeetCode function signature." });
     }
 
-    const returnType = match[1].trim();
+    let returnType = match[1].trim();
     const methodName = match[2].trim();
     const paramsStr = match[3].trim();
 
@@ -1652,6 +1714,27 @@ export async function POST(req: NextRequest) {
 
     // 2. Parse input arguments from custom testcase input string
     const argsMap = !isBatchRun ? parseInputArgs(input) : {};
+
+    // Normalize and repair parameter types and return type based on inputs
+    const inferenceArgsMap = !isBatchRun 
+      ? argsMap 
+      : (testCases.length > 0 ? parseInputArgs(testCases[0].input) : {});
+
+    params.forEach((param: { name: string; type: string }) => {
+      const val = inferenceArgsMap[param.name];
+      param.type = normalizeCppType(param.type, val);
+    });
+
+    const cleanReturnType = returnType.replace(/[&*]/g, "").trim();
+    if (cleanReturnType === "vector<vector>" || cleanReturnType === "vector") {
+      let sampleOutputVal: unknown = null;
+      if (testCases && testCases.length > 0 && testCases[0].output) {
+        try {
+          sampleOutputVal = JSON.parse(testCases[0].output);
+        } catch {}
+      }
+      returnType = normalizeCppType(returnType, sampleOutputVal);
+    }
 
     // Helper to evaluate and format response output
     const formatOutputResponse = (stdout: string, runtime: string, memory: string) => {
