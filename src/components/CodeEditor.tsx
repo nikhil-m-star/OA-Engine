@@ -267,9 +267,9 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
             </button>
             
             {showSettings && (
-              <div className="absolute right-0 mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 rounded-lg shadow-xl p-3 z-30">
+              <div className="absolute right-0 mt-2 w-64 bg-[#0a0a0a] border border-zinc-800 rounded-lg shadow-xl p-3 z-30">
                 <div className="text-xs font-bold text-gray-400 mb-2">Font Size</div>
-                <div className="flex items-center justify-between space-x-1 bg-zinc-900 rounded p-1">
+                <div className="grid grid-cols-5 gap-1 bg-zinc-900 rounded p-1">
                   {[12, 14, 16, 18, 20].map((size) => (
                     <button
                       key={size}
@@ -277,7 +277,7 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
                         setFontSize(size);
                         setShowSettings(false);
                       }}
-                      className={`text-xs px-2 py-1 rounded transition-colors ${
+                      className={`text-xs py-1.5 rounded transition-colors text-center ${
                         fontSize === size 
                           ? "bg-[#E8730C] text-white font-bold" 
                           : "text-gray-400 hover:text-white hover:bg-zinc-800"

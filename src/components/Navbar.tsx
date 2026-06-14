@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
-import { RefreshCw, Terminal, Code2, Database, User, Briefcase } from "lucide-react";
+import { RefreshCw, Terminal, Code2, Database, User, Briefcase, X } from "lucide-react";
 
 interface NavbarProps {
   problemId?: number;
@@ -99,10 +99,10 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
             <button
               onClick={onReset}
               className="flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 font-bold px-3 py-1.5 rounded-full bg-[#1a0c0c]/40 hover:bg-[#1a0c0c] border border-red-950/50 transition-all duration-200 active:scale-95"
-              title="Reset problem"
+              title="Change problem"
             >
-              <RefreshCw size={12} className="animate-spin-hover" />
-              <span className="hidden sm:inline">Reset</span>
+              <X size={12} />
+              <span className="hidden sm:inline">Change Problem</span>
             </button>
           )}
 
