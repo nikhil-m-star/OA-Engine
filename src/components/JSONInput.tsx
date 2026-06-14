@@ -24,10 +24,7 @@ const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a str
   "starter_code": {
     "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
   }
-}
-
-Problem to Convert:
-[Paste your LeetCode problem here]`;
+}`;
 
 const DEFAULT_TEMPLATE: ProblemData = {
   id: 1,
