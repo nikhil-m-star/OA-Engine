@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 Your task is to parse this information and output a single, raw, valid JSON object that strictly adheres to the following schema:
 
 {
-  "id": 1, // integer problem ID
+  "id": 1, // integer problem ID (use the original LeetCode problem number if available, e.g. 15 for 3Sum)
   "title": "Two Sum", // problem title
   "slug": "two-sum", // url-friendly lowercase slug, e.g., 'two-sum'
   "difficulty": "Easy", // exactly: 'Easy', 'Medium', or 'Hard'
