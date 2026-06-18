@@ -199,7 +199,7 @@ export default function WorkspacePage() {
               disabled={!problem}
               className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all duration-300 font-bold cursor-pointer hover:scale-[1.02] active:scale-95 ${
                 activeTab === "description"
-                  ? "bg-[#E8730C]/10 text-[#E8730C] border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]"
+                  ? "bg-[#E8730C]/10 text-[#E8730C] shadow-[0_0_12px_rgba(232,115,12,0.15)]"
                   : "text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 disabled:cursor-not-allowed"
               }`}
             >
@@ -211,7 +211,7 @@ export default function WorkspacePage() {
               onClick={() => setActiveTab("json")}
               className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full transition-all duration-300 font-bold cursor-pointer hover:scale-[1.02] active:scale-95 ${
                 activeTab === "json"
-                  ? "bg-[#E8730C]/10 text-[#E8730C] border border-[#E8730C]/20 shadow-[0_0_12px_rgba(232,115,12,0.15)]"
+                  ? "bg-[#E8730C]/10 text-[#E8730C] shadow-[0_0_12px_rgba(232,115,12,0.15)]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
