@@ -51,38 +51,33 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   }, []);
 
   // Scroll animations interpolation
-  // Landing section fades out as we scroll down the track
-  const landingOpacity = Math.max(0, 1 - scrollProgress * 6.5); // fades out by progress = 0.15
-  const landingScale = Math.max(0.85, 1 - scrollProgress * 0.4);
-  const landingTranslateY = -scrollProgress * 80;
-
   // Main homepage content (details/stats) fades and slides in
   const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.85) * 6.6)); // starts at 85% scroll
   const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 50);
 
   // Mock UI Animations based on scroll progress (0.00 to 1.00)
   // Overall workspace opacity & entry
-  const workspaceOpacity = scrollProgress < 0.08 ? (scrollProgress / 0.08) : scrollProgress > 0.88 ? Math.max(0, 1 - (scrollProgress - 0.88) * 8.3) : 1;
-  const workspaceScale = scrollProgress < 0.12 ? 0.92 + (scrollProgress / 0.12) * 0.08 : scrollProgress > 0.88 ? Math.max(0.92, 1 - (scrollProgress - 0.88) * 0.08) : 1;
-  const workspaceRotateX = Math.max(0, 12 - scrollProgress * 60); // tilts flat by progress = 0.20
-  const workspaceRotateY = Math.min(0, -8 + scrollProgress * 40);
+  const workspaceOpacity = scrollProgress < 0.15 ? (scrollProgress / 0.15) : scrollProgress > 0.85 ? Math.max(0, 1 - (scrollProgress - 0.85) * 6.6) : 1;
+  const workspaceScale = scrollProgress < 0.15 ? 0.92 + (scrollProgress / 0.15) * 0.08 : scrollProgress > 0.85 ? Math.max(0.92, 1 - (scrollProgress - 0.85) * 0.08) : 1;
+  const workspaceRotateX = Math.max(0, 12 - scrollProgress * 80); // tilts flat by progress = 0.15
+  const workspaceRotateY = Math.min(0, -8 + scrollProgress * 53); // tilts flat by progress = 0.15
 
   // Active states for Left/Right panels based on scroll progress
-  const activeLeftTab = scrollProgress < 0.38 ? "generator-json" : scrollProgress < 0.62 ? "generator-ai" : "code-editor";
-  const activeRightTab = scrollProgress < 0.62 ? "description" : "console";
+  const activeLeftTab = scrollProgress < 0.42 ? "generator-json" : scrollProgress < 0.65 ? "generator-ai" : "code-editor";
+  const activeRightTab = scrollProgress < 0.65 ? "description" : "console";
 
-  // JSON parsed state triggers (Phase 2: 0.15 - 0.38)
-  const isJsonRendered = scrollProgress >= 0.28;
-  const isJsonClicked = scrollProgress >= 0.23 && scrollProgress < 0.28;
+  // JSON parsed state triggers (Phase 2: 0.20 - 0.42)
+  const isJsonRendered = scrollProgress >= 0.30;
+  const isJsonClicked = scrollProgress >= 0.23 && scrollProgress < 0.30;
 
-  // AI Generation text simulation triggers (Phase 3: 0.38 - 0.62)
-  const isAiParsing = scrollProgress >= 0.46 && scrollProgress < 0.54;
-  const isAiRendered = scrollProgress >= 0.54;
+  // AI Generation text simulation triggers (Phase 3: 0.42 - 0.65)
+  const isAiParsing = scrollProgress >= 0.48 && scrollProgress < 0.56;
+  const isAiRendered = scrollProgress >= 0.56;
 
-  // Code editor execution triggers (Phase 4: 0.62 - 0.82)
-  const testCase1Visible = scrollProgress >= 0.68;
+  // Code editor execution triggers (Phase 4: 0.65 - 0.82)
+  const testCase1Visible = scrollProgress >= 0.69;
   const testCase2Visible = scrollProgress >= 0.74;
-  const testCase3Visible = scrollProgress >= 0.80;
+  const testCase3Visible = scrollProgress >= 0.79;
 
   // Final submission triggers (Phase 5: 0.82 - 1.00)
   const resultsVisible = scrollProgress >= 0.82;
@@ -94,38 +89,31 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* Pinned Scroll Track Section */}
-      <div ref={scrollTrackRef} className="relative w-full h-[300vh] shrink-0">
+      {/* Section 1: Hero Landing (Non-sticky, scrolls up naturally) */}
+      <div className="h-[90vh] w-full shrink-0 flex flex-col items-center justify-center relative z-10 pt-16 text-center px-6 max-w-3xl mx-auto space-y-4">
+        <h1 className="text-6xl sm:text-8xl font-black tracking-wider text-white uppercase leading-none">
+          OA Engine
+        </h1>
+        <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide max-w-xl mx-auto">
+          A premium sandbox workspace for parsing and analyzing coding problems.
+        </p>
+        <div className="pt-4 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest text-[#E8730C] font-black animate-pulse cursor-default">
+          <span>Scroll down to run code simulation</span>
+          <ChevronDown size={12} className="text-[#E8730C]" />
+        </div>
+      </div>
+
+      {/* Section 2: Pinned Scroll Track Section */}
+      <div ref={scrollTrackRef} className="relative w-full h-[450vh] shrink-0">
         
         {/* Sticky viewport container */}
-        <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center z-10 pt-16 md:pt-20">
+        <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center z-10">
           
-          {/* Landing Hero Header Text */}
-          <div 
-            className="text-center px-6 max-w-3xl space-y-3 transition-all duration-300"
-            style={{
-              opacity: landingOpacity,
-              transform: `scale(${landingScale}) translateY(${landingTranslateY}px)`,
-              pointerEvents: landingOpacity > 0.05 ? "auto" : "none"
-            }}
-          >
-            <h1 className="text-6xl sm:text-8xl font-black tracking-wider text-white uppercase">
-              OA Engine
-            </h1>
-            <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide max-w-xl mx-auto">
-              A premium sandbox workspace for parsing and analyzing coding problems.
-            </p>
-            <div className="pt-2 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest text-[#E8730C] font-black animate-pulse">
-              <span>Scroll down to run code simulation</span>
-              <ChevronDown size={12} className="text-[#E8730C]" />
-            </div>
-          </div>
-
           {/* ----------------------------------------------------
               INTERACTIVE MOCK UI SHOWCASE (ANIME FORWARD ON SCROLL)
               ---------------------------------------------------- */}
           <div 
-            className="w-full max-w-5xl px-6 mt-6 md:mt-10 flex flex-col lg:flex-row items-stretch justify-center gap-6 relative transition-all duration-150 ease-out"
+            className="w-full max-w-5xl px-6 flex flex-col lg:flex-row items-stretch justify-center gap-6 relative transition-all duration-150 ease-out"
             style={{
               opacity: workspaceOpacity,
               transform: `perspective(1000px) rotateX(${workspaceRotateX}deg) rotateY(${workspaceRotateY}deg) scale(${workspaceScale})`,
