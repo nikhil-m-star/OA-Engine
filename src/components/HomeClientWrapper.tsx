@@ -22,8 +22,8 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   
-  // Mouse coordinates to attract pulses
-  const mouseRef = useRef({ x: 0, y: 0 });
+  // Mouse coordinates for spotlight
+  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,7 +50,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
   }, []);
 
-  // 2D Vector Stream Canvas Renderer loop
+  // 3D Perspective Grid Renderer loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -69,19 +69,21 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     window.addEventListener("resize", handleResize);
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
+      mouseRef.current.targetX = e.clientX;
+      mouseRef.current.targetY = e.clientY;
+      mouseRef.current.active = true;
     };
-    window.addEventListener("mousemove", onMouseMove);
+    
+    const onMouseLeave = () => {
+      mouseRef.current.active = false;
+    };
 
-    // Data packets (pulses) traveling along the vector paths
-    const numPackets = 12;
-    const packets = Array.from({ length: numPackets }).map((_, i) => ({
-      progress: (i / numPackets), // offset start points
-      speed: 0.0025 + Math.random() * 0.0015,
-      size: 3 + Math.random() * 3,
-      lane: Math.floor(Math.random() * 3) - 1 // -1 (left), 0 (center), 1 (right)
-    }));
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseleave", onMouseLeave);
+
+    // Grid details
+    const gridCols = 25; // number of longitudinal lines
+    const gridRows = 20; // number of latitudinal lines
 
     let time = 0;
     const render = () => {
@@ -90,193 +92,184 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
       const currentScroll = scrollProgress;
 
-      // ----------------------------------------------------
-      // GENERATE DYNAMIC 2D WINDING VECTOR PATH
-      // ----------------------------------------------------
-      const pathPoints: { x: number; y: number }[] = [];
-      const numSegments = 280;
+      // Smooth mouse coordinate tracking
+      if (!mouseRef.current.active) {
+        // Default target center on landing if mouse not active
+        mouseRef.current.targetX = width / 2;
+        mouseRef.current.targetY = height / 2;
+      }
+      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
+      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
 
-      const startX = width / 2;
-      const startY = height * 0.46; // Center vertically on landing viewport
+      // 3D Perspective parameters
+      const cameraDistance = 2.0;
+      const focalLength = Math.min(width, height) * 0.8;
+      
+      // Auto-rotation around Y (slow, premium drift)
+      const yaw = time * 0.0006;
+      // Tilt transitions from 3D horizon (0.45 rad) to a flat view on scroll
+      const pitch = 0.45 - currentScroll * 0.42;
 
-      // The loop spins when static. When scrolled, the spinning slows down.
-      const spinAngle = time * 0.014 * (1 - currentScroll * 0.85);
+      // Define grid coordinates and project them
+      // Floor grid at height Y = -0.5
+      const projectedGrid: { x: number; y: number; z: number; visible: boolean; alpha: number }[][] = [];
 
-      for (let i = 0; i < numSegments; i++) {
-        const t = i / (numSegments - 1);
-        let px = 0;
-        let py = 0;
+      for (let r = 0; r < gridRows; r++) {
+        const rowPoints: { x: number; y: number; z: number; visible: boolean; alpha: number }[] = [];
+        const gz = ((r / (gridRows - 1)) - 0.5) * 2.5; // Z depth
 
-        if (t < 0.28) {
-          // A. Landing Core: A nested spinning vector loop in the center
-          const loopT = t / 0.28;
-          const angle = loopT * Math.PI * 4 + spinAngle; // double loop
-          
-          // Shrink/unroll radius of loop slightly on scroll
-          const r = 95 * (1 - currentScroll * 0.2); 
-          px = startX + Math.cos(angle) * r;
-          py = startY + Math.sin(angle) * r;
-        } else {
-          // B. Flowing Winding Data Bus: Sweeps down and guides the scroll path
-          const pathT = (t - 0.28) / 0.72; // normalize to 0 to 1
-          
-          // Create a smooth serpentine winding curve
-          const waveX = Math.sin(pathT * Math.PI * 3.5) * (width * 0.16) * (1 - pathT * 0.2);
-          
-          // py extends down the page based on segment t
-          // Extends further down on desktop than mobile
-          const pageReach = height * 1.5;
-          const targetY = startY + pathT * pageReach;
+        for (let c = 0; c < gridCols; c++) {
+          const gx = ((c / (gridCols - 1)) - 0.5) * 3.5; // X span
+          const gy = 0.45; // floor grid height offset
 
-          // Interpolate smooth transition between loop exit and serpentine curve
-          const blendFactor = Math.min(1, pathT * 4); // fast blend
-          
-          // Starting point of serpentine curve aligns with loop exit
-          const loopExitAngle = spinAngle;
-          const loopExitX = startX + Math.cos(loopExitAngle) * 95;
-          const loopExitY = startY + Math.sin(loopExitAngle) * 95;
+          // Apply Y-axis rotation (yaw)
+          let x1 = gx * Math.cos(yaw) - gz * Math.sin(yaw);
+          let z1 = gx * Math.sin(yaw) + gz * Math.cos(yaw);
 
-          px = loopExitX * (1 - blendFactor) + (startX + waveX) * blendFactor;
-          py = loopExitY * (1 - blendFactor) + targetY * blendFactor;
+          // Apply X-axis rotation (pitch tilt)
+          let y2 = gy * Math.cos(pitch) - z1 * Math.sin(pitch);
+          let z2 = gy * Math.sin(pitch) + z1 * Math.cos(pitch);
+
+          const zProjected = cameraDistance - z2;
+
+          if (zProjected > 0.1) {
+            const projX = (x1 / zProjected) * focalLength + width / 2;
+            const projY = (y2 / zProjected) * focalLength + height / 2;
+
+            // Fade out lines in the extreme distance (zProjected high) or very close (zProjected low)
+            const edgeFade = Math.sin((r / (gridRows - 1)) * Math.PI); // 0 at edges, 1 in center
+            const opacity = Math.max(0.1, edgeFade * 0.7);
+
+            rowPoints.push({
+              x: projX,
+              y: projY,
+              z: zProjected,
+              visible: projX >= -100 && projX <= width + 100 && projY >= -100 && projY <= height + 100,
+              alpha: opacity
+            });
+          } else {
+            rowPoints.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
+          }
         }
-
-        pathPoints.push({ x: px, y: py });
+        projectedGrid.push(rowPoints);
       }
 
-      // Draw progress: Path draws itself forward as we scroll
-      // Starts at showing the core loop (28% of path)
-      // Reaches 100% drawn as scrollProgress reaches 1
-      const drawLimit = Math.floor(numSegments * (0.28 + currentScroll * 0.72));
+      // ----------------------------------------------------
+      // DRAW GRADIENT SPOTLIGHT (INTERACTIVE GLOW)
+      // ----------------------------------------------------
+      // Creates a glowing back-light centered at the cursor
+      const glowRadius = 320;
+      const spotlight = ctx.createRadialGradient(
+        mouseRef.current.x,
+        mouseRef.current.y,
+        0,
+        mouseRef.current.x,
+        mouseRef.current.y,
+        glowRadius
+      );
+      
+      // Soft signature orange spotlight glow
+      spotlight.addColorStop(0, `rgba(232, 115, 12, ${0.14 * (1 - currentScroll)})`);
+      spotlight.addColorStop(0.5, `rgba(232, 115, 12, ${0.03 * (1 - currentScroll)})`);
+      spotlight.addColorStop(1, "rgba(0, 0, 0, 0)");
+      
+      ctx.fillStyle = spotlight;
+      ctx.beginPath();
+      ctx.arc(mouseRef.current.x, mouseRef.current.y, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
 
       // ----------------------------------------------------
-      // DRAW NEON VECTOR LANES (NO DOTS, PURE SMOOTH PATHS)
+      // DRAW 3D PERSPECTIVE GRID LINES
       // ----------------------------------------------------
-      const drawLane = (offset: number, opacityMultiplier: number, lineWidth: number, isCore: boolean) => {
+      ctx.lineWidth = 0.65;
+
+      // A. Draw Longitudinal lines (connections along Z-axis)
+      for (let c = 0; c < gridCols; c++) {
         ctx.beginPath();
         let started = false;
+        let prevAlpha = 0;
 
-        for (let i = 0; i < drawLimit; i++) {
-          const pt = pathPoints[i];
-          if (!pt) continue;
+        for (let r = 0; r < gridRows; r++) {
+          const pt = projectedGrid[r][c];
+          if (pt && pt.visible) {
+            // Local illumination factor: lines glow brighter when near the cursor spotlight
+            const dx = pt.x - mouseRef.current.x;
+            const dy = pt.y - mouseRef.current.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const illumination = dist < 220 ? (1 - dist / 220) * 1.5 : 0;
 
-          // Calculate offset direction (perpendicular vector)
-          let dx = 0;
-          let dy = 0;
-          if (offset !== 0 && i < drawLimit - 1) {
-            const nextPt = pathPoints[i + 1];
-            const vx = nextPt.x - pt.x;
-            const vy = nextPt.y - pt.y;
-            const len = Math.sqrt(vx * vx + vy * vy);
-            if (len > 0.1) {
-              // Normal perpendicular vector
-              dx = (-vy / len) * offset;
-              dy = (vx / len) * offset;
+            const finalAlpha = pt.alpha * 0.08 * (1 + illumination) * (1 - currentScroll * 0.3);
+
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              // Create dynamic gradient color on each segment to make intersection glowing look extremely smooth
+              const grad = ctx.createLinearGradient(
+                projectedGrid[r - 1][c].x,
+                projectedGrid[r - 1][c].y,
+                pt.x,
+                pt.y
+              );
+              grad.addColorStop(0, `rgba(232, 115, 12, ${prevAlpha})`);
+              grad.addColorStop(1, `rgba(232, 115, 12, ${finalAlpha})`);
+              
+              ctx.strokeStyle = grad;
+              ctx.lineTo(pt.x, pt.y);
+              ctx.stroke();
+              
+              ctx.beginPath();
+              ctx.moveTo(pt.x, pt.y);
             }
-          }
-
-          const targetX = pt.x + dx;
-          const targetY = pt.y + dy;
-
-          if (!started) {
-            ctx.moveTo(targetX, targetY);
-            started = true;
+            prevAlpha = finalAlpha;
           } else {
-            ctx.lineTo(targetX, targetY);
+            started = false;
           }
         }
+      }
 
-        ctx.lineWidth = lineWidth;
-        if (isCore) {
-          ctx.strokeStyle = `rgba(232, 115, 12, ${0.75 * opacityMultiplier})`; // core orange
-        } else {
-          ctx.strokeStyle = `rgba(232, 115, 12, ${0.08 * opacityMultiplier})`; // soft neon glow bloom
-        }
-        ctx.stroke();
-      };
+      // B. Draw Latitudinal lines (connections along X-axis)
+      for (let r = 0; r < gridRows; r++) {
+        ctx.beginPath();
+        let started = false;
+        let prevAlpha = 0;
 
-      // Draw 3 lanes (Left, Center, Right) to represent a multi-core data bus
-      const lanes = [-14, 0, 14];
-      lanes.forEach((laneOffset) => {
-        const isCenter = laneOffset === 0;
-        const widthScale = isCenter ? 1 : 0.6;
-        
-        // A. Neon Bloom/Glow Layer (Wide stroke)
-        drawLane(laneOffset, widthScale, 6.0, false);
-        // B. Sharp Core Layer (Thin stroke)
-        drawLane(laneOffset, widthScale, 1.8, true);
-      });
+        for (let c = 0; c < gridCols; c++) {
+          const pt = projectedGrid[r][c];
+          if (pt && pt.visible) {
+            const dx = pt.x - mouseRef.current.x;
+            const dy = pt.y - mouseRef.current.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const illumination = dist < 220 ? (1 - dist / 220) * 1.5 : 0;
 
-      // Draw a subtle white center highlight inside the main middle track to give it a hot neon wire appearance
-      drawLane(0, 0.4, 0.6, false);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.stroke();
+            const finalAlpha = pt.alpha * 0.08 * (1 + illumination) * (1 - currentScroll * 0.3);
 
-      // ----------------------------------------------------
-      // DRAW DATA PACKETS / ENERGY PULSES (Winding vector lines)
-      // ----------------------------------------------------
-      packets.forEach((packet) => {
-        // Progress packets along the path
-        packet.progress += packet.speed;
-        if (packet.progress > 1) {
-          packet.progress = 0;
-          packet.lane = Math.floor(Math.random() * 3) - 1;
-        }
-
-        // Limit packets to the currently drawn path progress
-        const currentPathLimitT = 0.28 + currentScroll * 0.72;
-        const activeT = packet.progress * currentPathLimitT;
-        const segmentIndex = Math.floor(activeT * (numSegments - 1));
-
-        const pt = pathPoints[segmentIndex];
-        if (pt) {
-          // Calculate perpendicular offset for lane
-          let dx = 0;
-          let dy = 0;
-          if (packet.lane !== 0 && segmentIndex < numSegments - 1) {
-            const nextPt = pathPoints[segmentIndex + 1];
-            const vx = nextPt.x - pt.x;
-            const vy = nextPt.y - pt.y;
-            const len = Math.sqrt(vx * vx + vy * vy);
-            if (len > 0.1) {
-              dx = (-vy / len) * packet.lane * 14;
-              dy = (vx / len) * packet.lane * 14;
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              const grad = ctx.createLinearGradient(
+                projectedGrid[r][c - 1].x,
+                projectedGrid[r][c - 1].y,
+                pt.x,
+                pt.y
+              );
+              grad.addColorStop(0, `rgba(232, 115, 12, ${prevAlpha})`);
+              grad.addColorStop(1, `rgba(232, 115, 12, ${finalAlpha})`);
+              
+              ctx.strokeStyle = grad;
+              ctx.lineTo(pt.x, pt.y);
+              ctx.stroke();
+              
+              ctx.beginPath();
+              ctx.moveTo(pt.x, pt.y);
             }
+            prevAlpha = finalAlpha;
+          } else {
+            started = false;
           }
-
-          const px = pt.x + dx;
-          const py = pt.y + dy;
-
-          // Render glowing pulse dash (short line segment) instead of a simple dot
-          // Calculate heading direction
-          let headingX = 1;
-          let headingY = 0;
-          if (segmentIndex < numSegments - 1) {
-            const nextPt = pathPoints[segmentIndex + 1];
-            const vx = nextPt.x - pt.x;
-            const vy = nextPt.y - pt.y;
-            const len = Math.sqrt(vx * vx + vy * vy);
-            if (len > 0.1) {
-              headingX = vx / len;
-              headingY = vy / len;
-            }
-          }
-
-          // Draw a short trailing glow streak line for the packet (extremely premium)
-          const streakLen = 14 + currentScroll * 15; // grows longer as you scroll
-          ctx.beginPath();
-          ctx.moveTo(px, py);
-          ctx.lineTo(px - headingX * streakLen, py - headingY * streakLen);
-          
-          ctx.lineWidth = packet.size * 0.55;
-          ctx.strokeStyle = `rgba(255, 160, 50, ${0.85 * (1 - currentScroll * 0.4)})`;
-          ctx.stroke();
-
-          // White core for packet
-          ctx.lineWidth = packet.size * 0.2;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * (1 - currentScroll * 0.4)})`;
-          ctx.stroke();
         }
-      });
+      }
 
       animationFrameId = requestAnimationFrame(render);
     };
@@ -287,6 +280,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseleave", onMouseLeave);
     };
   }, [scrollProgress]);
 
@@ -305,7 +299,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* 2D Vector Stream Canvas (scrolls with page, fades out slowly) */}
+      {/* Vercel-Style 3D Perspective Grid Background (fades cleanly on scroll) */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
