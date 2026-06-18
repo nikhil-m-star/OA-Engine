@@ -52,35 +52,35 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
   // Scroll animations interpolation
   // Main homepage content (details/stats) fades and slides in
-  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.85) * 6.6)); // starts at 85% scroll
+  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.90) * 10)); // starts at 90% scroll
   const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 50);
 
   // Mock UI Animations based on scroll progress (0.00 to 1.00)
   // Overall workspace opacity & entry
-  const workspaceOpacity = scrollProgress < 0.15 ? (scrollProgress / 0.15) : scrollProgress > 0.85 ? Math.max(0, 1 - (scrollProgress - 0.85) * 6.6) : 1;
-  const workspaceScale = scrollProgress < 0.15 ? 0.92 + (scrollProgress / 0.15) * 0.08 : scrollProgress > 0.85 ? Math.max(0.92, 1 - (scrollProgress - 0.85) * 0.08) : 1;
-  const workspaceRotateX = Math.max(0, 12 - scrollProgress * 80); // tilts flat by progress = 0.15
-  const workspaceRotateY = Math.min(0, -8 + scrollProgress * 53); // tilts flat by progress = 0.15
+  const workspaceOpacity = scrollProgress < 0.10 ? (scrollProgress / 0.10) : scrollProgress > 0.92 ? Math.max(0, 1 - (scrollProgress - 0.92) * 12.5) : 1;
+  const workspaceScale = scrollProgress < 0.10 ? 0.92 + (scrollProgress / 0.10) * 0.08 : scrollProgress > 0.92 ? Math.max(0.92, 1 - (scrollProgress - 0.92) * 0.08) : 1;
+  const workspaceRotateX = Math.max(0, 12 - scrollProgress * 120); // tilts flat by progress = 0.10
+  const workspaceRotateY = Math.min(0, -8 + scrollProgress * 80); // tilts flat by progress = 0.10
 
   // Active states for Left/Right panels based on scroll progress
-  const activeLeftTab = scrollProgress < 0.42 ? "generator-json" : scrollProgress < 0.65 ? "generator-ai" : "code-editor";
+  const activeLeftTab = scrollProgress < 0.40 ? "generator-json" : scrollProgress < 0.65 ? "generator-ai" : "code-editor";
   const activeRightTab = scrollProgress < 0.65 ? "description" : "console";
 
-  // JSON parsed state triggers (Phase 2: 0.20 - 0.42)
+  // JSON parsed state triggers (Phase 2: 0.15 - 0.40)
   const isJsonRendered = scrollProgress >= 0.30;
-  const isJsonClicked = scrollProgress >= 0.23 && scrollProgress < 0.30;
+  const isJsonClicked = scrollProgress >= 0.20 && scrollProgress < 0.30;
 
-  // AI Generation text simulation triggers (Phase 3: 0.42 - 0.65)
-  const isAiParsing = scrollProgress >= 0.48 && scrollProgress < 0.56;
-  const isAiRendered = scrollProgress >= 0.56;
+  // AI Generation text simulation triggers (Phase 3: 0.40 - 0.65)
+  const isAiParsing = scrollProgress >= 0.45 && scrollProgress < 0.55;
+  const isAiRendered = scrollProgress >= 0.55;
 
-  // Code editor execution triggers (Phase 4: 0.65 - 0.82)
-  const testCase1Visible = scrollProgress >= 0.69;
-  const testCase2Visible = scrollProgress >= 0.74;
-  const testCase3Visible = scrollProgress >= 0.79;
+  // Code editor execution triggers (Phase 4: 0.65 - 0.90)
+  const testCase1Visible = scrollProgress >= 0.70;
+  const testCase2Visible = scrollProgress >= 0.77;
+  const testCase3Visible = scrollProgress >= 0.84;
 
-  // Final submission triggers (Phase 5: 0.82 - 1.00)
-  const resultsVisible = scrollProgress >= 0.82;
+  // Final submission triggers (Phase 5: 0.90 - 1.00)
+  const resultsVisible = scrollProgress >= 0.90;
 
   return (
     <div 
@@ -104,7 +104,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       </div>
 
       {/* Section 2: Pinned Scroll Track Section */}
-      <div ref={scrollTrackRef} className="relative w-full h-[450vh] shrink-0">
+      <div ref={scrollTrackRef} className="relative w-full h-[600vh] shrink-0">
         
         {/* Sticky viewport container */}
         <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center z-10">
