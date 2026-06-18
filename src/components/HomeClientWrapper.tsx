@@ -90,7 +90,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       lastTime = now;
       setSimTime(prev => {
         const next = prev + dt;
-        return next >= 21000 ? 0 : next; // Loop at 21.0s
+        return next >= 30000 ? 0 : next; // Loop at 30.0s
       });
       animationFrameId = requestAnimationFrame(update);
     };
@@ -116,21 +116,21 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   if (!isPlaying) {
     simPhase = 0;
     phaseTime = 0;
-  } else if (simTime < 3000) {
+  } else if (simTime < 4000) {
     simPhase = 1;
     phaseTime = simTime;
-  } else if (simTime < 7000) {
+  } else if (simTime < 9500) {
     simPhase = 2;
-    phaseTime = simTime - 3000;
-  } else if (simTime < 12000) {
+    phaseTime = simTime - 4000;
+  } else if (simTime < 16500) {
     simPhase = 3;
-    phaseTime = simTime - 7000;
-  } else if (simTime < 15000) {
+    phaseTime = simTime - 9500;
+  } else if (simTime < 21000) {
     simPhase = 4;
-    phaseTime = simTime - 12000;
+    phaseTime = simTime - 16500;
   } else {
     simPhase = 5;
-    phaseTime = simTime - 15000;
+    phaseTime = simTime - 21000;
   }
 
   // Declare variables derived from phase and timer
@@ -159,87 +159,87 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     activeLeftTab = "generator-json";
     activeRightTab = "description";
   } else if (simPhase === 1) {
-    // Phase 1: Click Render JSON (3.0s total)
-    if (phaseTime < 1200) {
-      cursorX = lerp(40, 30, phaseTime / 1200);
-      cursorY = lerp(250, 395, phaseTime / 1200);
-    } else if (phaseTime < 1500) {
+    // Phase 1: Click Render JSON (4.0s total)
+    if (phaseTime < 1500) {
+      cursorX = lerp(40, 30, phaseTime / 1500);
+      cursorY = lerp(250, 395, phaseTime / 1500);
+    } else if (phaseTime < 1800) {
       cursorX = 30;
       cursorY = 395;
       isClicking = true;
-    } else if (phaseTime < 2700) {
-      cursorX = lerp(30, 40, (phaseTime - 1500) / 1200);
-      cursorY = lerp(395, 250, (phaseTime - 1500) / 1200);
+    } else if (phaseTime < 3300) {
+      cursorX = lerp(30, 40, (phaseTime - 1800) / 1500);
+      cursorY = lerp(395, 250, (phaseTime - 1800) / 1500);
     } else {
       cursorX = 40;
       cursorY = 250;
     }
     activeLeftTab = "generator-json";
     activeRightTab = "description";
-    isJsonClicked = phaseTime >= 1500 && phaseTime < 2700;
-    isJsonRendered = phaseTime >= 2700;
+    isJsonClicked = phaseTime >= 1800 && phaseTime < 3500;
+    isJsonRendered = phaseTime >= 3500;
   } else if (simPhase === 2) {
-    // Phase 2: Click AI Question subtab, then click Parse & Render (4.0s total)
+    // Phase 2: Click AI Question subtab, then click Parse & Render (5.5s total)
     isJsonRendered = true;
-    if (phaseTime < 1000) {
-      cursorX = lerp(40, 14, phaseTime / 1000);
-      cursorY = lerp(250, 60, phaseTime / 1000);
-    } else if (phaseTime < 1300) {
+    if (phaseTime < 1500) {
+      cursorX = lerp(40, 14, phaseTime / 1500);
+      cursorY = lerp(250, 60, phaseTime / 1500);
+    } else if (phaseTime < 1800) {
       cursorX = 14;
       cursorY = 60;
       isClicking = true;
-    } else if (phaseTime < 2300) {
-      cursorX = lerp(14, 24, (phaseTime - 1300) / 1000);
-      cursorY = lerp(60, 395, (phaseTime - 1300) / 1000);
-    } else if (phaseTime < 2600) {
+    } else if (phaseTime < 3300) {
+      cursorX = lerp(14, 24, (phaseTime - 1800) / 1500);
+      cursorY = lerp(60, 395, (phaseTime - 1800) / 1500);
+    } else if (phaseTime < 3600) {
       cursorX = 24;
       cursorY = 395;
       isClicking = true;
-    } else if (phaseTime < 3600) {
-      cursorX = lerp(24, 40, (phaseTime - 2600) / 1000);
-      cursorY = lerp(395, 250, (phaseTime - 2600) / 1000);
+    } else if (phaseTime < 5100) {
+      cursorX = lerp(24, 40, (phaseTime - 3600) / 1500);
+      cursorY = lerp(395, 250, (phaseTime - 3600) / 1500);
     } else {
       cursorX = 40;
       cursorY = 250;
     }
 
-    activeLeftTab = phaseTime >= 1000 ? "generator-ai" : "generator-json";
+    activeLeftTab = phaseTime >= 1500 ? "generator-ai" : "generator-json";
     activeRightTab = "description";
-    isAiParsing = phaseTime >= 2600 && phaseTime < 3800;
-    isAiRendered = phaseTime >= 3800;
+    isAiParsing = phaseTime >= 3600 && phaseTime < 5200;
+    isAiRendered = phaseTime >= 5200;
   } else if (simPhase === 3) {
-    // Phase 3: Click Code Editor tab, then click Run (5.0s total)
+    // Phase 3: Click Code Editor tab, then click Run (7.0s total)
     isJsonRendered = true;
     isAiRendered = true;
-    if (phaseTime < 1000) {
-      cursorX = lerp(40, 27, phaseTime / 1000);
-      cursorY = lerp(250, 15, phaseTime / 1000);
-    } else if (phaseTime < 1300) {
+    if (phaseTime < 1500) {
+      cursorX = lerp(40, 27, phaseTime / 1500);
+      cursorY = lerp(250, 15, phaseTime / 1500);
+    } else if (phaseTime < 1800) {
       cursorX = 27;
       cursorY = 15;
       isClicking = true;
-    } else if (phaseTime < 2300) {
-      cursorX = lerp(27, 36, (phaseTime - 1300) / 1000);
-      cursorY = lerp(15, 415, (phaseTime - 1300) / 1000);
-    } else if (phaseTime < 2600) {
+    } else if (phaseTime < 3300) {
+      cursorX = lerp(27, 36, (phaseTime - 1800) / 1500);
+      cursorY = lerp(15, 415, (phaseTime - 1800) / 1500);
+    } else if (phaseTime < 3600) {
       cursorX = 36;
       cursorY = 415;
       isClicking = true;
-    } else if (phaseTime < 3600) {
-      cursorX = lerp(36, 40, (phaseTime - 2600) / 1000);
-      cursorY = lerp(415, 250, (phaseTime - 2600) / 1000);
+    } else if (phaseTime < 5100) {
+      cursorX = lerp(36, 40, (phaseTime - 3600) / 1500);
+      cursorY = lerp(415, 250, (phaseTime - 3600) / 1500);
     } else {
       cursorX = 40;
       cursorY = 250;
     }
 
-    activeLeftTab = phaseTime >= 1000 ? "code-editor" : "generator-ai";
-    activeRightTab = phaseTime >= 2600 ? "console" : "description";
-    testCase1Visible = phaseTime >= 3200;
-    testCase2Visible = phaseTime >= 3800;
-    testCase3Visible = phaseTime >= 4400;
+    activeLeftTab = phaseTime >= 1500 ? "code-editor" : "generator-ai";
+    activeRightTab = phaseTime >= 3600 ? "console" : "description";
+    testCase1Visible = phaseTime >= 4400;
+    testCase2Visible = phaseTime >= 5200;
+    testCase3Visible = phaseTime >= 6000;
   } else if (simPhase === 4) {
-    // Phase 4: Click Submit, show Result tab (3.0s total)
+    // Phase 4: Click Submit, show Result tab (4.5s total)
     isJsonRendered = true;
     isAiRendered = true;
     activeLeftTab = "code-editor";
@@ -248,24 +248,24 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     testCase2Visible = true;
     testCase3Visible = true;
 
-    if (phaseTime < 1000) {
-      cursorX = lerp(40, 43, phaseTime / 1000);
-      cursorY = lerp(250, 415, phaseTime / 1000);
-    } else if (phaseTime < 1300) {
+    if (phaseTime < 1500) {
+      cursorX = lerp(40, 43, phaseTime / 1500);
+      cursorY = lerp(250, 415, phaseTime / 1500);
+    } else if (phaseTime < 1800) {
       cursorX = 43;
       cursorY = 415;
       isClicking = true;
-    } else if (phaseTime < 2500) {
-      cursorX = lerp(43, 40, (phaseTime - 1300) / 1000);
-      cursorY = lerp(415, 250, (phaseTime - 1300) / 1000);
+    } else if (phaseTime < 3300) {
+      cursorX = lerp(43, 40, (phaseTime - 1800) / 1500);
+      cursorY = lerp(415, 250, (phaseTime - 1800) / 1500);
     } else {
       cursorX = 40;
       cursorY = 250;
     }
 
-    resultsVisible = phaseTime >= 1300;
+    resultsVisible = phaseTime >= 1800;
   } else if (simPhase === 5) {
-    // Phase 5: Success screen loop display (6.0s total)
+    // Phase 5: Success screen loop display (9.0s total)
     isJsonRendered = true;
     isAiRendered = true;
     activeLeftTab = "code-editor";
