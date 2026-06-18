@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Terminal } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface Stats {
@@ -24,6 +24,20 @@ interface Point3D {
   ox: number; // original coordinates
   oy: number;
   oz: number;
+  shimmerOffset: number;
+  shimmerSpeed: number;
+  isPacket: boolean; // larger "data packet" nodes
+}
+
+interface Dust3D {
+  x: number;
+  y: number;
+  z: number;
+  ox: number;
+  oy: number;
+  oz: number;
+  speed: number;
+  size: number;
 }
 
 export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperProps) {
@@ -41,7 +55,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       const scrollTop = containerRef.current.scrollTop;
       const height = window.innerHeight;
       
-      // Calculate scroll progress from 0 to 1 over the first viewport height
       const progress = Math.min(Math.max(scrollTop / height, 0), 1);
       setScrollProgress(progress);
     };
@@ -51,7 +64,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       container.addEventListener("scroll", handleScroll);
     }
     
-    // Also listen on window in case page scrolls standard
     window.addEventListener("scroll", handleScroll);
 
     return () => {
@@ -73,21 +85,42 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // Initialize 3D particles on a sphere
+    // 1. Initialize 3D particles on a sphere (200 nodes)
     const points: Point3D[] = [];
-    const numPoints = 200;
+    const numPoints = 220;
     
-    // Golden ratio sphere distribution
     for (let i = 0; i < numPoints; i++) {
       const phi = Math.acos(1 - 2 * (i + 0.5) / numPoints);
       const theta = Math.sqrt(numPoints * Math.PI) * phi;
       const x = Math.cos(theta) * Math.sin(phi);
       const y = Math.sin(theta) * Math.sin(phi);
       const z = Math.cos(phi);
-      points.push({ x, y, z, ox: x, oy: y, oz: z });
+      
+      points.push({
+        x, y, z,
+        ox: x, oy: y, oz: z,
+        shimmerOffset: Math.random() * Math.PI * 2,
+        shimmerSpeed: 0.02 + Math.random() * 0.03,
+        isPacket: Math.random() < 0.12 // 12% are larger data packets
+      });
     }
 
-    // Precalculate connections (distances < 0.28 in 3D unit space)
+    // 2. Initialize 3D Ambient Dust (80 particles)
+    const dustParticles: Dust3D[] = [];
+    const numDust = 80;
+    for (let i = 0; i < numDust; i++) {
+      const rx = (Math.random() - 0.5) * 6;
+      const ry = (Math.random() - 0.5) * 6;
+      const rz = (Math.random() - 0.5) * 6;
+      dustParticles.push({
+        x: rx, y: ry, z: rz,
+        ox: rx, oy: ry, oz: rz,
+        speed: 0.002 + Math.random() * 0.004,
+        size: 0.6 + Math.random() * 0.8
+      });
+    }
+
+    // 3. Precalculate connections (distances < 0.28 in 3D unit space)
     const connections: [number, number][] = [];
     for (let i = 0; i < numPoints; i++) {
       for (let j = i + 1; j < numPoints; j++) {
@@ -110,7 +143,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
     // Mouse handlers
     const onMouseMove = (e: MouseEvent) => {
-      // Normalize to -1 to 1
       mouseRef.current.targetX = (e.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.targetY = (e.clientY / window.innerHeight) * 2 - 1;
 
@@ -144,8 +176,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       time++;
       ctx.clearRect(0, 0, width, height);
 
-      // Current scroll state from our state/ref
-      // Using a local cached scroll progress from state
       const currentScroll = scrollProgress;
 
       // Damp mouse tracking
@@ -153,37 +183,54 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
 
       // Update rotation angles with drift velocity and mouse offsets
-      rotationRef.current.velX *= 0.95; // friction
+      rotationRef.current.velX *= 0.95;
       rotationRef.current.velY *= 0.95;
       
-      const autoRotateSpeed = 0.005 + currentScroll * 0.02; // spin faster as we scroll
-      rotationRef.current.x += rotationRef.current.velX + autoRotateSpeed * 0.4;
+      const autoRotateSpeed = 0.003 + currentScroll * 0.015; // spin faster as we scroll
+      rotationRef.current.x += rotationRef.current.velX + autoRotateSpeed * 0.3;
       rotationRef.current.y += rotationRef.current.velY + autoRotateSpeed;
 
-      const rx = rotationRef.current.x + mouseRef.current.y * 0.3;
-      const ry = rotationRef.current.y + mouseRef.current.x * 0.3;
+      const rx = rotationRef.current.x + mouseRef.current.y * 0.25;
+      const ry = rotationRef.current.y + mouseRef.current.x * 0.25;
 
-      // Camera config
-      // Fly through: camera moves from distance 3.0 to 0.1
-      // When it goes past 1.0, we enter inside the sphere.
-      const disperse = 1 + currentScroll * 5.0; // expand sphere radius
+      // Scroll configurations
+      const disperse = 1 + currentScroll * 5.2; // expand sphere radius
       const cameraDistance = 3.0 - currentScroll * 2.85; 
-      const focalLength = Math.min(width, height) * 0.55;
+      const focalLength = Math.min(width, height) * 0.58;
 
-      const projectedPoints: { x: number; y: number; z: number; visible: boolean; alpha: number }[] = [];
+      // Mouse interactive position in screen coordinates
+      const mouseXScreen = (mouseRef.current.targetX + 1) * width / 2;
+      const mouseYScreen = (mouseRef.current.targetY + 1) * height / 2;
 
-      // Rotate and project points
+      // ----------------------------------------------------
+      // PROJECT MAIN SPHERE POINTS (with organic ripples)
+      // ----------------------------------------------------
+      const projectedSpherePoints: { 
+        x: number; y: number; z: number; 
+        visible: boolean; alpha: number; 
+        isPacket: boolean; shimmer: number 
+      }[] = [];
+
       for (let i = 0; i < numPoints; i++) {
         const p = points[i];
 
+        // Wave ripple calculation based on time and spatial index
+        const waveFreq = 0.025;
+        const waveValue = Math.sin(time * waveFreq + i * 0.15) * 0.075 * (1 - currentScroll * 0.85);
+        const radius = 1 + waveValue;
+
+        const currentOX = p.ox * radius;
+        const currentOY = p.oy * radius;
+        const currentOZ = p.oz * radius;
+
         // 3D rotations
         // Rotate Y
-        let x1 = p.ox * Math.cos(ry) - p.oz * Math.sin(ry);
-        let z1 = p.ox * Math.sin(ry) + p.oz * Math.cos(ry);
+        let x1 = currentOX * Math.cos(ry) - currentOZ * Math.sin(ry);
+        let z1 = currentOX * Math.sin(ry) + currentOZ * Math.cos(ry);
 
         // Rotate X
-        let y2 = p.oy * Math.cos(rx) - z1 * Math.sin(rx);
-        let z2 = p.oy * Math.sin(rx) + z1 * Math.cos(rx);
+        let y2 = currentOY * Math.cos(rx) - z1 * Math.sin(rx);
+        let z2 = currentOY * Math.sin(rx) + z1 * Math.cos(rx);
 
         // Apply scale/dispersion
         const rx_scaled = x1 * disperse;
@@ -193,71 +240,191 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
         const zProjected = cameraDistance - rz_scaled;
 
         if (zProjected > 0.08) {
-          const projX = (rx_scaled / zProjected) * focalLength + width / 2;
-          const projY = (ry_scaled / zProjected) * focalLength + height / 2;
+          let projX = (rx_scaled / zProjected) * focalLength + width / 2;
+          let projY = (ry_scaled / zProjected) * focalLength + height / 2;
           
-          // Calculate brightness based on distance and scroll
-          // Particles passing close to camera fade out to avoid harsh clipping
+          // Cursor Interactive Gravity (distortion bubble)
+          // Points within 130px radius are pushed away/distorted
+          const dx = projX - mouseXScreen;
+          const dy = projY - mouseYScreen;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130 && dist > 0) {
+            const force = (130 - dist) / 130;
+            // Push away from mouse slightly
+            projX += (dx / dist) * force * 22 * (1 - currentScroll * 0.9);
+            projY += (dy / dist) * force * 22 * (1 - currentScroll * 0.9);
+          }
+
+          // Calculate proximity-based opacity
           let opacity = 0.85;
           if (zProjected < 0.5) {
             opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.85;
           }
-          
-          // Overall fade as scroll completes to keep background clean
-          opacity *= (1 - currentScroll * 0.4);
+          opacity *= (1 - currentScroll * 0.35); // fade out slightly during flythrough
 
-          projectedPoints.push({
+          // Shimmer calculation
+          const shimmer = 0.5 + 0.5 * Math.sin(time * p.shimmerSpeed + p.shimmerOffset);
+
+          projectedSpherePoints.push({
             x: projX,
             y: projY,
             z: zProjected,
             visible: projX >= 0 && projX <= width && projY >= 0 && projY <= height,
-            alpha: opacity
+            alpha: opacity,
+            isPacket: p.isPacket,
+            shimmer
           });
         } else {
-          projectedPoints.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
+          projectedSpherePoints.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0, isPacket: false, shimmer: 0 });
         }
       }
 
-      // Draw connection lines (only visible in early scroll stage)
+      // ----------------------------------------------------
+      // PROJECT AMBIENT DUST
+      // ----------------------------------------------------
+      const projectedDust: { x: number; y: number; z: number; visible: boolean; alpha: number; size: number }[] = [];
+      for (let i = 0; i < numDust; i++) {
+        const d = dustParticles[i];
+
+        // Animate dust drifting slowly toward the camera (Z coordinate decreases)
+        d.z -= d.speed;
+        if (d.z < -3) {
+          d.z = 3; // wrap back to background
+        }
+
+        // Apply rotation to dust
+        let x1 = d.x * Math.cos(ry) - d.z * Math.sin(ry);
+        let z1 = d.x * Math.sin(ry) + d.z * Math.cos(ry);
+        let y2 = d.y * Math.cos(rx) - z1 * Math.sin(rx);
+        let z2 = d.y * Math.sin(rx) + z1 * Math.cos(rx);
+
+        // Ambient dust expands less than main sphere to keep it in context
+        const disperseDust = 1 + currentScroll * 1.5;
+        const dx_scaled = x1 * disperseDust;
+        const dy_scaled = y2 * disperseDust;
+        const dz_scaled = z2 * disperseDust;
+
+        const zProjected = cameraDistance - dz_scaled;
+
+        if (zProjected > 0.08) {
+          const projX = (dx_scaled / zProjected) * focalLength + width / 2;
+          const projY = (dy_scaled / zProjected) * focalLength + height / 2;
+
+          let opacity = 0.45;
+          if (zProjected < 0.5) {
+            opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.45;
+          }
+          opacity *= (1 - currentScroll * 0.2); // stays active in background longer
+
+          projectedDust.push({
+            x: projX,
+            y: projY,
+            z: zProjected,
+            visible: projX >= 0 && projX <= width && projY >= 0 && projY <= height,
+            alpha: opacity,
+            size: d.size
+          });
+        } else {
+          projectedDust.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0, size: 0 });
+        }
+      }
+
+      // ----------------------------------------------------
+      // RENDERING WITH DEPTH SORTING (Painter's Algorithm)
+      // ----------------------------------------------------
+
+      // 1. Draw Ambient Dust (Always in background)
+      // Sort dust by depth (Furthest first)
+      const sortedDust = [...projectedDust]
+        .map((d, index) => ({ d, index }))
+        .filter(item => item.d.visible && item.d.z > 0)
+        .sort((a, b) => b.d.z - a.d.z);
+
+      for (let k = 0; k < sortedDust.length; k++) {
+        const { d } = sortedDust[k];
+        const dustSize = Math.max(0.3, d.size / d.z);
+        ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha * 0.35})`;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, dustSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 2. Draw Connection Lines
       const lineAlphaFactor = Math.max(0, 1 - currentScroll * 2.5); // completely fade lines by 40% scroll
       if (lineAlphaFactor > 0.01) {
-        ctx.lineWidth = 0.55;
+        // Build lines with Z-depth (average Z of the two connected points)
+        const linesToDraw: { p1: any; p2: any; avgZ: number }[] = [];
         for (let k = 0; k < connections.length; k++) {
           const [i, j] = connections[k];
-          const p1 = projectedPoints[i];
-          const p2 = projectedPoints[j];
+          const p1 = projectedSpherePoints[i];
+          const p2 = projectedSpherePoints[j];
 
           if (p1 && p2 && p1.visible && p2.visible && p1.z > 0 && p2.z > 0) {
-            const avgAlpha = (p1.alpha + p2.alpha) / 2 * lineAlphaFactor * 0.15;
-            ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`; // signature orange #E8730C
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
+            linesToDraw.push({
+              p1, p2,
+              avgZ: (p1.z + p2.z) / 2
+            });
           }
+        }
+
+        // Sort lines by Z descending (furthest first)
+        linesToDraw.sort((a, b) => b.avgZ - a.avgZ);
+
+        ctx.lineWidth = 0.55;
+        for (let k = 0; k < linesToDraw.length; k++) {
+          const { p1, p2, avgZ } = linesToDraw[k];
+          const avgAlpha = (p1.alpha + p2.alpha) / 2 * lineAlphaFactor * 0.15;
+          
+          ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`; // signature orange #E8730C
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
         }
       }
 
-      // Draw particles
-      for (let i = 0; i < numPoints; i++) {
-        const p = projectedPoints[i];
-        if (p && p.visible) {
-          // Point size based on proximity to camera
-          const size = Math.max(0.5, (1.8 / p.z));
-          
-          // Blend particle color from signature orange to white
-          ctx.fillStyle = `rgba(232, 115, 12, ${p.alpha})`;
+      // 3. Draw Sphere Nodes
+      // Sort sphere nodes by Z descending (furthest first)
+      const sortedNodes = [...projectedSpherePoints]
+        .map((p, index) => ({ p, index }))
+        .filter(item => item.p.visible && item.p.z > 0)
+        .sort((a, b) => b.p.z - a.p.z);
+
+      for (let k = 0; k < sortedNodes.length; k++) {
+        const { p } = sortedNodes[k];
+        
+        // Base size based on distance and whether it is a "data packet"
+        const baseRadius = p.isPacket ? 3.0 : 1.6;
+        const size = Math.max(0.5, (baseRadius / p.z));
+
+        // Shimmer scaling for packets
+        const currentAlpha = p.alpha * (p.isPacket ? (0.6 + p.shimmer * 0.4) : 1);
+        
+        // Draw main node
+        ctx.fillStyle = `rgba(232, 115, 12, ${currentAlpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shimmer halo / white core for packets and close points
+        if (p.isPacket && p.alpha > 0.1) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha * 0.65})`;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, size * 0.45, 0, Math.PI * 2);
           ctx.fill();
 
-          // Small white core for closer particles to give a premium glow
-          if (p.z < 1.8 && p.alpha > 0.1) {
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha * 0.5})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
+          // Outer glowing ring
+          ctx.strokeStyle = `rgba(232, 115, 12, ${currentAlpha * 0.25})`;
+          ctx.lineWidth = 1.0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, size * 1.8, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (p.z < 1.8 && p.alpha > 0.1) {
+          // Subtle core for standard close points
+          ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha * 0.45})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, size * 0.4, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
@@ -278,10 +445,10 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   // Interpolations for scroll transitions
   const landingOpacity = Math.max(0, 1 - scrollProgress * 1.8);
   const landingScale = Math.max(0.85, 1 - scrollProgress * 0.15);
-  const landingTranslateY = -scrollProgress * 80; // slide up slightly
+  const landingTranslateY = -scrollProgress * 80;
 
-  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.25) * 1.33)); // starts fading in after 25% scroll
-  const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 40); // slide up as it fades in
+  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.25) * 1.33));
+  const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 40);
 
   return (
     <div 
