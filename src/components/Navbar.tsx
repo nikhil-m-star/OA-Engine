@@ -18,7 +18,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
   return (
     <div className="w-full shrink-0 z-50 pointer-events-none md:mt-2">
-      <header className="pointer-events-auto mx-auto flex h-[60px] items-center bg-black/90 backdrop-blur-md px-5 text-[#eff2f6f2] select-none border border-white/[0.04] shadow-2xl transition-all duration-300
+      <header className="pointer-events-auto mx-auto flex h-[60px] items-center bg-zinc-900/90 backdrop-blur-md px-5 text-[#eff2f6f2] select-none border border-zinc-800/80 shadow-2xl transition-all duration-300
         fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full w-fit max-w-[calc(100%-2rem)] gap-4
         md:relative md:bottom-auto md:left-auto md:right-auto md:translate-x-0 md:max-w-5xl md:h-[54px] md:gap-8">
         
