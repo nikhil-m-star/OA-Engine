@@ -61,16 +61,20 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   const ideRotateX = Math.max(0, 12 - scrollProgress * 24); // 12deg to 0deg
   const ideRotateY = Math.min(0, -8 + scrollProgress * 16); // -8deg to 0deg
   const ideScale = 0.88 + Math.min(0.12, scrollProgress * 0.24); // zooms in slightly
-  const ideTranslateX = -scrollProgress * 160; // slides left (on desktop)
+  const ideTranslateX = -scrollProgress * 180; // slides left (on desktop)
 
-  // Phase 2 (Scroll 20% to 70%): Output terminal fades in and slides from right
-  const termOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.15) * 2));
-  const termTranslateX = Math.max(0, 160 - (scrollProgress - 0.15) * 320); // slides from right
+  // Phase 2 (Scroll 15% to 50%): Right column fades in and slides from right
+  const termOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.15) * 3));
+  const termTranslateX = Math.max(0, 180 - (scrollProgress - 0.15) * 360); // slides from right
 
-  // Phase 3 (Scroll 35% to 85%): Test cases running sequentially
-  const testCase1Visible = scrollProgress > 0.35;
-  const testCase2Visible = scrollProgress > 0.5;
-  const testCase3Visible = scrollProgress > 0.65;
+  // Phase 3 (Scroll 30% to 70%): Test cases running sequentially
+  const testCase1Visible = scrollProgress > 0.3;
+  const testCase2Visible = scrollProgress > 0.45;
+  const testCase3Visible = scrollProgress > 0.6;
+
+  // Phase 4 (Scroll 65% to 100%): Submission details fades & slides up from bottom
+  const resultsOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.65) * 4));
+  const resultsTranslateY = Math.max(0, 40 - (scrollProgress - 0.65) * 160); // slides up
 
   return (
     <div 
@@ -105,18 +109,18 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
         {/* ----------------------------------------------------
             INTERACTIVE MOCK UI SHOWCASE (ANIME FORWARD ON SCROLL)
             ---------------------------------------------------- */}
-        <div className="w-full max-w-5xl px-6 mt-12 md:mt-16 flex flex-col md:flex-row items-center justify-center gap-6 relative">
+        <div className="w-full max-w-5xl px-6 mt-12 md:mt-16 flex flex-col lg:flex-row items-stretch justify-center gap-6 relative">
           
-          {/* WINDOW A: Mock Code Editor (IDE) */}
+          {/* WINDOW A: Mock Code Editor (IDE - LeetCode C++ Solution) */}
           <div
-            className="w-full md:w-[54%] bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-150 ease-out"
+            className="w-full lg:w-[48%] bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-150 ease-out flex flex-col"
             style={{
-              transform: `perspective(1000px) rotateX(${ideRotateX}deg) rotateY(${ideRotateY}deg) scale(${ideScale}) translateX(${typeof window !== "undefined" && window.innerWidth >= 768 ? ideTranslateX : 0}px)`,
+              transform: `perspective(1000px) rotateX(${ideRotateX}deg) rotateY(${ideRotateY}deg) scale(${ideScale}) translateX(${typeof window !== "undefined" && window.innerWidth >= 1024 ? ideTranslateX : 0}px)`,
               opacity: Math.max(0.2, 1 - scrollProgress * 0.4) // dims slightly as it moves left
             }}
           >
             {/* Window title bar */}
-            <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between">
+            <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between border-b border-white/[0.03]">
               <div className="flex space-x-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
@@ -130,137 +134,250 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
             </div>
 
             {/* Code editor content */}
-            <div className="p-5 font-mono text-[10px] sm:text-xs leading-relaxed text-[#c5c8c6] overflow-x-auto bg-[#050505]">
+            <div className="p-4 sm:p-5 font-mono text-[10px] sm:text-xs leading-relaxed text-[#c5c8c6] overflow-x-auto bg-[#050505] flex-grow select-text">
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">1</span>
-                <span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;iostream&gt;</span></span>
-              </div>
-              <div className="flex">
-                <span className="text-gray-700 select-none text-right w-6 pr-3">2</span>
                 <span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;vector&gt;</span></span>
               </div>
               <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">2</span>
+                <span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;algorithm&gt;</span></span>
+              </div>
+              <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">3</span>
-                <span />
+                <span><span className="text-[#E8730C]">using namespace</span> <span className="text-blue-400">std</span>;</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">4</span>
-                <span><span className="text-blue-400">int</span> <span className="text-yellow-400">findMaxSum</span>(<span className="text-purple-400">std</span>::<span className="text-purple-400">vector</span>&lt;<span className="text-blue-400">int</span>&gt;&amp; arr) &#123;</span>
+                <span />
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">5</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> maxSum = <span className="text-red-400">0</span>, currentSum = <span className="text-red-400">0</span>;</span>
+                <span><span className="text-purple-400">class</span> <span className="text-yellow-400">Solution</span> &#123;</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">6</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">for</span> (<span className="text-blue-400">int</span> num : arr) &#123;</span>
+                <span><span className="text-purple-400">public</span>:</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">7</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentSum = <span className="text-purple-400">std</span>::<span className="text-yellow-400">max</span>(num, currentSum + num);</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> <span className="text-yellow-400">maxSubArray</span>(<span className="text-purple-400">vector</span>&lt;<span className="text-blue-400">int</span>&gt;&amp; nums) &#123;</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">8</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxSum = <span className="text-purple-400">std</span>::<span className="text-yellow-400">max</span>(maxSum, currentSum);</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> maxSum = nums[<span className="text-red-400">0</span>];</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">9</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> currentSum = nums[<span className="text-red-400">0</span>];</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">10</span>
-                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">return</span> maxSum;</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">for</span> (<span className="text-blue-400">int</span> i = <span className="text-red-400">1</span>; i &lt; nums.<span className="text-yellow-400">size</span>(); i++) &#123;</span>
               </div>
               <div className="flex">
                 <span className="text-gray-700 select-none text-right w-6 pr-3">11</span>
-                <span>&#125;</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentSum = <span className="text-yellow-400">max</span>(nums[i], currentSum + nums[i]);</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">12</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxSum = <span className="text-yellow-400">max</span>(maxSum, currentSum);</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">13</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">14</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">return</span> maxSum;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">15</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">16</span>
+                <span>&#125;;</span>
               </div>
             </div>
           </div>
 
-          {/* WINDOW B: Mock Output Terminal (Appears on scroll) */}
+          {/* RIGHT COLUMN: Stack of Console and Submission Results */}
           <div
-            className="w-full md:w-[44%] bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-150 ease-out"
+            className="w-full lg:w-[48%] flex flex-col gap-5 transition-all duration-150 ease-out"
             style={{
               opacity: termOpacity,
-              transform: `translateX(${typeof window !== "undefined" && window.innerWidth >= 768 ? termTranslateX : 0}px)`,
+              transform: `translateX(${typeof window !== "undefined" && window.innerWidth >= 1024 ? termTranslateX : 0}px)`,
               pointerEvents: termOpacity > 0.05 ? "auto" : "none"
             }}
           >
-            {/* Title bar */}
-            <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between">
-              <div className="flex space-x-1.5">
-                <div className="w-3.5 h-3.5 rounded-full bg-zinc-800 flex items-center justify-center">
-                  <Play size={8} className="text-zinc-400 fill-zinc-400" />
+            {/* WINDOW B: Mock Output Terminal (Appears on scroll) */}
+            <div className="bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden">
+              {/* Title bar */}
+              <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between border-b border-white/[0.03]">
+                <div className="flex space-x-1.5">
+                  <div className="w-3.5 h-3.5 rounded-full bg-zinc-850 flex items-center justify-center">
+                    <Play size={8} className="text-zinc-400 fill-zinc-400" />
+                  </div>
+                  <span className="text-[10px] font-mono text-gray-500">Execution Panel</span>
                 </div>
-                <span className="text-[10px] font-mono text-gray-500">Execution Panel</span>
+                <div className="text-[10px] font-mono text-[#E8730C] font-black uppercase tracking-wider flex items-center space-x-1">
+                  <Terminal size={12} />
+                  <span>Console</span>
+                </div>
               </div>
-              <div className="text-[10px] font-mono text-[#E8730C] font-black uppercase tracking-wider flex items-center space-x-1">
-                <Terminal size={12} />
-                <span>Console</span>
+
+              {/* Output Panel body */}
+              <div className="p-4 sm:p-5 font-mono text-[10px] sm:text-xs space-y-3 bg-[#050505] min-h-[175px] select-text">
+                {/* Build status log */}
+                <div className="space-y-0.5">
+                  <div className="text-gray-500">&gt; g++ -O3 solution.cpp -o main</div>
+                  <div className="text-green-500 font-bold">✓ Compilation Successful in 185ms</div>
+                  <div className="text-gray-500">&gt; ./main --run-all-tests</div>
+                </div>
+
+                {/* Dynamic scroll-linked test cases execution */}
+                <div className="space-y-1.5 pt-1 border-t border-zinc-900">
+                  {testCase1Visible ? (
+                    <div className="flex items-center justify-between animate-page-in">
+                      <span className="text-gray-300">Test Case 1: [2,-1,3,4,-1,2,1,-5,4]</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-gray-500 text-[10px]">0.1ms</span>
+                        <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                          <CheckCircle2 size={12} /> <span>PASS</span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-600 italic select-none">Executing test cases...</div>
+                  )}
+
+                  {testCase2Visible && (
+                    <div className="flex items-center justify-between animate-page-in">
+                      <span className="text-gray-300">Test Case 2: [1]</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-gray-500 text-[10px]">0.0ms</span>
+                        <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                          <CheckCircle2 size={12} /> <span>PASS</span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {testCase3Visible && (
+                    <div className="flex items-center justify-between animate-page-in">
+                      <span className="text-gray-300">Test Case 3: [5,4,-1,7,8]</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-gray-500 text-[10px]">0.1ms</span>
+                        <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                          <CheckCircle2 size={12} /> <span>PASS</span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Output Panel body */}
-            <div className="p-5 font-mono text-[10px] sm:text-xs space-y-4 bg-[#050505] min-h-[195px] select-text">
-              {/* Build status log */}
-              <div className="space-y-1">
-                <div className="text-gray-500">&gt; g++ -O3 solution.cpp -o main</div>
-                <div className="text-green-500 font-bold">✓ Compilation Successful in 240ms</div>
-                <div className="text-gray-500">&gt; ./main --run-all-tests</div>
-              </div>
-
-              {/* Dynamic scroll-linked test cases execution */}
-              <div className="space-y-2 pt-1 border-t border-zinc-900">
-                {testCase1Visible ? (
-                  <div className="flex items-center justify-between animate-page-in">
-                    <span className="text-gray-300">Test Case 1: Base Array</span>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-gray-500 text-[10px]">1.2ms</span>
-                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
-                        <CheckCircle2 size={12} /> <span>PASS</span>
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-gray-600 italic select-none">Executing test cases...</div>
-                )}
-
-                {testCase2Visible && (
-                  <div className="flex items-center justify-between animate-page-in">
-                    <span className="text-gray-300">Test Case 2: Single Element</span>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-gray-500 text-[10px]">0.4ms</span>
-                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
-                        <CheckCircle2 size={12} /> <span>PASS</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {testCase3Visible && (
-                  <div className="flex items-center justify-between animate-page-in">
-                    <span className="text-gray-300">Test Case 3: All Negative</span>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-gray-500 text-[10px]">0.8ms</span>
-                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
-                        <CheckCircle2 size={12} /> <span>PASS</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Final run performance analytics */}
-              {testCase3Visible && (
-                <div className="pt-2 mt-2 border-t border-zinc-900 text-white font-bold animate-page-in">
-                  <span className="text-[#E8730C]">Engine Report:</span> 100% Tests Passed. <br />
-                  <span className="text-gray-400 font-normal">Performance exceeds </span>
-                  <span className="text-green-400">98.2%</span>
-                  <span className="text-gray-400 font-normal"> of C++ submissions.</span>
+            {/* WINDOW C: Submission Results (Appears on scroll) */}
+            <div
+              className="bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-300 ease-out"
+              style={{
+                opacity: resultsOpacity,
+                transform: `translateY(${resultsTranslateY}px)`,
+                pointerEvents: resultsOpacity > 0.05 ? "auto" : "none"
+              }}
+            >
+              {/* Title bar */}
+              <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between border-b border-white/[0.03]">
+                <div className="flex space-x-1.5">
+                  <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  <div className="w-3 h-3 rounded-full bg-zinc-800" />
+                  <div className="w-3 h-3 rounded-full bg-zinc-800" />
                 </div>
-              )}
+                <span className="text-[10px] font-mono text-gray-500">Submission Detail</span>
+                <span className="text-[10px] font-mono text-[#00b8a3] font-bold">Accepted</span>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 sm:p-5 font-mono text-[10px] sm:text-xs bg-[#050505] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[#00b8a3] font-black text-sm sm:text-base flex items-center space-x-1">
+                      <CheckCircle2 size={16} />
+                      <span>Accepted</span>
+                    </div>
+                    <div className="text-[9px] text-gray-500 mt-0.5">Submitted just now</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white font-bold">Runtime: <span className="text-green-400">0 ms</span></div>
+                    <div className="text-[9px] text-gray-400">Beats <span className="text-green-400 font-bold">100.00%</span> of C++ users</div>
+                  </div>
+                </div>
+
+                {/* Runtime Distribution Chart (Bell Curve SVG) */}
+                <div className="pt-2 border-t border-zinc-900">
+                  <div className="text-[9px] text-gray-500 mb-2 flex justify-between uppercase tracking-wider font-semibold">
+                    <span>Runtime Distribution</span>
+                    <span className="text-green-400 font-bold">O(N) Complexity</span>
+                  </div>
+                  
+                  {/* SVG Graph */}
+                  <div className="relative h-24 w-full bg-[#0a0a0a] rounded-lg p-2 overflow-hidden flex items-end">
+                    <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      {/* Grid line */}
+                      <line x1="0" y1="90" x2="100" y2="90" stroke="#18181b" strokeWidth="1" />
+                      
+                      {/* Bell Curve Path */}
+                      <path
+                        d="M 0 90 Q 20 90, 30 80 T 45 20 T 60 70 T 75 90 T 100 90"
+                        fill="none"
+                        stroke="#27272a"
+                        strokeWidth="2"
+                      />
+                      
+                      {/* Highlighted area for Beats % */}
+                      <line x1="32" y1="10" x2="32" y2="90" stroke="#00b8a3" strokeWidth="1" strokeDasharray="3,3" />
+                      
+                      {/* Curve fill to the right of our submission */}
+                      <path
+                        d="M 32 75 Q 45 20, 60 70 T 75 90 T 100 90 L 100 90 L 32 90 Z"
+                        fill="#00b8a3"
+                        fillOpacity="0.08"
+                      />
+                    </svg>
+
+                    {/* Animated Pulse Dot representing our submission */}
+                    <div 
+                      className="absolute left-[32%] bottom-[25%] -translate-x-1/2 -translate-y-1/2 flex h-2.5 w-2.5"
+                    >
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00b8a3] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00b8a3]"></span>
+                    </div>
+
+                    {/* Annotation label */}
+                    <div className="absolute left-[35%] top-[12%] bg-[#080808] border border-zinc-800 text-[8px] px-1.5 py-0.5 rounded text-white font-bold whitespace-nowrap shadow-md">
+                      You (0 ms)
+                    </div>
+                    
+                    {/* X-axis labels */}
+                    <div className="absolute left-1 bottom-0.5 text-[7px] text-gray-600 font-mono">0 ms</div>
+                    <div className="absolute left-[50%] bottom-0.5 -translate-x-1/2 text-[7px] text-gray-600 font-mono">8 ms</div>
+                    <div className="absolute right-1 bottom-0.5 text-[7px] text-gray-600 font-mono">24 ms</div>
+                  </div>
+                </div>
+
+                {/* Memory details */}
+                <div className="flex items-center justify-between text-[9px] pt-1 text-gray-400">
+                  <div className="flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ffc01e]" />
+                    <span>Memory: 10.4 MB</span>
+                  </div>
+                  <div>Beats 95.84% of C++ submissions</div>
+                </div>
+              </div>
             </div>
+
           </div>
 
         </div>
