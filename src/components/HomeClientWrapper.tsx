@@ -17,11 +17,11 @@ interface HomeClientWrapperProps {
   isAdmin: boolean;
 }
 
-interface GridPoint {
-  r: number; // row index
-  c: number; // col index
-  gx: number; // grid x (-1 to 1)
-  gz: number; // grid z (-1 to 1)
+interface RibbonPoint {
+  x: number; // local x (-1.5 to 1.5)
+  z: number; // local z depth (-0.5 to 0.5)
+  ox: number; // original local x
+  oz: number; // original local z
 }
 
 export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperProps) {
@@ -57,7 +57,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
   }, []);
 
-  // 3D Grid Canvas Renderer loop
+  // 3D Ribbon Canvas Renderer loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -69,19 +69,26 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     let height = (canvas.height = window.innerHeight);
 
     // ----------------------------------------------------
-    // INITIALIZE GRID (3D Plane mesh)
+    // INITIALIZE 3D VECTOR RIBBONS (No dots!)
     // ----------------------------------------------------
-    const cols = 28;
-    const rows = 20;
-    const gridPoints: GridPoint[] = [];
+    const numRibbons = 8;
+    const pointsPerRibbon = 35;
+    const ribbons: RibbonPoint[][] = [];
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        // Normalize grid coordinates to -1.3 to 1.3
-        const gx = ((c / (cols - 1)) - 0.5) * 2.6;
-        const gz = ((r / (rows - 1)) - 0.5) * 2.0;
-        gridPoints.push({ r, c, gx, gz });
+    for (let r = 0; r < numRibbons; r++) {
+      const ribbonPoints: RibbonPoint[] = [];
+      // Z-depth spacing for each ribbon to separate them in 3D space
+      const rz = ((r / (numRibbons - 1)) - 0.5) * 1.0; 
+      
+      for (let p = 0; p < pointsPerRibbon; p++) {
+        // X-axis coordinate spanning from -1.6 to 1.6
+        const rx = ((p / (pointsPerRibbon - 1)) - 0.5) * 3.2;
+        ribbonPoints.push({
+          x: rx, z: rz,
+          ox: rx, oz: rz
+        });
       }
+      ribbons.push(ribbonPoints);
     }
 
     const handleResize = () => {
@@ -115,143 +122,172 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
 
-      // 3D Camera Angles
-      // Base auto rotation + slight mouse follow
-      const mouseFactorX = mouseRef.current.active ? (mouseRef.current.x / width - 0.5) * 0.35 : 0;
-      const mouseFactorY = mouseRef.current.active ? (mouseRef.current.y / height - 0.5) * 0.15 : 0;
+      // 3D Perspective Rotation Angles
+      const mouseFactorX = mouseRef.current.active ? (mouseRef.current.x / width - 0.5) * 0.25 : 0;
+      const mouseFactorY = mouseRef.current.active ? (mouseRef.current.y / height - 0.5) * 0.12 : 0;
 
-      const angleY = time * 0.0018 + mouseFactorX;
-      // Tilt starts at 0.58 rad (33 degrees) and flattens down to 0.05 (flat horizontal plane) on scroll
-      const angleX = 0.55 - currentScroll * 0.52 + mouseFactorY;
+      const angleY = time * 0.0015 + mouseFactorX;
+      // Tilts from a 3D landscape view (0.48 rad) to flat horizontal on scroll
+      const angleX = 0.48 - currentScroll * 0.45 + mouseFactorY;
 
       // Camera config
-      const cameraDistance = 2.4;
-      const focalLength = Math.min(width, height) * 0.72;
+      const cameraDistance = 2.3;
+      const focalLength = Math.min(width, height) * 0.75;
 
-      // Wave physics
-      // Wave amplitude flattens out as user scrolls (calming wave field)
-      const amplitude = 0.22 * (1 - currentScroll * 0.95);
-      const waveFreqX = 2.2;
-      const waveFreqZ = 1.8;
+      // Wave configurations
+      // Waves flatten out as the user scrolls (symbolizes organized data)
+      const baseAmplitude = 0.25 * (1 - currentScroll * 0.96);
+      const waveFreqX = 1.9;
+      const waveFreqZ = 1.5;
 
-      const projected: { x: number; y: number; z: number; visible: boolean; alpha: number }[] = [];
-
-      // Project grid points
-      for (let i = 0; i < gridPoints.length; i++) {
-        const p = gridPoints[i];
-
-        // 3D mathematical sine waves rippling across the grid
-        const waveX = p.gx * waveFreqX + time * 0.024;
-        const waveZ = p.gz * waveFreqZ + time * 0.016;
-        let gy = Math.sin(waveX) * Math.cos(waveZ) * amplitude;
-
-        // 3D rotations
-        // Rotate Y
-        let x1 = p.gx * Math.cos(angleY) - p.gz * Math.sin(angleY);
-        let z1 = p.gx * Math.sin(angleY) + p.gz * Math.cos(angleY);
-
-        // Rotate X (tilted plane projection)
-        let y2 = gy * Math.cos(angleX) - z1 * Math.sin(angleX);
-        let z2 = gy * Math.sin(angleX) + z1 * Math.cos(angleX);
-
-        const zProjected = cameraDistance - z2;
-
-        if (zProjected > 0.1) {
-          let projX = (x1 / zProjected) * focalLength + width / 2;
-          let projY = (y2 / zProjected) * focalLength + height / 2;
-
-          // Interactive cursor ripple
-          if (mouseRef.current.active) {
-            const dx = projX - mouseRef.current.x;
-            const dy = projY - mouseRef.current.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 140) {
-              const force = (140 - dist) / 140;
-              // Concentric ripple displacement based on sine wave
-              const ripple = Math.sin(dist * 0.07 - time * 0.12) * 0.05 * force;
-              projY += (ripple * focalLength) / zProjected;
-            }
-          }
-
-          // Depth-based opacity (further points fade out slightly)
-          const zDepthFactor = Math.min(1, Math.max(0.2, (cameraDistance + 1.2 - zProjected) / 2.4));
-          const opacity = zDepthFactor * 0.7;
-
-          projected.push({
-            x: projX,
-            y: projY,
-            z: zProjected,
-            visible: projX >= -50 && projX <= width + 50 && projY >= -50 && projY <= height + 50,
-            alpha: opacity
-          });
-        } else {
-          projected.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
-        }
+      // Project all ribbons
+      interface ProjectedRibbonPoint {
+        x: number;
+        y: number;
+        z: number;
+        visible: boolean;
+        alpha: number;
       }
-
-      // ----------------------------------------------------
-      // DRAW CONNECTING MESH LINES
-      // ----------------------------------------------------
-      ctx.lineWidth = 0.55;
       
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const idx = r * cols + c;
-          const pCurrent = projected[idx];
+      const projectedRibbons: ProjectedRibbonPoint[][] = [];
+      const ribbonAverageDepths: { index: number; avgZ: number }[] = [];
 
-          if (!pCurrent || !pCurrent.visible) continue;
+      for (let r = 0; r < numRibbons; r++) {
+        const ribbon = ribbons[r];
+        const projectedRibbon: ProjectedRibbonPoint[] = [];
+        let totalZ = 0;
+        let visibleCount = 0;
 
-          // 1. Draw horizontal connections to the right (c + 1)
-          if (c < cols - 1) {
-            const idxRight = idx + 1;
-            const pRight = projected[idxRight];
-            if (pRight && pRight.visible) {
-              const avgAlpha = (pCurrent.alpha + pRight.alpha) / 2 * 0.18;
-              ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`; // signature orange
-              ctx.beginPath();
-              ctx.moveTo(pCurrent.x, pCurrent.y);
-              ctx.lineTo(pRight.x, pRight.y);
-              ctx.stroke();
+        for (let p = 0; p < pointsPerRibbon; p++) {
+          const pt = ribbon[p];
+
+          // 3D Wave heights
+          const waveX = pt.ox * waveFreqX + time * 0.022 + r * 0.4;
+          const waveZ = pt.oz * waveFreqZ + time * 0.014;
+          const gy = Math.sin(waveX) * Math.cos(waveZ) * baseAmplitude;
+
+          // 3D rotations
+          // Rotate Y
+          let x1 = pt.ox * Math.cos(angleY) - pt.oz * Math.sin(angleY);
+          let z1 = pt.ox * Math.sin(angleY) + pt.oz * Math.cos(angleY);
+
+          // Rotate X (tilt)
+          let y2 = gy * Math.cos(angleX) - z1 * Math.sin(angleX);
+          let z2 = gy * Math.sin(angleX) + z1 * Math.cos(angleX);
+
+          const zProjected = cameraDistance - z2;
+
+          if (zProjected > 0.05) {
+            let projX = (x1 / zProjected) * focalLength + width / 2;
+            let projY = (y2 / zProjected) * focalLength + height / 2;
+
+            // Interactive Cursor Gravity (Bends ribbons towards cursor)
+            if (mouseRef.current.active) {
+              const dx = mouseRef.current.x - projX;
+              const dy = mouseRef.current.y - projY;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < 150) {
+                const force = (150 - dist) / 150;
+                // Magnetically attract the line to the mouse
+                projX += dx * force * 0.28 * (1 - currentScroll);
+                projY += dy * force * 0.28 * (1 - currentScroll);
+              }
             }
-          }
 
-          // 2. Draw vertical connections to the next row (r + 1)
-          if (r < rows - 1) {
-            const idxDown = idx + cols;
-            const pDown = projected[idxDown];
-            if (pDown && pDown.visible) {
-              const avgAlpha = (pCurrent.alpha + pCurrent.alpha) / 2 * 0.18;
-              ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`;
-              ctx.beginPath();
-              ctx.moveTo(pCurrent.x, pCurrent.y);
-              ctx.lineTo(pDown.x, pDown.y);
-              ctx.stroke();
+            // Depth opacity
+            const zDepthFactor = Math.min(1, Math.max(0.15, (cameraDistance + 0.6 - zProjected) / 1.2));
+            const opacity = zDepthFactor * 0.8;
+
+            projectedRibbon.push({
+              x: projX,
+              y: projY,
+              z: zProjected,
+              visible: true,
+              alpha: opacity
+            });
+
+            totalZ += zProjected;
+            visibleCount++;
+          } else {
+            projectedRibbon.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
+          }
+        }
+
+        projectedRibbons.push(projectedRibbon);
+        ribbonAverageDepths.push({
+          index: r,
+          avgZ: visibleCount > 0 ? totalZ / visibleCount : 999
+        });
+      }
+
+      // Sort ribbons by depth (Furthest first, back-to-front rendering)
+      ribbonAverageDepths.sort((a, b) => b.avgZ - a.avgZ);
+
+      // ----------------------------------------------------
+      // RENDER SMOOTH GLOWING LINES (NO DOTS)
+      // ----------------------------------------------------
+      for (let k = 0; k < ribbonAverageDepths.length; k++) {
+        const rIndex = ribbonAverageDepths[k].index;
+        const pts = projectedRibbons[rIndex];
+        
+        // Ribbon styling
+        // Core orange lines with wide, semi-transparent glows underneath
+        const strokeAlpha = 0.55 - (rIndex * 0.04); // vary opacity across ribbons
+
+        // A. Draw Outer Glow Bloom Line (width = 5)
+        ctx.lineWidth = 5.0;
+        ctx.strokeStyle = `rgba(232, 115, 12, ${strokeAlpha * 0.06})`;
+        ctx.beginPath();
+        let startedGlow = false;
+        for (let p = 0; p < pointsPerRibbon; p++) {
+          const pt = pts[p];
+          if (pt && pt.visible) {
+            if (!startedGlow) {
+              ctx.moveTo(pt.x, pt.y);
+              startedGlow = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
             }
           }
         }
-      }
+        ctx.stroke();
 
-      // ----------------------------------------------------
-      // DRAW GRID NODES (shining radial glows)
-      // ----------------------------------------------------
-      for (let i = 0; i < projected.length; i++) {
-        const p = projected[i];
-        if (p && p.visible) {
-          // Point size based on depth
-          const size = Math.max(0.4, 1.2 / p.z);
+        // B. Draw Sharp Glowing Core Line (width = 1.6)
+        ctx.lineWidth = 1.6;
+        ctx.strokeStyle = `rgba(232, 115, 12, ${strokeAlpha * 0.75})`;
+        ctx.beginPath();
+        let startedCore = false;
+        for (let p = 0; p < pointsPerRibbon; p++) {
+          const pt = pts[p];
+          if (pt && pt.visible) {
+            if (!startedCore) {
+              ctx.moveTo(pt.x, pt.y);
+              startedCore = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          }
+        }
+        ctx.stroke();
 
-          // Render radial glowing neon dots
-          const gradRadius = size * 2.8;
-          const radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gradRadius);
-          
-          radGrad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * 0.95})`);
-          radGrad.addColorStop(0.25, `rgba(232, 115, 12, ${p.alpha * 0.8})`);
-          radGrad.addColorStop(1, `rgba(232, 115, 12, 0)`);
-          
-          ctx.fillStyle = radGrad;
+        // C. Draw White Center Core for the top ribbons (simulates intense neon core)
+        if (rIndex < 3) {
+          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${strokeAlpha * 0.5})`;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, gradRadius, 0, Math.PI * 2);
-          ctx.fill();
+          let startedWhite = false;
+          for (let p = 0; p < pointsPerRibbon; p++) {
+            const pt = pts[p];
+            if (pt && pt.visible) {
+              if (!startedWhite) {
+                ctx.moveTo(pt.x, pt.y);
+                startedWhite = true;
+              } else {
+                ctx.lineTo(pt.x, pt.y);
+              }
+            }
+          }
+          ctx.stroke();
         }
       }
 
@@ -283,7 +319,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* 3D Flowing Wave Grid Canvas (fades cleanly on scroll) */}
+      {/* 3D Flowing Vector Ribbons (fades cleanly on scroll) */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
