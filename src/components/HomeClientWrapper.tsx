@@ -135,7 +135,11 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
   // Determine active console tab (Testcase vs Result) based on simulation phase
   let activeConsoleTab = "testcase";
-  if (simPhase >= 4) {
+  if (simPhase === 4) {
+    if (phaseTime >= 1800) {
+      activeConsoleTab = "result";
+    }
+  } else if (simPhase > 4) {
     activeConsoleTab = "result";
   }
 
@@ -269,7 +273,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       cursorY = 250;
     }
 
-    resultsVisible = phaseTime >= 1800;
+    resultsVisible = phaseTime >= 4000;
   } else if (simPhase === 5) {
     // Phase 5: Success screen loop display (9.0s total)
     isJsonRendered = true;
