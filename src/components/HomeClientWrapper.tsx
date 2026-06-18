@@ -17,20 +17,13 @@ interface HomeClientWrapperProps {
   isAdmin: boolean;
 }
 
-interface RibbonPoint {
-  x: number; // local x (-1.5 to 1.5)
-  z: number; // local z depth (-0.5 to 0.5)
-  ox: number; // original local x
-  oz: number; // original local z
-}
-
 export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   
-  // Mouse interaction states
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
+  // Mouse coordinates to attract pulses
+  const mouseRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,7 +50,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
   }, []);
 
-  // 3D Ribbon Canvas Renderer loop
+  // 2D Vector Stream Canvas Renderer loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -68,29 +61,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // ----------------------------------------------------
-    // INITIALIZE 3D VECTOR RIBBONS (No dots!)
-    // ----------------------------------------------------
-    const numRibbons = 8;
-    const pointsPerRibbon = 35;
-    const ribbons: RibbonPoint[][] = [];
-
-    for (let r = 0; r < numRibbons; r++) {
-      const ribbonPoints: RibbonPoint[] = [];
-      // Z-depth spacing for each ribbon to separate them in 3D space
-      const rz = ((r / (numRibbons - 1)) - 0.5) * 1.0; 
-      
-      for (let p = 0; p < pointsPerRibbon; p++) {
-        // X-axis coordinate spanning from -1.6 to 1.6
-        const rx = ((p / (pointsPerRibbon - 1)) - 0.5) * 3.2;
-        ribbonPoints.push({
-          x: rx, z: rz,
-          ox: rx, oz: rz
-        });
-      }
-      ribbons.push(ribbonPoints);
-    }
-
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
@@ -99,17 +69,19 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     window.addEventListener("resize", handleResize);
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current.targetX = e.clientX;
-      mouseRef.current.targetY = e.clientY;
-      mouseRef.current.active = true;
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
     };
-
-    const onMouseLeave = () => {
-      mouseRef.current.active = false;
-    };
-
     window.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("mouseleave", onMouseLeave);
+
+    // Data packets (pulses) traveling along the vector paths
+    const numPackets = 12;
+    const packets = Array.from({ length: numPackets }).map((_, i) => ({
+      progress: (i / numPackets), // offset start points
+      speed: 0.0025 + Math.random() * 0.0015,
+      size: 3 + Math.random() * 3,
+      lane: Math.floor(Math.random() * 3) - 1 // -1 (left), 0 (center), 1 (right)
+    }));
 
     let time = 0;
     const render = () => {
@@ -118,178 +90,193 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
       const currentScroll = scrollProgress;
 
-      // Smooth mouse coordinate dampening
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
+      // ----------------------------------------------------
+      // GENERATE DYNAMIC 2D WINDING VECTOR PATH
+      // ----------------------------------------------------
+      const pathPoints: { x: number; y: number }[] = [];
+      const numSegments = 280;
 
-      // 3D Perspective Rotation Angles
-      const mouseFactorX = mouseRef.current.active ? (mouseRef.current.x / width - 0.5) * 0.25 : 0;
-      const mouseFactorY = mouseRef.current.active ? (mouseRef.current.y / height - 0.5) * 0.12 : 0;
+      const startX = width / 2;
+      const startY = height * 0.46; // Center vertically on landing viewport
 
-      const angleY = time * 0.0015 + mouseFactorX;
-      // Tilts from a 3D landscape view (0.48 rad) to flat horizontal on scroll
-      const angleX = 0.48 - currentScroll * 0.45 + mouseFactorY;
+      // The loop spins when static. When scrolled, the spinning slows down.
+      const spinAngle = time * 0.014 * (1 - currentScroll * 0.85);
 
-      // Camera config
-      const cameraDistance = 2.3;
-      const focalLength = Math.min(width, height) * 0.75;
+      for (let i = 0; i < numSegments; i++) {
+        const t = i / (numSegments - 1);
+        let px = 0;
+        let py = 0;
 
-      // Wave configurations
-      // Waves flatten out as the user scrolls (symbolizes organized data)
-      const baseAmplitude = 0.25 * (1 - currentScroll * 0.96);
-      const waveFreqX = 1.9;
-      const waveFreqZ = 1.5;
+        if (t < 0.28) {
+          // A. Landing Core: A nested spinning vector loop in the center
+          const loopT = t / 0.28;
+          const angle = loopT * Math.PI * 4 + spinAngle; // double loop
+          
+          // Shrink/unroll radius of loop slightly on scroll
+          const r = 95 * (1 - currentScroll * 0.2); 
+          px = startX + Math.cos(angle) * r;
+          py = startY + Math.sin(angle) * r;
+        } else {
+          // B. Flowing Winding Data Bus: Sweeps down and guides the scroll path
+          const pathT = (t - 0.28) / 0.72; // normalize to 0 to 1
+          
+          // Create a smooth serpentine winding curve
+          const waveX = Math.sin(pathT * Math.PI * 3.5) * (width * 0.16) * (1 - pathT * 0.2);
+          
+          // py extends down the page based on segment t
+          // Extends further down on desktop than mobile
+          const pageReach = height * 1.5;
+          const targetY = startY + pathT * pageReach;
 
-      // Project all ribbons
-      interface ProjectedRibbonPoint {
-        x: number;
-        y: number;
-        z: number;
-        visible: boolean;
-        alpha: number;
+          // Interpolate smooth transition between loop exit and serpentine curve
+          const blendFactor = Math.min(1, pathT * 4); // fast blend
+          
+          // Starting point of serpentine curve aligns with loop exit
+          const loopExitAngle = spinAngle;
+          const loopExitX = startX + Math.cos(loopExitAngle) * 95;
+          const loopExitY = startY + Math.sin(loopExitAngle) * 95;
+
+          px = loopExitX * (1 - blendFactor) + (startX + waveX) * blendFactor;
+          py = loopExitY * (1 - blendFactor) + targetY * blendFactor;
+        }
+
+        pathPoints.push({ x: px, y: py });
       }
-      
-      const projectedRibbons: ProjectedRibbonPoint[][] = [];
-      const ribbonAverageDepths: { index: number; avgZ: number }[] = [];
 
-      for (let r = 0; r < numRibbons; r++) {
-        const ribbon = ribbons[r];
-        const projectedRibbon: ProjectedRibbonPoint[] = [];
-        let totalZ = 0;
-        let visibleCount = 0;
+      // Draw progress: Path draws itself forward as we scroll
+      // Starts at showing the core loop (28% of path)
+      // Reaches 100% drawn as scrollProgress reaches 1
+      const drawLimit = Math.floor(numSegments * (0.28 + currentScroll * 0.72));
 
-        for (let p = 0; p < pointsPerRibbon; p++) {
-          const pt = ribbon[p];
+      // ----------------------------------------------------
+      // DRAW NEON VECTOR LANES (NO DOTS, PURE SMOOTH PATHS)
+      // ----------------------------------------------------
+      const drawLane = (offset: number, opacityMultiplier: number, lineWidth: number, isCore: boolean) => {
+        ctx.beginPath();
+        let started = false;
 
-          // 3D Wave heights
-          const waveX = pt.ox * waveFreqX + time * 0.022 + r * 0.4;
-          const waveZ = pt.oz * waveFreqZ + time * 0.014;
-          const gy = Math.sin(waveX) * Math.cos(waveZ) * baseAmplitude;
+        for (let i = 0; i < drawLimit; i++) {
+          const pt = pathPoints[i];
+          if (!pt) continue;
 
-          // 3D rotations
-          // Rotate Y
-          let x1 = pt.ox * Math.cos(angleY) - pt.oz * Math.sin(angleY);
-          let z1 = pt.ox * Math.sin(angleY) + pt.oz * Math.cos(angleY);
-
-          // Rotate X (tilt)
-          let y2 = gy * Math.cos(angleX) - z1 * Math.sin(angleX);
-          let z2 = gy * Math.sin(angleX) + z1 * Math.cos(angleX);
-
-          const zProjected = cameraDistance - z2;
-
-          if (zProjected > 0.05) {
-            let projX = (x1 / zProjected) * focalLength + width / 2;
-            let projY = (y2 / zProjected) * focalLength + height / 2;
-
-            // Interactive Cursor Gravity (Bends ribbons towards cursor)
-            if (mouseRef.current.active) {
-              const dx = mouseRef.current.x - projX;
-              const dy = mouseRef.current.y - projY;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 150) {
-                const force = (150 - dist) / 150;
-                // Magnetically attract the line to the mouse
-                projX += dx * force * 0.28 * (1 - currentScroll);
-                projY += dy * force * 0.28 * (1 - currentScroll);
-              }
+          // Calculate offset direction (perpendicular vector)
+          let dx = 0;
+          let dy = 0;
+          if (offset !== 0 && i < drawLimit - 1) {
+            const nextPt = pathPoints[i + 1];
+            const vx = nextPt.x - pt.x;
+            const vy = nextPt.y - pt.y;
+            const len = Math.sqrt(vx * vx + vy * vy);
+            if (len > 0.1) {
+              // Normal perpendicular vector
+              dx = (-vy / len) * offset;
+              dy = (vx / len) * offset;
             }
+          }
 
-            // Depth opacity
-            const zDepthFactor = Math.min(1, Math.max(0.15, (cameraDistance + 0.6 - zProjected) / 1.2));
-            const opacity = zDepthFactor * 0.8;
+          const targetX = pt.x + dx;
+          const targetY = pt.y + dy;
 
-            projectedRibbon.push({
-              x: projX,
-              y: projY,
-              z: zProjected,
-              visible: true,
-              alpha: opacity
-            });
-
-            totalZ += zProjected;
-            visibleCount++;
+          if (!started) {
+            ctx.moveTo(targetX, targetY);
+            started = true;
           } else {
-            projectedRibbon.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
+            ctx.lineTo(targetX, targetY);
           }
         }
 
-        projectedRibbons.push(projectedRibbon);
-        ribbonAverageDepths.push({
-          index: r,
-          avgZ: visibleCount > 0 ? totalZ / visibleCount : 999
-        });
-      }
+        ctx.lineWidth = lineWidth;
+        if (isCore) {
+          ctx.strokeStyle = `rgba(232, 115, 12, ${0.75 * opacityMultiplier})`; // core orange
+        } else {
+          ctx.strokeStyle = `rgba(232, 115, 12, ${0.08 * opacityMultiplier})`; // soft neon glow bloom
+        }
+        ctx.stroke();
+      };
 
-      // Sort ribbons by depth (Furthest first, back-to-front rendering)
-      ribbonAverageDepths.sort((a, b) => b.avgZ - a.avgZ);
-
-      // ----------------------------------------------------
-      // RENDER SMOOTH GLOWING LINES (NO DOTS)
-      // ----------------------------------------------------
-      for (let k = 0; k < ribbonAverageDepths.length; k++) {
-        const rIndex = ribbonAverageDepths[k].index;
-        const pts = projectedRibbons[rIndex];
+      // Draw 3 lanes (Left, Center, Right) to represent a multi-core data bus
+      const lanes = [-14, 0, 14];
+      lanes.forEach((laneOffset) => {
+        const isCenter = laneOffset === 0;
+        const widthScale = isCenter ? 1 : 0.6;
         
-        // Ribbon styling
-        // Core orange lines with wide, semi-transparent glows underneath
-        const strokeAlpha = 0.55 - (rIndex * 0.04); // vary opacity across ribbons
+        // A. Neon Bloom/Glow Layer (Wide stroke)
+        drawLane(laneOffset, widthScale, 6.0, false);
+        // B. Sharp Core Layer (Thin stroke)
+        drawLane(laneOffset, widthScale, 1.8, true);
+      });
 
-        // A. Draw Outer Glow Bloom Line (width = 5)
-        ctx.lineWidth = 5.0;
-        ctx.strokeStyle = `rgba(232, 115, 12, ${strokeAlpha * 0.06})`;
-        ctx.beginPath();
-        let startedGlow = false;
-        for (let p = 0; p < pointsPerRibbon; p++) {
-          const pt = pts[p];
-          if (pt && pt.visible) {
-            if (!startedGlow) {
-              ctx.moveTo(pt.x, pt.y);
-              startedGlow = true;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
+      // Draw a subtle white center highlight inside the main middle track to give it a hot neon wire appearance
+      drawLane(0, 0.4, 0.6, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.stroke();
+
+      // ----------------------------------------------------
+      // DRAW DATA PACKETS / ENERGY PULSES (Winding vector lines)
+      // ----------------------------------------------------
+      packets.forEach((packet) => {
+        // Progress packets along the path
+        packet.progress += packet.speed;
+        if (packet.progress > 1) {
+          packet.progress = 0;
+          packet.lane = Math.floor(Math.random() * 3) - 1;
+        }
+
+        // Limit packets to the currently drawn path progress
+        const currentPathLimitT = 0.28 + currentScroll * 0.72;
+        const activeT = packet.progress * currentPathLimitT;
+        const segmentIndex = Math.floor(activeT * (numSegments - 1));
+
+        const pt = pathPoints[segmentIndex];
+        if (pt) {
+          // Calculate perpendicular offset for lane
+          let dx = 0;
+          let dy = 0;
+          if (packet.lane !== 0 && segmentIndex < numSegments - 1) {
+            const nextPt = pathPoints[segmentIndex + 1];
+            const vx = nextPt.x - pt.x;
+            const vy = nextPt.y - pt.y;
+            const len = Math.sqrt(vx * vx + vy * vy);
+            if (len > 0.1) {
+              dx = (-vy / len) * packet.lane * 14;
+              dy = (vx / len) * packet.lane * 14;
             }
           }
-        }
-        ctx.stroke();
 
-        // B. Draw Sharp Glowing Core Line (width = 1.6)
-        ctx.lineWidth = 1.6;
-        ctx.strokeStyle = `rgba(232, 115, 12, ${strokeAlpha * 0.75})`;
-        ctx.beginPath();
-        let startedCore = false;
-        for (let p = 0; p < pointsPerRibbon; p++) {
-          const pt = pts[p];
-          if (pt && pt.visible) {
-            if (!startedCore) {
-              ctx.moveTo(pt.x, pt.y);
-              startedCore = true;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
+          const px = pt.x + dx;
+          const py = pt.y + dy;
+
+          // Render glowing pulse dash (short line segment) instead of a simple dot
+          // Calculate heading direction
+          let headingX = 1;
+          let headingY = 0;
+          if (segmentIndex < numSegments - 1) {
+            const nextPt = pathPoints[segmentIndex + 1];
+            const vx = nextPt.x - pt.x;
+            const vy = nextPt.y - pt.y;
+            const len = Math.sqrt(vx * vx + vy * vy);
+            if (len > 0.1) {
+              headingX = vx / len;
+              headingY = vy / len;
             }
           }
-        }
-        ctx.stroke();
 
-        // C. Draw White Center Core for the top ribbons (simulates intense neon core)
-        if (rIndex < 3) {
-          ctx.lineWidth = 0.6;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${strokeAlpha * 0.5})`;
+          // Draw a short trailing glow streak line for the packet (extremely premium)
+          const streakLen = 14 + currentScroll * 15; // grows longer as you scroll
           ctx.beginPath();
-          let startedWhite = false;
-          for (let p = 0; p < pointsPerRibbon; p++) {
-            const pt = pts[p];
-            if (pt && pt.visible) {
-              if (!startedWhite) {
-                ctx.moveTo(pt.x, pt.y);
-                startedWhite = true;
-              } else {
-                ctx.lineTo(pt.x, pt.y);
-              }
-            }
-          }
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - headingX * streakLen, py - headingY * streakLen);
+          
+          ctx.lineWidth = packet.size * 0.55;
+          ctx.strokeStyle = `rgba(255, 160, 50, ${0.85 * (1 - currentScroll * 0.4)})`;
+          ctx.stroke();
+
+          // White core for packet
+          ctx.lineWidth = packet.size * 0.2;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * (1 - currentScroll * 0.4)})`;
           ctx.stroke();
         }
-      }
+      });
 
       animationFrameId = requestAnimationFrame(render);
     };
@@ -300,7 +287,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseleave", onMouseLeave);
     };
   }, [scrollProgress]);
 
@@ -319,7 +305,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* 3D Flowing Vector Ribbons (fades cleanly on scroll) */}
+      {/* 2D Vector Stream Canvas (scrolls with page, fades out slowly) */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
