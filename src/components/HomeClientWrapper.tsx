@@ -52,54 +52,52 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
   // Scroll animations interpolation
   // Main homepage content (details/stats) fades and slides in
-  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.90) * 10)); // starts at 90% scroll
+  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.75) * 6.5)); // starts at 75% scroll
   const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 50);
 
   // Mock UI Animations based on scroll progress (0.00 to 1.00)
   // Overall workspace opacity & entry
-  const workspaceOpacity = scrollProgress < 0.10 ? (scrollProgress / 0.10) : scrollProgress > 0.92 ? Math.max(0, 1 - (scrollProgress - 0.92) * 12.5) : 1;
-  const workspaceScale = scrollProgress < 0.10 ? 0.92 + (scrollProgress / 0.10) * 0.08 : scrollProgress > 0.92 ? Math.max(0.92, 1 - (scrollProgress - 0.92) * 0.08) : 1;
+  const workspaceOpacity = scrollProgress < 0.10 ? (scrollProgress / 0.10) : scrollProgress > 0.78 ? Math.max(0, 1 - (scrollProgress - 0.78) * 10) : 1;
+  const workspaceScale = scrollProgress < 0.10 ? 0.92 + (scrollProgress / 0.10) * 0.08 : scrollProgress > 0.78 ? Math.max(0.92, 1 - (scrollProgress - 0.78) * 0.08) : 1;
   const workspaceRotateX = Math.max(0, 12 - scrollProgress * 120); // tilts flat by progress = 0.10
   const workspaceRotateY = Math.min(0, -8 + scrollProgress * 80); // tilts flat by progress = 0.10
 
-  // Set up phase state for natural time progression
-  const [simPhase, setSimPhase] = useState<number>(0);
-  const [phaseTime, setPhaseTime] = useState<number>(0);
+  // Set up phase state for autoplay timer
+  const [simTime, setSimTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
-  // Update simPhase based on scroll progress with clean hysteresis bands
+  // Autoplay control based on whether the showcase is in viewport
   useEffect(() => {
-    if (scrollProgress < 0.12) {
-      if (simPhase !== 0) setSimPhase(0);
-    } else if (scrollProgress >= 0.15 && scrollProgress < 0.38) {
-      if (simPhase !== 1) setSimPhase(1);
-    } else if (scrollProgress >= 0.40 && scrollProgress < 0.62) {
-      if (simPhase !== 2) setSimPhase(2);
-    } else if (scrollProgress >= 0.65 && scrollProgress < 0.88) {
-      if (simPhase !== 3) setSimPhase(3);
-    } else if (scrollProgress >= 0.90) {
-      if (simPhase !== 4) setSimPhase(4);
+    if (scrollProgress >= 0.10 && scrollProgress <= 0.80) {
+      setIsPlaying(true);
+    } else if (scrollProgress < 0.05) {
+      setIsPlaying(false);
+      setSimTime(0); // Reset to start when scrolled back to hero banner
+    } else if (scrollProgress > 0.80) {
+      setIsPlaying(false); // Pause simulation when scrolled past to save CPU cycles
     }
-  }, [scrollProgress, simPhase]);
+  }, [scrollProgress]);
 
-  // RequestAnimationFrame timer to tick phaseTime naturally
+  // RequestAnimationFrame timer to tick simTime continuously
   useEffect(() => {
-    setPhaseTime(0);
-  }, [simPhase]);
+    if (!isPlaying) return;
 
-  useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
 
     const update = (now: number) => {
       const dt = now - lastTime;
       lastTime = now;
-      setPhaseTime(prev => prev + dt);
+      setSimTime(prev => {
+        const next = prev + dt;
+        return next >= 13800 ? 0 : next; // Loop at 13.8s
+      });
       animationFrameId = requestAnimationFrame(update);
     };
 
     animationFrameId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(animationFrameId);
-  }, []);
+  }, [isPlaying]);
 
   const easeInOutCubic = (t: number) => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -110,6 +108,30 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     const easedT = easeInOutCubic(clampedT);
     return start + (end - start) * easedT;
   };
+
+  // Derive simulation phase and phase-specific time from the global loop clock
+  let simPhase = 0;
+  let phaseTime = 0;
+
+  if (!isPlaying) {
+    simPhase = 0;
+    phaseTime = 0;
+  } else if (simTime < 2000) {
+    simPhase = 1;
+    phaseTime = simTime;
+  } else if (simTime < 4600) {
+    simPhase = 2;
+    phaseTime = simTime - 2000;
+  } else if (simTime < 8000) {
+    simPhase = 3;
+    phaseTime = simTime - 4600;
+  } else if (simTime < 9800) {
+    simPhase = 4;
+    phaseTime = simTime - 8000;
+  } else {
+    simPhase = 5;
+    phaseTime = simTime - 9800;
+  }
 
   // Declare variables derived from phase and timer
   let cursorX = 40;
@@ -242,6 +264,19 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     }
 
     resultsVisible = phaseTime >= 800;
+  } else if (simPhase === 5) {
+    // Phase 5: Success screen loop display (4.0s total)
+    isJsonRendered = true;
+    isAiRendered = true;
+    activeLeftTab = "code-editor";
+    activeRightTab = "console";
+    testCase1Visible = true;
+    testCase2Visible = true;
+    testCase3Visible = true;
+    resultsVisible = true;
+    cursorX = 40;
+    cursorY = 250;
+    isClicking = false;
   }
 
   return (
@@ -260,13 +295,13 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           A premium sandbox workspace for parsing and analyzing coding problems.
         </p>
         <div className="pt-4 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest text-[#E8730C] font-black animate-pulse cursor-default">
-          <span>Scroll down to run code simulation</span>
+          <span>Scroll down to view live demo</span>
           <ChevronDown size={12} className="text-[#E8730C]" />
         </div>
       </div>
 
       {/* Section 2: Pinned Scroll Track Section */}
-      <div ref={scrollTrackRef} className="relative w-full h-[600vh] shrink-0">
+      <div ref={scrollTrackRef} className="relative w-full h-[180vh] shrink-0">
         
         {/* Sticky viewport container */}
         <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center z-10">
