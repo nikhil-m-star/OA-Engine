@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, CheckCircle2, Play, Terminal, Code2, Sparkles, AlertCircle, HelpCircle, Activity } from "lucide-react";
+import { ArrowRight, ChevronDown, CheckCircle2, Play, Terminal, Code2, Sparkles, AlertCircle, HelpCircle, Activity, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface Stats {
@@ -131,6 +131,12 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   } else {
     simPhase = 5;
     phaseTime = simTime - 21000;
+  }
+
+  // Determine active console tab (Testcase vs Result) based on simulation phase
+  let activeConsoleTab = "testcase";
+  if (simPhase >= 4) {
+    activeConsoleTab = "result";
   }
 
   // Declare variables derived from phase and timer
@@ -559,10 +565,10 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
                     {/* Console Tab Selectors */}
                     <div className="flex space-x-4 text-[10px] font-bold uppercase tracking-wider">
-                      <span className={`pb-0.5 transition-all ${!resultsVisible ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
+                      <span className={`pb-0.5 transition-all ${activeConsoleTab === "testcase" ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
                         Testcase
                       </span>
-                      <span className={`pb-0.5 transition-all ${resultsVisible ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
+                      <span className={`pb-0.5 transition-all ${activeConsoleTab === "result" ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
                         Result
                       </span>
                     </div>
@@ -575,7 +581,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
                   {/* Body Content */}
                   <div className="flex-grow p-4 sm:p-5 bg-[#050505] overflow-y-auto scrollbar-thin select-text">
-                    {!resultsVisible ? (
+                    {activeConsoleTab === "testcase" ? (
                       /* 1. Testcase Logs View */
                       <div className="space-y-3 font-mono text-[9px] sm:text-xs">
                         <div className="space-y-0.5">
@@ -625,45 +631,63 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                         </div>
                       </div>
                     ) : (
-                      /* 2. Accepted Results Drawer (Accurate to App's CodeEditor.tsx) */
-                      <div className="space-y-4 animate-page-in">
-                        
-                        <div className="flex items-center justify-between pb-2.5 border-b border-zinc-900/80">
-                          <div className="flex items-center space-x-2">
-                            <CheckCircle2 size={16} className="text-[#00b8a3]" />
-                            <span className="text-[#00b8a3] font-bold text-sm sm:text-base">Accepted</span>
-                            
-                            <div className="flex items-center space-x-2.5 text-[9px] sm:text-[10px] text-gray-400 bg-[#111111] px-2.5 py-1 rounded ml-2 font-bold font-sans">
-                              <span>Runtime: 12 ms</span>
-                              <span>Memory: 5.4 MB</span>
-                            </div>
-                          </div>
+                      /* 2. Result Tab */
+                      !resultsVisible ? (
+                        /* Spinner during compilation/test case running */
+                        <div className="flex flex-col items-center justify-center h-full space-y-2.5 text-gray-400 py-12">
+                          <Loader2 className="animate-spin text-[#E8730C]" size={24} />
+                          <span className="font-bold text-xs">Compiling & Running...</span>
+                          <span className="text-[10px] text-zinc-500 font-mono">
+                            {phaseTime < 2400 
+                              ? "Executing: 1 / 30..." 
+                              : phaseTime < 3000 
+                                ? "Executing: 12 / 30..." 
+                                : phaseTime < 3600 
+                                  ? "Executing: 25 / 30..." 
+                                  : "Executing: 30 / 30..."}
+                          </span>
                         </div>
-
-                        {/* Input, Output, Expected Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-0.5">
-                          <div className="space-y-1">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Input</span>
-                            <div className="bg-black p-2.5 rounded text-zinc-300 font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed scrollbar-thin">
-                              nums = [2,-1,3,4,-1,2,1,-5,4]
-                            </div>
-                          </div>
+                      ) : (
+                        /* 3. Accepted Results Drawer (Accurate to App's CodeEditor.tsx) */
+                        <div className="space-y-4 animate-page-in">
                           
-                          <div className="space-y-1">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Output</span>
-                            <div className="bg-black p-2.5 rounded text-[#00b8a3] font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed font-bold scrollbar-thin">
-                              6
+                          <div className="flex items-center justify-between pb-2.5 border-b border-zinc-900/80">
+                            <div className="flex items-center space-x-2">
+                              <CheckCircle2 size={16} className="text-[#00b8a3]" />
+                              <span className="text-[#00b8a3] font-bold text-sm sm:text-base">Accepted</span>
+                              
+                              <div className="flex items-center space-x-2.5 text-[9px] sm:text-[10px] text-gray-400 bg-[#111111] px-2.5 py-1 rounded ml-2 font-bold font-sans">
+                                <span>Runtime: 18 ms</span>
+                                <span>Memory: 5.8 MB</span>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="space-y-1">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Expected</span>
-                            <div className="bg-black p-2.5 rounded text-zinc-300 font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed scrollbar-thin">
-                              6
+                          {/* Input, Output, Expected Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-0.5">
+                            <div className="space-y-1">
+                              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Input</span>
+                              <div className="bg-black p-2.5 rounded text-zinc-300 font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed scrollbar-thin">
+                                Batch Submission
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Output</span>
+                              <div className="bg-black p-2.5 rounded text-[#00b8a3] font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed font-bold scrollbar-thin">
+                                Accepted: All 30 / 30 test cases passed!
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider block">Expected</span>
+                              <div className="bg-black p-2.5 rounded text-zinc-300 font-mono text-[9px] sm:text-[10px] select-all max-h-[105px] overflow-y-auto whitespace-pre-wrap leading-relaxed scrollbar-thin">
+                                N/A
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      )
                     )}
                   </div>
                 </div>
