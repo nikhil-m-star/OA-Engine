@@ -62,25 +62,187 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   const workspaceRotateX = Math.max(0, 12 - scrollProgress * 120); // tilts flat by progress = 0.10
   const workspaceRotateY = Math.min(0, -8 + scrollProgress * 80); // tilts flat by progress = 0.10
 
-  // Active states for Left/Right panels based on scroll progress
-  const activeLeftTab = scrollProgress < 0.40 ? "generator-json" : scrollProgress < 0.65 ? "generator-ai" : "code-editor";
-  const activeRightTab = scrollProgress < 0.65 ? "description" : "console";
+  // Set up phase state for natural time progression
+  const [simPhase, setSimPhase] = useState<number>(0);
+  const [phaseTime, setPhaseTime] = useState<number>(0);
 
-  // JSON parsed state triggers (Phase 2: 0.15 - 0.40)
-  const isJsonRendered = scrollProgress >= 0.30;
-  const isJsonClicked = scrollProgress >= 0.20 && scrollProgress < 0.30;
+  // Update simPhase based on scroll progress with clean hysteresis bands
+  useEffect(() => {
+    if (scrollProgress < 0.12) {
+      if (simPhase !== 0) setSimPhase(0);
+    } else if (scrollProgress >= 0.15 && scrollProgress < 0.38) {
+      if (simPhase !== 1) setSimPhase(1);
+    } else if (scrollProgress >= 0.40 && scrollProgress < 0.62) {
+      if (simPhase !== 2) setSimPhase(2);
+    } else if (scrollProgress >= 0.65 && scrollProgress < 0.88) {
+      if (simPhase !== 3) setSimPhase(3);
+    } else if (scrollProgress >= 0.90) {
+      if (simPhase !== 4) setSimPhase(4);
+    }
+  }, [scrollProgress, simPhase]);
 
-  // AI Generation text simulation triggers (Phase 3: 0.40 - 0.65)
-  const isAiParsing = scrollProgress >= 0.45 && scrollProgress < 0.55;
-  const isAiRendered = scrollProgress >= 0.55;
+  // RequestAnimationFrame timer to tick phaseTime naturally
+  useEffect(() => {
+    setPhaseTime(0);
+  }, [simPhase]);
 
-  // Code editor execution triggers (Phase 4: 0.65 - 0.90)
-  const testCase1Visible = scrollProgress >= 0.70;
-  const testCase2Visible = scrollProgress >= 0.77;
-  const testCase3Visible = scrollProgress >= 0.84;
+  useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
 
-  // Final submission triggers (Phase 5: 0.90 - 1.00)
-  const resultsVisible = scrollProgress >= 0.90;
+    const update = (now: number) => {
+      const dt = now - lastTime;
+      lastTime = now;
+      setPhaseTime(prev => prev + dt);
+      animationFrameId = requestAnimationFrame(update);
+    };
+
+    animationFrameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  const easeInOutCubic = (t: number) => {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
+
+  const lerp = (start: number, end: number, t: number) => {
+    const clampedT = Math.min(Math.max(t, 0), 1);
+    const easedT = easeInOutCubic(clampedT);
+    return start + (end - start) * easedT;
+  };
+
+  // Declare variables derived from phase and timer
+  let cursorX = 40;
+  let cursorY = 250;
+  let isClicking = false;
+  let activeLeftTab = "generator-json";
+  let activeRightTab = "description";
+  
+  let isJsonClicked = false;
+  let isJsonRendered = false;
+  
+  let isAiParsing = false;
+  let isAiRendered = false;
+  
+  let testCase1Visible = false;
+  let testCase2Visible = false;
+  let testCase3Visible = false;
+  
+  let resultsVisible = false;
+
+  if (simPhase === 0) {
+    cursorX = 40;
+    cursorY = 250;
+    isClicking = false;
+    activeLeftTab = "generator-json";
+    activeRightTab = "description";
+  } else if (simPhase === 1) {
+    // Phase 1: Click Render JSON (2.0s total)
+    if (phaseTime < 800) {
+      cursorX = lerp(40, 30, phaseTime / 800);
+      cursorY = lerp(250, 395, phaseTime / 800);
+    } else if (phaseTime < 1000) {
+      cursorX = 30;
+      cursorY = 395;
+      isClicking = true;
+    } else if (phaseTime < 2000) {
+      cursorX = lerp(30, 40, (phaseTime - 1000) / 1000);
+      cursorY = lerp(395, 250, (phaseTime - 1000) / 1000);
+    } else {
+      cursorX = 40;
+      cursorY = 250;
+    }
+    activeLeftTab = "generator-json";
+    activeRightTab = "description";
+    isJsonClicked = phaseTime >= 1000 && phaseTime < 2000;
+    isJsonRendered = phaseTime >= 2000;
+  } else if (simPhase === 2) {
+    // Phase 2: Click AI Question subtab, then click Parse & Render (2.6s total)
+    isJsonRendered = true;
+    if (phaseTime < 600) {
+      cursorX = lerp(40, 14, phaseTime / 600);
+      cursorY = lerp(250, 60, phaseTime / 600);
+    } else if (phaseTime < 800) {
+      cursorX = 14;
+      cursorY = 60;
+      isClicking = true;
+    } else if (phaseTime < 1400) {
+      cursorX = lerp(14, 24, (phaseTime - 800) / 600);
+      cursorY = lerp(60, 395, (phaseTime - 800) / 600);
+    } else if (phaseTime < 1600) {
+      cursorX = 24;
+      cursorY = 395;
+      isClicking = true;
+    } else if (phaseTime < 2600) {
+      cursorX = lerp(24, 40, (phaseTime - 1600) / 1000);
+      cursorY = lerp(395, 250, (phaseTime - 1600) / 1000);
+    } else {
+      cursorX = 40;
+      cursorY = 250;
+    }
+
+    activeLeftTab = phaseTime >= 600 ? "generator-ai" : "generator-json";
+    activeRightTab = "description";
+    isAiParsing = phaseTime >= 1600 && phaseTime < 2600;
+    isAiRendered = phaseTime >= 2600;
+  } else if (simPhase === 3) {
+    // Phase 3: Click Code Editor tab, then click Run (3.4s total)
+    isJsonRendered = true;
+    isAiRendered = true;
+    if (phaseTime < 600) {
+      cursorX = lerp(40, 27, phaseTime / 600);
+      cursorY = lerp(250, 15, phaseTime / 600);
+    } else if (phaseTime < 800) {
+      cursorX = 27;
+      cursorY = 15;
+      isClicking = true;
+    } else if (phaseTime < 1400) {
+      cursorX = lerp(27, 36, (phaseTime - 800) / 600);
+      cursorY = lerp(15, 415, (phaseTime - 800) / 600);
+    } else if (phaseTime < 1600) {
+      cursorX = 36;
+      cursorY = 415;
+      isClicking = true;
+    } else if (phaseTime < 2600) {
+      cursorX = lerp(36, 40, (phaseTime - 1600) / 1000);
+      cursorY = lerp(415, 250, (phaseTime - 1600) / 1000);
+    } else {
+      cursorX = 40;
+      cursorY = 250;
+    }
+
+    activeLeftTab = phaseTime >= 600 ? "code-editor" : "generator-ai";
+    activeRightTab = phaseTime >= 1600 ? "console" : "description";
+    testCase1Visible = phaseTime >= 2200;
+    testCase2Visible = phaseTime >= 2800;
+    testCase3Visible = phaseTime >= 3400;
+  } else if (simPhase === 4) {
+    // Phase 4: Click Submit, show Result tab (1.8s total)
+    isJsonRendered = true;
+    isAiRendered = true;
+    activeLeftTab = "code-editor";
+    activeRightTab = "console";
+    testCase1Visible = true;
+    testCase2Visible = true;
+    testCase3Visible = true;
+
+    if (phaseTime < 600) {
+      cursorX = lerp(40, 43, phaseTime / 600);
+      cursorY = lerp(250, 415, phaseTime / 600);
+    } else if (phaseTime < 800) {
+      cursorX = 43;
+      cursorY = 415;
+      isClicking = true;
+    } else if (phaseTime < 1800) {
+      cursorX = lerp(43, 40, (phaseTime - 800) / 1000);
+      cursorY = lerp(415, 250, (phaseTime - 800) / 1000);
+    } else {
+      cursorX = 40;
+      cursorY = 250;
+    }
+
+    resultsVisible = phaseTime >= 800;
+  }
 
   return (
     <div 
@@ -122,7 +284,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           >
             
             {/* WINDOW A: Left Workspace Panel (Generator or Code Editor) */}
-            <div className="w-full lg:w-[48%] h-[440px] bg-[#080808] border border-white/[0.03] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col">
+            <div className="w-full lg:w-[48%] h-[440px] bg-[#080808] border border-white/[0.03] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col relative">
               
               {/* Window Tab Bar */}
               <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between border-b border-white/[0.03] shrink-0 font-sans">
@@ -137,7 +299,9 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                   <span className={`pb-1 transition-all ${activeLeftTab.startsWith("generator") ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
                     Generator
                   </span>
-                  <span className={`pb-1 transition-all ${activeLeftTab === "code-editor" ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
+                  <span className={`pb-1 transition-all ${
+                    isClicking && cursorX === 27 && cursorY === 15 ? "scale-95 text-[#F28B2D]" : ""
+                  } ${activeLeftTab === "code-editor" ? "text-[#E8730C] border-b-2 border-[#E8730C]" : "text-gray-500"}`}>
                     Code Editor
                   </span>
                 </div>
@@ -153,7 +317,9 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                   <span className={`px-2.5 py-1 rounded text-[9px] font-bold tracking-wider transition-all uppercase ${activeLeftTab === "generator-json" ? "bg-[#111111] text-[#E8730C]" : "text-gray-500"}`}>
                     JSON Parser
                   </span>
-                  <span className={`flex items-center space-x-1 px-2.5 py-1 rounded text-[9px] font-bold tracking-wider transition-all uppercase ${activeLeftTab === "generator-ai" ? "bg-[#111111] text-[#E8730C]" : "text-gray-500"}`}>
+                  <span className={`flex items-center space-x-1 px-2.5 py-1 rounded text-[9px] font-bold tracking-wider transition-all uppercase ${
+                    isClicking && cursorX === 14 && cursorY === 60 ? "scale-95 bg-zinc-900" : ""
+                  } ${activeLeftTab === "generator-ai" ? "bg-[#111111] text-[#E8730C]" : "text-gray-500"}`}>
                     <Sparkles size={8} fill={activeLeftTab === "generator-ai" ? "#E8730C" : "none"} />
                     <span>AI Question</span>
                   </span>
@@ -177,12 +343,14 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                     </div>
                     <div className="flex items-center space-x-2 shrink-0">
                       <div className="px-3 py-2 text-[9px] bg-zinc-900 text-zinc-400 rounded-md font-bold cursor-pointer">Format</div>
-                      <div className={`flex-grow flex items-center justify-center space-x-1.5 px-3 py-2 text-[9px] font-black rounded-md transition-colors ${
+                      <div className={`flex-grow flex items-center justify-center space-x-1.5 px-3 py-2 text-[9px] font-black rounded-md transition-all ${
                         isJsonRendered 
                           ? "bg-green-950/40 text-green-400 border border-green-900/50" 
                           : isJsonClicked 
                             ? "bg-[#E8730C]/60 text-black animate-pulse" 
                             : "bg-[#E8730C] text-black"
+                      } ${
+                        isClicking && cursorX === 30 && cursorY === 395 ? "scale-95 bg-[#F28B2D]" : ""
                       }`}>
                         <Play size={10} fill={isJsonRendered ? "none" : "currentColor"} />
                         <span>{isJsonRendered ? "Success ✓" : isJsonClicked ? "Rendering..." : "Render JSON"}</span>
@@ -207,12 +375,14 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                       </div>
                     </div>
                     
-                    <div className={`w-full flex items-center justify-center space-x-1.5 px-3 py-2.5 text-[9px] font-black rounded-md transition-colors shrink-0 ${
+                    <div className={`w-full flex items-center justify-center space-x-1.5 px-3 py-2.5 text-[9px] font-black rounded-md transition-all shrink-0 ${
                       isAiRendered 
                         ? "bg-green-950/40 text-green-400 border border-green-900/50" 
                         : isAiParsing 
                           ? "bg-[#E8730C]/50 text-black" 
                           : "bg-[#E8730C] text-black"
+                    } ${
+                      isClicking && cursorX === 24 && cursorY === 395 ? "scale-95 bg-[#F28B2D]" : ""
                     }`}>
                       {isAiParsing ? (
                         <div className="w-2.5 h-2.5 border border-t-black border-r-transparent border-b-black border-l-transparent rounded-full animate-spin" />
@@ -227,25 +397,41 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                 {/* 3. C++ Code Editor View */}
                 {activeLeftTab === "code-editor" && (
                   <div className="space-y-0.5 font-mono text-[#c5c8c6]">
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">1</span><span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;vector&gt;</span></span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">2</span><span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;algorithm&gt;</span></span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">3</span><span><span className="text-[#E8730C]">using namespace</span> <span className="text-blue-400">std</span>;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">4</span><span /></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">5</span><span><span className="text-purple-400">class</span> <span className="text-yellow-400">Solution</span> &#123;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">6</span><span><span className="text-purple-400">public</span>:</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> <span className="text-yellow-400">maxSubArray</span>(<span className="text-purple-400">vector</span>&lt;<span className="text-blue-400">int</span>&gt;&amp; nums) &#123;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> maxSum = nums[<span className="text-red-400">0</span>];</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> currentSum = nums[<span className="text-red-400">0</span>];</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">for</span> (<span className="text-blue-400">int</span> i = <span className="text-red-400">1</span>; i &lt; nums.<span className="text-yellow-400">size</span>(); i++) &#123;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentSum = <span className="text-yellow-400">max</span>(nums[i], currentSum + nums[i]);</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">12</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxSum = <span className="text-yellow-400">max</span>(maxSum, currentSum);</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">13</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">return</span> maxSum;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">15</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span></div>
-                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">16</span><span>&#125;;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">1</span><span><span className="text-purple-400">class</span> <span className="text-yellow-400">Solution</span> &#123;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">2</span><span><span className="text-purple-400">public</span>:</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> <span className="text-yellow-400">maxSubArray</span>(<span className="text-purple-400">vector</span>&lt;<span className="text-blue-400">int</span>&gt;&amp; nums) &#123;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> maxSum = nums[<span className="text-red-400">0</span>];</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> currentSum = nums[<span className="text-red-400">0</span>];</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">for</span> (<span className="text-blue-400">int</span> i = <span className="text-red-400">1</span>; i &lt; nums.<span className="text-yellow-400">size</span>(); i++) &#123;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentSum = <span className="text-yellow-400">max</span>(nums[i], currentSum + nums[i]);</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxSum = <span className="text-yellow-400">max</span>(maxSum, currentSum);</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">return</span> maxSum;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span></div>
+                    <div className="flex"><span className="text-gray-700 select-none text-right w-6 pr-3 font-sans">12</span><span>&#125;;</span></div>
                   </div>
                 )}
               </div>
+
+              {/* Code Editor Bottom Action Bar */}
+              {activeLeftTab === "code-editor" && (
+                <div className="bg-[#0f0f0f] px-4 py-2.5 flex items-center justify-between border-t border-white/[0.03] shrink-0 font-sans">
+                  <span className="text-[9px] text-zinc-500 font-medium">solution.cpp • Saved</span>
+                  <div className="flex items-center space-x-2">
+                    <div className={`px-3 py-1 bg-zinc-900 text-zinc-300 rounded font-bold text-[9px] flex items-center space-x-1 transition-all ${
+                      isClicking && cursorX === 36 && cursorY === 415 ? "bg-zinc-800 scale-95" : ""
+                    }`}>
+                      <Play size={8} className="fill-zinc-300 text-zinc-300" />
+                      <span>Run</span>
+                    </div>
+                    <div className={`px-3 py-1 bg-[#E8730C] text-black rounded font-black text-[9px] flex items-center space-x-1 transition-all ${
+                      isClicking && cursorX === 43 && cursorY === 415 ? "bg-[#F28B2D] scale-95" : ""
+                    }`}>
+                      <span>Submit</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* WINDOW B: Right Output/Description/Console Panel */}
@@ -448,6 +634,32 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
                 </div>
               )}
 
+            </div>
+
+            {/* Mouse pointer overlay - only shown on large screens for simulation realism */}
+            <div 
+              className="absolute pointer-events-none transition-all duration-75 hidden lg:block"
+              style={{
+                left: `${cursorX}%`,
+                top: `${cursorY}px`,
+                transform: `translate(-4px, -2px) ${isClicking ? 'scale(0.85)' : 'scale(1)'}`,
+                zIndex: 9999,
+              }}
+            >
+              <div className="relative">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
+                  <path 
+                    d="M5.65376 12.3825L10.7485 14.1217L12.4878 19.2165C12.8711 20.3402 14.4348 20.3551 14.8394 19.2415L20.8921 2.59628C21.2427 1.63216 20.2381 0.627576 19.274 0.978168L2.62881 7.03088C1.51523 7.43547 1.53011 8.99912 2.65376 9.38249L5.65376 12.3825Z" 
+                    fill="white" 
+                    stroke="black" 
+                    strokeWidth="2.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {isClicking && (
+                  <span className="absolute w-10 h-10 -left-[14px] -top-[14px] rounded-full bg-[#E8730C]/40 border border-[#E8730C]/60 animate-ping opacity-75 pointer-events-none" />
+                )}
+              </div>
             </div>
 
           </div>
