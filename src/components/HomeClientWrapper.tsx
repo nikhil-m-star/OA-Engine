@@ -17,27 +17,11 @@ interface HomeClientWrapperProps {
   isAdmin: boolean;
 }
 
-interface Point3D {
-  x: number;
-  y: number;
-  z: number;
-  ox: number; // original coordinates
-  oy: number;
-  oz: number;
-  shimmerOffset: number;
-  shimmerSpeed: number;
-  type: "shell" | "core" | "ring1" | "ring2";
-}
-
-interface Dust3D {
-  x: number;
-  y: number;
-  z: number;
-  ox: number;
-  oy: number;
-  oz: number;
-  speed: number;
-  size: number;
+interface GridPoint {
+  r: number; // row index
+  c: number; // col index
+  gx: number; // grid x (-1 to 1)
+  gz: number; // grid z (-1 to 1)
 }
 
 export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperProps) {
@@ -46,8 +30,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
   const [scrollProgress, setScrollProgress] = useState(0);
   
   // Mouse interaction states
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, isDown: false, lastX: 0, lastY: 0 });
-  const rotationRef = useRef({ x: 0, y: 0, velX: 0.002, velY: 0.002 });
+  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +57,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
   }, []);
 
-  // 3D Canvas Renderer loop
+  // 3D Grid Canvas Renderer loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -86,109 +69,18 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     let height = (canvas.height = window.innerHeight);
 
     // ----------------------------------------------------
-    // INITIALIZE NESTED 3D STRUCTURE
+    // INITIALIZE GRID (3D Plane mesh)
     // ----------------------------------------------------
-    const points: Point3D[] = [];
+    const cols = 28;
+    const rows = 20;
+    const gridPoints: GridPoint[] = [];
 
-    // A. Outer Shell (110 points, radius = 1.0)
-    const shellPoints = 110;
-    for (let i = 0; i < shellPoints; i++) {
-      const phi = Math.acos(1 - 2 * (i + 0.5) / shellPoints);
-      const theta = Math.sqrt(shellPoints * Math.PI) * phi;
-      const x = Math.cos(theta) * Math.sin(phi);
-      const y = Math.sin(theta) * Math.sin(phi);
-      const z = Math.cos(phi);
-      points.push({
-        x, y, z, ox: x, oy: y, oz: z,
-        shimmerOffset: Math.random() * Math.PI * 2,
-        shimmerSpeed: 0.01 + Math.random() * 0.02,
-        type: "shell"
-      });
-    }
-
-    // B. Dense Inner Core (70 points, radius = 0.45)
-    const corePoints = 70;
-    for (let i = 0; i < corePoints; i++) {
-      const phi = Math.acos(1 - 2 * (i + 0.5) / corePoints);
-      const theta = Math.sqrt(corePoints * Math.PI) * phi;
-      const x = Math.cos(theta) * Math.sin(phi) * 0.45;
-      const y = Math.sin(theta) * Math.sin(phi) * 0.45;
-      const z = Math.cos(phi) * 0.45;
-      points.push({
-        x, y, z, ox: x, oy: y, oz: z,
-        shimmerOffset: Math.random() * Math.PI * 2,
-        shimmerSpeed: 0.03 + Math.random() * 0.04,
-        type: "core"
-      });
-    }
-
-    // C. Orbital Ring 1 (25 points, flat circle tilted at 45 degrees, radius = 1.2)
-    const ring1Points = 25;
-    for (let i = 0; i < ring1Points; i++) {
-      const angle = (i / ring1Points) * Math.PI * 2;
-      // Circle on X-Z plane tilted
-      const rx = Math.cos(angle) * 1.25;
-      const rz = Math.sin(angle) * 1.25;
-      // Tilt 45 degrees on Y axis
-      const x = rx * Math.cos(Math.PI/4);
-      const y = rx * Math.sin(Math.PI/4);
-      const z = rz;
-      points.push({
-        x, y, z, ox: x, oy: y, oz: z,
-        shimmerOffset: Math.random() * Math.PI * 2,
-        shimmerSpeed: 0.02 + Math.random() * 0.03,
-        type: "ring1"
-      });
-    }
-
-    // D. Orbital Ring 2 (25 points, flat circle tilted at -45 degrees, radius = 1.2)
-    const ring2Points = 25;
-    for (let i = 0; i < ring2Points; i++) {
-      const angle = (i / ring2Points) * Math.PI * 2;
-      const rx = Math.cos(angle) * 1.25;
-      const rz = Math.sin(angle) * 1.25;
-      // Tilt -45 degrees
-      const x = rx * Math.cos(-Math.PI/4);
-      const y = rx * Math.sin(-Math.PI/4);
-      const z = rz;
-      points.push({
-        x, y, z, ox: x, oy: y, oz: z,
-        shimmerOffset: Math.random() * Math.PI * 2,
-        shimmerSpeed: 0.02 + Math.random() * 0.03,
-        type: "ring2"
-      });
-    }
-
-    // ----------------------------------------------------
-    // INITIALIZE BACKGROUND DUST
-    // ----------------------------------------------------
-    const dustParticles: Dust3D[] = [];
-    const numDust = 90;
-    for (let i = 0; i < numDust; i++) {
-      const rx = (Math.random() - 0.5) * 8;
-      const ry = (Math.random() - 0.5) * 8;
-      const rz = (Math.random() - 0.5) * 8;
-      dustParticles.push({
-        x: rx, y: ry, z: rz,
-        ox: rx, oy: ry, oz: rz,
-        speed: 0.003 + Math.random() * 0.005,
-        size: 0.5 + Math.random() * 0.8
-      });
-    }
-
-    // Precalculate connections (ONLY for outer shell nodes to show structural framework)
-    const shellConnections: [number, number][] = [];
-    const shellStartIndex = 0;
-    const shellEndIndex = shellPoints;
-    for (let i = shellStartIndex; i < shellEndIndex; i++) {
-      for (let j = i + 1; j < shellEndIndex; j++) {
-        const dx = points[i].ox - points[j].ox;
-        const dy = points[i].oy - points[j].oy;
-        const dz = points[i].oz - points[j].oz;
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (dist < 0.35) {
-          shellConnections.push([i, j]);
-        }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Normalize grid coordinates to -1.3 to 1.3
+        const gx = ((c / (cols - 1)) - 0.5) * 2.6;
+        const gz = ((r / (rows - 1)) - 0.5) * 2.0;
+        gridPoints.push({ r, c, gx, gz });
       }
     }
 
@@ -199,36 +91,19 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
     window.addEventListener("resize", handleResize);
 
-    // Mouse handlers
     const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current.targetX = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseRef.current.targetY = (e.clientY / window.innerHeight) * 2 - 1;
-
-      if (mouseRef.current.isDown) {
-        const deltaX = e.clientX - mouseRef.current.lastX;
-        const deltaY = e.clientY - mouseRef.current.lastY;
-        rotationRef.current.velY += deltaX * 0.002;
-        rotationRef.current.velX += deltaY * 0.002;
-        mouseRef.current.lastX = e.clientX;
-        mouseRef.current.lastY = e.clientY;
-      }
+      mouseRef.current.targetX = e.clientX;
+      mouseRef.current.targetY = e.clientY;
+      mouseRef.current.active = true;
     };
 
-    const onMouseDown = (e: MouseEvent) => {
-      mouseRef.current.isDown = true;
-      mouseRef.current.lastX = e.clientX;
-      mouseRef.current.lastY = e.clientY;
-    };
-
-    const onMouseUp = () => {
-      mouseRef.current.isDown = false;
+    const onMouseLeave = () => {
+      mouseRef.current.active = false;
     };
 
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("mouseleave", onMouseLeave);
 
-    // Simulation loop variables
     let time = 0;
     const render = () => {
       time++;
@@ -236,290 +111,148 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
       const currentScroll = scrollProgress;
 
-      // Damp mouse tracking
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
+      // Smooth mouse coordinate dampening
+      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
+      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
 
-      // Update base velocities - constant calm rotation speed to prevent scroll-induced headache
-      rotationRef.current.velX *= 0.95;
-      rotationRef.current.velY *= 0.95;
-      
-      const autoRotateSpeed = 0.0035; 
-      rotationRef.current.x += rotationRef.current.velX + autoRotateSpeed * 0.3;
-      rotationRef.current.y += rotationRef.current.velY + autoRotateSpeed;
+      // 3D Camera Angles
+      // Base auto rotation + slight mouse follow
+      const mouseFactorX = mouseRef.current.active ? (mouseRef.current.x / width - 0.5) * 0.35 : 0;
+      const mouseFactorY = mouseRef.current.active ? (mouseRef.current.y / height - 0.5) * 0.15 : 0;
 
-      const rx = rotationRef.current.x + mouseRef.current.y * 0.25;
-      const ry = rotationRef.current.y + mouseRef.current.x * 0.25;
+      const angleY = time * 0.0018 + mouseFactorX;
+      // Tilt starts at 0.58 rad (33 degrees) and flattens down to 0.05 (flat horizontal plane) on scroll
+      const angleX = 0.55 - currentScroll * 0.52 + mouseFactorY;
 
-      // Static size and distance (no camera fly-through or particle dispersion)
-      const disperse = 1.0; 
-      const cameraDistance = 3.0; 
-      const focalLength = Math.min(width, height) * 0.6;
+      // Camera config
+      const cameraDistance = 2.4;
+      const focalLength = Math.min(width, height) * 0.72;
 
-      const mouseXScreen = (mouseRef.current.targetX + 1) * width / 2;
-      const mouseYScreen = (mouseRef.current.targetY + 1) * height / 2;
+      // Wave physics
+      // Wave amplitude flattens out as user scrolls (calming wave field)
+      const amplitude = 0.22 * (1 - currentScroll * 0.95);
+      const waveFreqX = 2.2;
+      const waveFreqZ = 1.8;
 
-      // ----------------------------------------------------
-      // PROJECT NESTED 3D POINTS
-      // ----------------------------------------------------
-      const projectedPoints: { 
-        x: number; y: number; z: number; 
-        visible: boolean; alpha: number; 
-        type: string; shimmer: number 
-      }[] = [];
+      const projected: { x: number; y: number; z: number; visible: boolean; alpha: number }[] = [];
 
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
+      // Project grid points
+      for (let i = 0; i < gridPoints.length; i++) {
+        const p = gridPoints[i];
 
-        // Unique organic movements based on node type
-        let currentOX = p.ox;
-        let currentOY = p.oy;
-        let currentOZ = p.oz;
-
-        let activeRx = rx;
-        let activeRy = ry;
-
-        if (p.type === "shell") {
-          // Rippling wave distortion
-          const waveVal = Math.sin(time * 0.02 + i * 0.1) * 0.06;
-          const radius = 1 + waveVal;
-          currentOX *= radius;
-          currentOY *= radius;
-          currentOZ *= radius;
-        } else if (p.type === "core") {
-          // Counter-rotational spin to core
-          activeRx = -rx * 1.5;
-          activeRy = ry * 1.3;
-          const pulse = 1 + Math.sin(time * 0.04 + i * 0.2) * 0.08;
-          currentOX *= pulse;
-          currentOY *= pulse;
-          currentOZ *= pulse;
-        } else if (p.type === "ring1") {
-          activeRx = rx + time * 0.015;
-          activeRy = ry + time * 0.01;
-        } else if (p.type === "ring2") {
-          activeRx = rx - time * 0.015;
-          activeRy = ry - time * 0.02;
-        }
+        // 3D mathematical sine waves rippling across the grid
+        const waveX = p.gx * waveFreqX + time * 0.024;
+        const waveZ = p.gz * waveFreqZ + time * 0.016;
+        let gy = Math.sin(waveX) * Math.cos(waveZ) * amplitude;
 
         // 3D rotations
-        let x1 = currentOX * Math.cos(activeRy) - currentOZ * Math.sin(activeRy);
-        let z1 = currentOX * Math.sin(activeRy) + currentOZ * Math.cos(activeRy);
+        // Rotate Y
+        let x1 = p.gx * Math.cos(angleY) - p.gz * Math.sin(angleY);
+        let z1 = p.gx * Math.sin(angleY) + p.gz * Math.cos(angleY);
 
-        let y2 = currentOY * Math.cos(activeRx) - z1 * Math.sin(activeRx);
-        let z2 = currentOY * Math.sin(activeRx) + z1 * Math.cos(activeRx);
+        // Rotate X (tilted plane projection)
+        let y2 = gy * Math.cos(angleX) - z1 * Math.sin(angleX);
+        let z2 = gy * Math.sin(angleX) + z1 * Math.cos(angleX);
 
-        const rx_scaled = x1 * disperse;
-        const ry_scaled = y2 * disperse;
-        const rz_scaled = z2 * disperse;
+        const zProjected = cameraDistance - z2;
 
-        const zProjected = cameraDistance - rz_scaled;
+        if (zProjected > 0.1) {
+          let projX = (x1 / zProjected) * focalLength + width / 2;
+          let projY = (y2 / zProjected) * focalLength + height / 2;
 
-        if (zProjected > 0.08) {
-          let projX = (rx_scaled / zProjected) * focalLength + width / 2;
-          let projY = (ry_scaled / zProjected) * focalLength + height / 2;
-          
-          // Cursor Interactive Distortion
-          const dx = projX - mouseXScreen;
-          const dy = projY - mouseYScreen;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 140 && dist > 0) {
-            const force = (140 - dist) / 140;
-            projX += (dx / dist) * force * 24;
-            projY += (dy / dist) * force * 24;
+          // Interactive cursor ripple
+          if (mouseRef.current.active) {
+            const dx = projX - mouseRef.current.x;
+            const dy = projY - mouseRef.current.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 140) {
+              const force = (140 - dist) / 140;
+              // Concentric ripple displacement based on sine wave
+              const ripple = Math.sin(dist * 0.07 - time * 0.12) * 0.05 * force;
+              projY += (ripple * focalLength) / zProjected;
+            }
           }
 
-          // Calculate proximity opacity
-          let opacity = 0.85;
-          if (zProjected < 0.5) {
-            opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.85;
-          }
+          // Depth-based opacity (further points fade out slightly)
+          const zDepthFactor = Math.min(1, Math.max(0.2, (cameraDistance + 1.2 - zProjected) / 2.4));
+          const opacity = zDepthFactor * 0.7;
 
-          // Shimmer factor
-          const shimmer = 0.5 + 0.5 * Math.sin(time * p.shimmerSpeed + p.shimmerOffset);
-
-          projectedPoints.push({
+          projected.push({
             x: projX,
             y: projY,
             z: zProjected,
-            visible: projX >= 0 && projX <= width && projY >= 0 && projY <= height,
-            alpha: opacity,
-            type: p.type,
-            shimmer
+            visible: projX >= -50 && projX <= width + 50 && projY >= -50 && projY <= height + 50,
+            alpha: opacity
           });
         } else {
-          projectedPoints.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0, type: p.type, shimmer: 0 });
+          projected.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
         }
       }
 
       // ----------------------------------------------------
-      // PROJECT AMBIENT DUST
+      // DRAW CONNECTING MESH LINES
       // ----------------------------------------------------
-      const projectedDust: { x: number; y: number; z: number; visible: boolean; alpha: number; size: number }[] = [];
-      for (let i = 0; i < numDust; i++) {
-        const d = dustParticles[i];
-
-        d.z -= d.speed;
-        if (d.z < -4) {
-          d.z = 4; // wrap back
-        }
-
-        let x1 = d.x * Math.cos(ry) - d.z * Math.sin(ry);
-        let z1 = d.x * Math.sin(ry) + d.z * Math.cos(ry);
-        let y2 = d.y * Math.cos(rx) - z1 * Math.sin(rx);
-        let z2 = d.y * Math.sin(rx) + z1 * Math.cos(rx);
-
-        const disperseDust = 1.0;
-        const dx_scaled = x1 * disperseDust;
-        const dy_scaled = y2 * disperseDust;
-        const dz_scaled = z2 * disperseDust;
-
-        const zProjected = cameraDistance - dz_scaled;
-
-        if (zProjected > 0.08) {
-          const projX = (dx_scaled / zProjected) * focalLength + width / 2;
-          const projY = (dy_scaled / zProjected) * focalLength + height / 2;
-
-          let opacity = 0.55;
-          if (zProjected < 0.5) {
-            opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.55;
-          }
-
-          projectedDust.push({
-            x: projX,
-            y: projY,
-            z: zProjected,
-            visible: projX >= 0 && projX <= width && projY >= 0 && projY <= height,
-            alpha: opacity,
-            size: d.size
-          });
-        } else {
-          projectedDust.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0, size: 0 });
-        }
-      }
-
-      // ----------------------------------------------------
-      // RENDERING DEPTH SORT (Painter's Algorithm)
-      // ----------------------------------------------------
-
-      // 1. Render Dust (Furthest back)
-      const sortedDust = [...projectedDust]
-        .map((d, index) => ({ d, index }))
-        .filter(item => item.d.visible && item.d.z > 0)
-        .sort((a, b) => b.d.z - a.d.z);
-
-      for (let k = 0; k < sortedDust.length; k++) {
-        const { d } = sortedDust[k];
-        const dustSize = Math.max(0.4, d.size / d.z);
-
-        ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha * 0.4})`;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, dustSize, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 2. Render Outer Shell Connections
-      const linesToDraw: { p1: any; p2: any; avgZ: number }[] = [];
-      for (let k = 0; k < shellConnections.length; k++) {
-        const [i, j] = shellConnections[k];
-        const p1 = projectedPoints[i];
-        const p2 = projectedPoints[j];
-
-        if (p1 && p2 && p1.visible && p2.visible && p1.z > 0 && p2.z > 0) {
-          linesToDraw.push({
-            p1, p2, avgZ: (p1.z + p2.z) / 2
-          });
-        }
-      }
-
-      // Sort connections by depth
-      linesToDraw.sort((a, b) => b.avgZ - a.avgZ);
-
       ctx.lineWidth = 0.55;
-      for (let k = 0; k < linesToDraw.length; k++) {
-        const { p1, p2 } = linesToDraw[k];
-        const avgAlpha = (p1.alpha + p2.alpha) / 2 * 0.18;
-        ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-      }
+      
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const idx = r * cols + c;
+          const pCurrent = projected[idx];
 
-      // 3. Render Interactive Lightning Mouse Connections
-      if (mouseRef.current.targetX !== 0 || mouseRef.current.targetY !== 0) {
-        const mouseBeamDistance = 180;
-        const beams = [...projectedPoints]
-          .map((p, idx) => {
-            const dx = p.x - mouseXScreen;
-            const dy = p.y - mouseYScreen;
-            return { p, dist: Math.sqrt(dx*dx + dy*dy), idx };
-          })
-          .filter(item => item.p.visible && item.p.z > 0 && item.dist < mouseBeamDistance)
-          .sort((a, b) => a.dist - b.dist)
-          .slice(0, 4);
+          if (!pCurrent || !pCurrent.visible) continue;
 
-        ctx.lineWidth = 0.45;
-        for (let k = 0; k < beams.length; k++) {
-          const { p, dist } = beams[k];
-          const alpha = (1 - dist / mouseBeamDistance) * 0.35;
-          
-          if (alpha > 0.01) {
-            ctx.strokeStyle = `rgba(255, 140, 20, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(mouseXScreen, mouseYScreen);
-            
-            const midX = (mouseXScreen + p.x) / 2 + (Math.random() - 0.5) * 6;
-            const midY = (mouseYScreen + p.y) / 2 + (Math.random() - 0.5) * 6;
-            
-            ctx.lineTo(midX, midY);
-            ctx.lineTo(p.x, p.y);
-            ctx.stroke();
+          // 1. Draw horizontal connections to the right (c + 1)
+          if (c < cols - 1) {
+            const idxRight = idx + 1;
+            const pRight = projected[idxRight];
+            if (pRight && pRight.visible) {
+              const avgAlpha = (pCurrent.alpha + pRight.alpha) / 2 * 0.18;
+              ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`; // signature orange
+              ctx.beginPath();
+              ctx.moveTo(pCurrent.x, pCurrent.y);
+              ctx.lineTo(pRight.x, pRight.y);
+              ctx.stroke();
+            }
+          }
+
+          // 2. Draw vertical connections to the next row (r + 1)
+          if (r < rows - 1) {
+            const idxDown = idx + cols;
+            const pDown = projected[idxDown];
+            if (pDown && pDown.visible) {
+              const avgAlpha = (pCurrent.alpha + pCurrent.alpha) / 2 * 0.18;
+              ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`;
+              ctx.beginPath();
+              ctx.moveTo(pCurrent.x, pCurrent.y);
+              ctx.lineTo(pDown.x, pDown.y);
+              ctx.stroke();
+            }
           }
         }
       }
 
-      // 4. Render Nodes
-      const sortedNodes = [...projectedPoints]
-        .map((p, index) => ({ p, index }))
-        .filter(item => item.p.visible && item.p.z > 0)
-        .sort((a, b) => b.p.z - a.p.z);
+      // ----------------------------------------------------
+      // DRAW GRID NODES (shining radial glows)
+      // ----------------------------------------------------
+      for (let i = 0; i < projected.length; i++) {
+        const p = projected[i];
+        if (p && p.visible) {
+          // Point size based on depth
+          const size = Math.max(0.4, 1.2 / p.z);
 
-      for (let k = 0; k < sortedNodes.length; k++) {
-        const { p } = sortedNodes[k];
-
-        // Assign radii based on node type
-        let baseRadius = 1.4;
-        if (p.type === "core") {
-          baseRadius = 1.8;
-        } else if (p.type === "ring1" || p.type === "ring2") {
-          baseRadius = 1.1;
+          // Render radial glowing neon dots
+          const gradRadius = size * 2.8;
+          const radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gradRadius);
+          
+          radGrad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * 0.95})`);
+          radGrad.addColorStop(0.25, `rgba(232, 115, 12, ${p.alpha * 0.8})`);
+          radGrad.addColorStop(1, `rgba(232, 115, 12, 0)`);
+          
+          ctx.fillStyle = radGrad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, gradRadius, 0, Math.PI * 2);
+          ctx.fill();
         }
-
-        const size = Math.max(0.4, (baseRadius / p.z));
-
-        // Static glows using radial gradients (makes nodes look like shining neon bulbs)
-        ctx.beginPath();
-        
-        let colorString = "232, 115, 12"; // default orange
-        if (p.type === "core") {
-          const coreShimmer = p.shimmer;
-          const r = Math.round(232 + (255 - 232) * coreShimmer);
-          const g = Math.round(115 + (255 - 115) * coreShimmer);
-          const b = Math.round(12 + (255 - 12) * coreShimmer);
-          colorString = `${r}, ${g}, ${b}`;
-        }
-
-        const gradRadius = size * (p.type === "core" ? 3.0 : 2.5);
-        const radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gradRadius);
-        
-        radGrad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha})`);
-        radGrad.addColorStop(0.2, `rgba(${colorString}, ${p.alpha * 0.85})`);
-        radGrad.addColorStop(1, `rgba(${colorString}, 0)`);
-        
-        ctx.fillStyle = radGrad;
-        ctx.arc(p.x, p.y, gradRadius, 0, Math.PI * 2);
-        ctx.fill();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -531,8 +264,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mouseleave", onMouseLeave);
     };
   }, [scrollProgress]);
 
@@ -551,7 +283,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* Interactive 3D Canvas Background (fades smoothly on scroll) */}
+      {/* 3D Flowing Wave Grid Canvas (fades cleanly on scroll) */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
