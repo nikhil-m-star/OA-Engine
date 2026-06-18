@@ -42,7 +42,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
               href="/workspace"
               className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname.startsWith("/workspace") 
-                  ? "text-[#E8730C] bg-[#E8730C]/10 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  ? "text-[#E8730C] bg-[#E8730C]/10" 
                   : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -53,7 +53,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
               href="/problems"
               className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/problems" 
-                  ? "text-[#E8730C] bg-[#E8730C]/10 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  ? "text-[#E8730C] bg-[#E8730C]/10" 
                   : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -64,7 +64,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
               href="/profile"
               className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/profile" 
-                  ? "text-[#E8730C] bg-[#E8730C]/10 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  ? "text-[#E8730C] bg-[#E8730C]/10" 
                   : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -75,7 +75,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
               href="/company-questions"
               className={`px-2 py-1 md:px-4 md:py-2 rounded-full transition-all duration-300 active:scale-95 hover:scale-[1.05] flex flex-col md:flex-row items-center justify-center space-y-0.5 md:space-y-0 md:space-x-1.5 ${
                 pathname === "/company-questions" 
-                  ? "text-[#E8730C] bg-[#E8730C]/10 shadow-[0_0_12px_rgba(232,115,12,0.15)]" 
+                  ? "text-[#E8730C] bg-[#E8730C]/10" 
                   : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
@@ -86,7 +86,7 @@ export default function Navbar({ problemId, problemTitle, onReset, hasProblem = 
 
           {/* Active Problem Info badge next to Nav links on desktop */}
           {pathname.startsWith("/workspace") && hasProblem && problemTitle && (
-            <div className="hidden lg:flex items-center space-x-2 bg-[#E8730C]/10 px-4 py-1.5 rounded-full text-xs font-bold text-[#E8730C] shadow-[0_0_12px_rgba(232,115,12,0.15)] ml-4">
+            <div className="hidden lg:flex items-center space-x-2 bg-[#E8730C]/10 px-4 py-1.5 rounded-full text-xs font-bold text-[#E8730C] ml-4">
               <Terminal size={12} className="text-[#E8730C]" />
               <span>{problemId ? `${problemId}. ` : ""}{problemTitle}</span>
             </div>

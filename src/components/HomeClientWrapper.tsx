@@ -348,7 +348,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link 
               href="/workspace" 
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center space-x-2 transform active:scale-95 shadow-[0_4px_20px_rgba(232,115,12,0.3)] hover:shadow-[0_4px_30px_rgba(232,115,12,0.45)]"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#E8730C] hover:bg-[#F28B2D] text-black font-black text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center space-x-2 transform active:scale-95 shadow-md"
             >
               <span>Open Workspace</span>
               <ArrowRight size={14} strokeWidth={3} />
