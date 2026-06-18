@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, CheckCircle2, Play, Terminal, Code2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface Stats {
@@ -19,11 +19,7 @@ interface HomeClientWrapperProps {
 
 export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  
-  // Mouse coordinates for spotlight
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0, active: false });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,247 +46,31 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     };
   }, []);
 
-  // 3D Perspective Grid Renderer loop
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  // Scroll animations interpolation
+  // Landing section fades out as we scroll down
+  const landingOpacity = Math.max(0, 1 - scrollProgress * 2.2);
+  const landingScale = Math.max(0.9, 1 - scrollProgress * 0.1);
+  const landingTranslateY = -scrollProgress * 60;
 
-    let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+  // Main homepage content (details/stats) fades and slides in
+  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.5) * 2)); // starts at 50% scroll
+  const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 50);
 
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
+  // Mock UI Animations based on scroll
+  // Phase 1 (Scroll 0% to 50%): IDE tilts and slides to the left
+  const ideRotateX = Math.max(0, 12 - scrollProgress * 24); // 12deg to 0deg
+  const ideRotateY = Math.min(0, -8 + scrollProgress * 16); // -8deg to 0deg
+  const ideScale = 0.88 + Math.min(0.12, scrollProgress * 0.24); // zooms in slightly
+  const ideTranslateX = -scrollProgress * 160; // slides left (on desktop)
 
-    const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current.targetX = e.clientX;
-      mouseRef.current.targetY = e.clientY;
-      mouseRef.current.active = true;
-    };
-    
-    const onMouseLeave = () => {
-      mouseRef.current.active = false;
-    };
+  // Phase 2 (Scroll 20% to 70%): Output terminal fades in and slides from right
+  const termOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.15) * 2));
+  const termTranslateX = Math.max(0, 160 - (scrollProgress - 0.15) * 320); // slides from right
 
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseleave", onMouseLeave);
-
-    // Grid details
-    const gridCols = 25; // number of longitudinal lines
-    const gridRows = 20; // number of latitudinal lines
-
-    let time = 0;
-    const render = () => {
-      time++;
-      ctx.clearRect(0, 0, width, height);
-
-      const currentScroll = scrollProgress;
-
-      // Smooth mouse coordinate tracking
-      if (!mouseRef.current.active) {
-        // Default target center on landing if mouse not active
-        mouseRef.current.targetX = width / 2;
-        mouseRef.current.targetY = height / 2;
-      }
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
-
-      // 3D Perspective parameters
-      const cameraDistance = 2.0;
-      const focalLength = Math.min(width, height) * 0.8;
-      
-      // Auto-rotation around Y (slow, premium drift)
-      const yaw = time * 0.0006;
-      // Tilt transitions from 3D horizon (0.45 rad) to a flat view on scroll
-      const pitch = 0.45 - currentScroll * 0.42;
-
-      // Define grid coordinates and project them
-      // Floor grid at height Y = -0.5
-      const projectedGrid: { x: number; y: number; z: number; visible: boolean; alpha: number }[][] = [];
-
-      for (let r = 0; r < gridRows; r++) {
-        const rowPoints: { x: number; y: number; z: number; visible: boolean; alpha: number }[] = [];
-        const gz = ((r / (gridRows - 1)) - 0.5) * 2.5; // Z depth
-
-        for (let c = 0; c < gridCols; c++) {
-          const gx = ((c / (gridCols - 1)) - 0.5) * 3.5; // X span
-          const gy = 0.45; // floor grid height offset
-
-          // Apply Y-axis rotation (yaw)
-          let x1 = gx * Math.cos(yaw) - gz * Math.sin(yaw);
-          let z1 = gx * Math.sin(yaw) + gz * Math.cos(yaw);
-
-          // Apply X-axis rotation (pitch tilt)
-          let y2 = gy * Math.cos(pitch) - z1 * Math.sin(pitch);
-          let z2 = gy * Math.sin(pitch) + z1 * Math.cos(pitch);
-
-          const zProjected = cameraDistance - z2;
-
-          if (zProjected > 0.1) {
-            const projX = (x1 / zProjected) * focalLength + width / 2;
-            const projY = (y2 / zProjected) * focalLength + height / 2;
-
-            // Fade out lines in the extreme distance (zProjected high) or very close (zProjected low)
-            const edgeFade = Math.sin((r / (gridRows - 1)) * Math.PI); // 0 at edges, 1 in center
-            const opacity = Math.max(0.1, edgeFade * 0.7);
-
-            rowPoints.push({
-              x: projX,
-              y: projY,
-              z: zProjected,
-              visible: projX >= -100 && projX <= width + 100 && projY >= -100 && projY <= height + 100,
-              alpha: opacity
-            });
-          } else {
-            rowPoints.push({ x: 0, y: 0, z: zProjected, visible: false, alpha: 0 });
-          }
-        }
-        projectedGrid.push(rowPoints);
-      }
-
-      // ----------------------------------------------------
-      // DRAW GRADIENT SPOTLIGHT (INTERACTIVE GLOW)
-      // ----------------------------------------------------
-      // Creates a glowing back-light centered at the cursor
-      const glowRadius = 320;
-      const spotlight = ctx.createRadialGradient(
-        mouseRef.current.x,
-        mouseRef.current.y,
-        0,
-        mouseRef.current.x,
-        mouseRef.current.y,
-        glowRadius
-      );
-      
-      // Soft signature orange spotlight glow
-      spotlight.addColorStop(0, `rgba(232, 115, 12, ${0.14 * (1 - currentScroll)})`);
-      spotlight.addColorStop(0.5, `rgba(232, 115, 12, ${0.03 * (1 - currentScroll)})`);
-      spotlight.addColorStop(1, "rgba(0, 0, 0, 0)");
-      
-      ctx.fillStyle = spotlight;
-      ctx.beginPath();
-      ctx.arc(mouseRef.current.x, mouseRef.current.y, glowRadius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ----------------------------------------------------
-      // DRAW 3D PERSPECTIVE GRID LINES
-      // ----------------------------------------------------
-      ctx.lineWidth = 0.65;
-
-      // A. Draw Longitudinal lines (connections along Z-axis)
-      for (let c = 0; c < gridCols; c++) {
-        ctx.beginPath();
-        let started = false;
-        let prevAlpha = 0;
-
-        for (let r = 0; r < gridRows; r++) {
-          const pt = projectedGrid[r][c];
-          if (pt && pt.visible) {
-            // Local illumination factor: lines glow brighter when near the cursor spotlight
-            const dx = pt.x - mouseRef.current.x;
-            const dy = pt.y - mouseRef.current.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const illumination = dist < 220 ? (1 - dist / 220) * 1.5 : 0;
-
-            const finalAlpha = pt.alpha * 0.08 * (1 + illumination) * (1 - currentScroll * 0.3);
-
-            if (!started) {
-              ctx.moveTo(pt.x, pt.y);
-              started = true;
-            } else {
-              // Create dynamic gradient color on each segment to make intersection glowing look extremely smooth
-              const grad = ctx.createLinearGradient(
-                projectedGrid[r - 1][c].x,
-                projectedGrid[r - 1][c].y,
-                pt.x,
-                pt.y
-              );
-              grad.addColorStop(0, `rgba(232, 115, 12, ${prevAlpha})`);
-              grad.addColorStop(1, `rgba(232, 115, 12, ${finalAlpha})`);
-              
-              ctx.strokeStyle = grad;
-              ctx.lineTo(pt.x, pt.y);
-              ctx.stroke();
-              
-              ctx.beginPath();
-              ctx.moveTo(pt.x, pt.y);
-            }
-            prevAlpha = finalAlpha;
-          } else {
-            started = false;
-          }
-        }
-      }
-
-      // B. Draw Latitudinal lines (connections along X-axis)
-      for (let r = 0; r < gridRows; r++) {
-        ctx.beginPath();
-        let started = false;
-        let prevAlpha = 0;
-
-        for (let c = 0; c < gridCols; c++) {
-          const pt = projectedGrid[r][c];
-          if (pt && pt.visible) {
-            const dx = pt.x - mouseRef.current.x;
-            const dy = pt.y - mouseRef.current.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const illumination = dist < 220 ? (1 - dist / 220) * 1.5 : 0;
-
-            const finalAlpha = pt.alpha * 0.08 * (1 + illumination) * (1 - currentScroll * 0.3);
-
-            if (!started) {
-              ctx.moveTo(pt.x, pt.y);
-              started = true;
-            } else {
-              const grad = ctx.createLinearGradient(
-                projectedGrid[r][c - 1].x,
-                projectedGrid[r][c - 1].y,
-                pt.x,
-                pt.y
-              );
-              grad.addColorStop(0, `rgba(232, 115, 12, ${prevAlpha})`);
-              grad.addColorStop(1, `rgba(232, 115, 12, ${finalAlpha})`);
-              
-              ctx.strokeStyle = grad;
-              ctx.lineTo(pt.x, pt.y);
-              ctx.stroke();
-              
-              ctx.beginPath();
-              ctx.moveTo(pt.x, pt.y);
-            }
-            prevAlpha = finalAlpha;
-          } else {
-            started = false;
-          }
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseleave", onMouseLeave);
-    };
-  }, [scrollProgress]);
-
-  // Interpolations for scroll transitions
-  const landingOpacity = Math.max(0, 1 - scrollProgress * 1.8);
-  const landingScale = Math.max(0.85, 1 - scrollProgress * 0.15);
-  const landingTranslateY = -scrollProgress * 80;
-
-  const mainPageOpacity = Math.min(1, Math.max(0, (scrollProgress - 0.25) * 1.33));
-  const mainPageTranslateY = Math.max(0, (1 - mainPageOpacity) * 40);
+  // Phase 3 (Scroll 35% to 85%): Test cases running sequentially
+  const testCase1Visible = scrollProgress > 0.35;
+  const testCase2Visible = scrollProgress > 0.5;
+  const testCase3Visible = scrollProgress > 0.65;
 
   return (
     <div 
@@ -299,38 +79,190 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* Vercel-Style 3D Perspective Grid Background (fades cleanly on scroll) */}
-      <canvas
-        ref={canvasRef}
-        className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-        style={{
-          opacity: Math.max(0, 1 - scrollProgress * 1.5),
-          transition: "opacity 0.15s ease-out"
-        }}
-      />
-
-      {/* Section 1: Intro / Fullscreen Hero 3D Showcase */}
-      <div 
-        className="h-screen w-full shrink-0 flex flex-col items-center justify-center text-center px-6 relative z-10 pointer-events-none"
-        style={{
-          opacity: landingOpacity,
-          transform: `scale(${landingScale}) translateY(${landingTranslateY}px)`,
-          transition: "transform 0.1s ease-out, opacity 0.1s ease-out"
-        }}
-      >
-        <div className="max-w-2xl space-y-4">
-          <h1 className="text-6xl sm:text-8xl font-black tracking-wider text-white uppercase select-none">
+      {/* Section 1: Intro Landing & Interactive Mock UI Showcase */}
+      <div className="min-h-[145vh] w-full shrink-0 flex flex-col items-center relative z-10 pt-16 md:pt-28">
+        
+        {/* Landing Hero Header Text */}
+        <div 
+          className="text-center px-6 max-w-3xl space-y-4 transition-all duration-300"
+          style={{
+            opacity: landingOpacity,
+            transform: `scale(${landingScale}) translateY(${landingTranslateY}px)`
+          }}
+        >
+          <h1 className="text-6xl sm:text-8xl font-black tracking-wider text-white uppercase">
             OA Engine
           </h1>
-          <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide">
+          <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide max-w-xl mx-auto">
             A premium sandbox workspace for parsing and analyzing coding problems.
           </p>
+          <div className="pt-2 flex items-center justify-center space-x-2 text-[10px] uppercase tracking-widest text-[#E8730C] font-black animate-pulse">
+            <span>Scroll down to run code simulation</span>
+            <ChevronDown size={12} className="text-[#E8730C]" />
+          </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-12 flex flex-col items-center space-y-2 text-[10px] uppercase tracking-widest text-[#E8730C] font-black animate-bounce">
-          <span>Scroll to Launch</span>
-          <ChevronDown size={14} className="text-[#E8730C]" />
+        {/* ----------------------------------------------------
+            INTERACTIVE MOCK UI SHOWCASE (ANIME FORWARD ON SCROLL)
+            ---------------------------------------------------- */}
+        <div className="w-full max-w-5xl px-6 mt-12 md:mt-16 flex flex-col md:flex-row items-center justify-center gap-6 relative">
+          
+          {/* WINDOW A: Mock Code Editor (IDE) */}
+          <div
+            className="w-full md:w-[54%] bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-150 ease-out"
+            style={{
+              transform: `perspective(1000px) rotateX(${ideRotateX}deg) rotateY(${ideRotateY}deg) scale(${ideScale}) translateX(${typeof window !== "undefined" && window.innerWidth >= 768 ? ideTranslateX : 0}px)`,
+              opacity: Math.max(0.2, 1 - scrollProgress * 0.4) // dims slightly as it moves left
+            }}
+          >
+            {/* Window title bar */}
+            <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between">
+              <div className="flex space-x-1.5">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+              </div>
+              <div className="text-[10px] font-mono text-gray-500 flex items-center space-x-1">
+                <Code2 size={12} className="text-gray-600" />
+                <span>solution.cpp</span>
+              </div>
+              <div className="w-10" />
+            </div>
+
+            {/* Code editor content */}
+            <div className="p-5 font-mono text-[10px] sm:text-xs leading-relaxed text-[#c5c8c6] overflow-x-auto bg-[#050505]">
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">1</span>
+                <span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;iostream&gt;</span></span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">2</span>
+                <span><span className="text-[#E8730C]">#include</span> <span className="text-green-500">&lt;vector&gt;</span></span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">3</span>
+                <span />
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">4</span>
+                <span><span className="text-blue-400">int</span> <span className="text-yellow-400">findMaxSum</span>(<span className="text-purple-400">std</span>::<span className="text-purple-400">vector</span>&lt;<span className="text-blue-400">int</span>&gt;&amp; arr) &#123;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">5</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">int</span> maxSum = <span className="text-red-400">0</span>, currentSum = <span className="text-red-400">0</span>;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">6</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">for</span> (<span className="text-blue-400">int</span> num : arr) &#123;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">7</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentSum = <span className="text-purple-400">std</span>::<span className="text-yellow-400">max</span>(num, currentSum + num);</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">8</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;maxSum = <span className="text-purple-400">std</span>::<span className="text-yellow-400">max</span>(maxSum, currentSum);</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">9</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&#125;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">10</span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#E8730C]">return</span> maxSum;</span>
+              </div>
+              <div className="flex">
+                <span className="text-gray-700 select-none text-right w-6 pr-3">11</span>
+                <span>&#125;</span>
+              </div>
+            </div>
+          </div>
+
+          {/* WINDOW B: Mock Output Terminal (Appears on scroll) */}
+          <div
+            className="w-full md:w-[44%] bg-[#080808] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-150 ease-out"
+            style={{
+              opacity: termOpacity,
+              transform: `translateX(${typeof window !== "undefined" && window.innerWidth >= 768 ? termTranslateX : 0}px)`,
+              pointerEvents: termOpacity > 0.05 ? "auto" : "none"
+            }}
+          >
+            {/* Title bar */}
+            <div className="bg-[#0f0f0f] px-4 py-3 flex items-center justify-between">
+              <div className="flex space-x-1.5">
+                <div className="w-3.5 h-3.5 rounded-full bg-zinc-800 flex items-center justify-center">
+                  <Play size={8} className="text-zinc-400 fill-zinc-400" />
+                </div>
+                <span className="text-[10px] font-mono text-gray-500">Execution Panel</span>
+              </div>
+              <div className="text-[10px] font-mono text-[#E8730C] font-black uppercase tracking-wider flex items-center space-x-1">
+                <Terminal size={12} />
+                <span>Console</span>
+              </div>
+            </div>
+
+            {/* Output Panel body */}
+            <div className="p-5 font-mono text-[10px] sm:text-xs space-y-4 bg-[#050505] min-h-[195px] select-text">
+              {/* Build status log */}
+              <div className="space-y-1">
+                <div className="text-gray-500">&gt; g++ -O3 solution.cpp -o main</div>
+                <div className="text-green-500 font-bold">✓ Compilation Successful in 240ms</div>
+                <div className="text-gray-500">&gt; ./main --run-all-tests</div>
+              </div>
+
+              {/* Dynamic scroll-linked test cases execution */}
+              <div className="space-y-2 pt-1 border-t border-zinc-900">
+                {testCase1Visible ? (
+                  <div className="flex items-center justify-between animate-page-in">
+                    <span className="text-gray-300">Test Case 1: Base Array</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-gray-500 text-[10px]">1.2ms</span>
+                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                        <CheckCircle2 size={12} /> <span>PASS</span>
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-600 italic select-none">Executing test cases...</div>
+                )}
+
+                {testCase2Visible && (
+                  <div className="flex items-center justify-between animate-page-in">
+                    <span className="text-gray-300">Test Case 2: Single Element</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-gray-500 text-[10px]">0.4ms</span>
+                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                        <CheckCircle2 size={12} /> <span>PASS</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {testCase3Visible && (
+                  <div className="flex items-center justify-between animate-page-in">
+                    <span className="text-gray-300">Test Case 3: All Negative</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-gray-500 text-[10px]">0.8ms</span>
+                      <span className="text-[#00b8a3] font-black flex items-center space-x-0.5">
+                        <CheckCircle2 size={12} /> <span>PASS</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Final run performance analytics */}
+              {testCase3Visible && (
+                <div className="pt-2 mt-2 border-t border-zinc-900 text-white font-bold animate-page-in">
+                  <span className="text-[#E8730C]">Engine Report:</span> 100% Tests Passed. <br />
+                  <span className="text-gray-400 font-normal">Performance exceeds </span>
+                  <span className="text-green-400">98.2%</span>
+                  <span className="text-gray-400 font-normal"> of C++ submissions.</span>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
