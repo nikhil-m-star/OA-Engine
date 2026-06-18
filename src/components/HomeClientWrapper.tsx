@@ -240,20 +240,20 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
 
-      // Update base velocities
+      // Update base velocities - constant calm rotation speed to prevent scroll-induced headache
       rotationRef.current.velX *= 0.95;
       rotationRef.current.velY *= 0.95;
       
-      const autoRotateSpeed = 0.003 + currentScroll * 0.02; 
+      const autoRotateSpeed = 0.0035; 
       rotationRef.current.x += rotationRef.current.velX + autoRotateSpeed * 0.3;
       rotationRef.current.y += rotationRef.current.velY + autoRotateSpeed;
 
       const rx = rotationRef.current.x + mouseRef.current.y * 0.25;
       const ry = rotationRef.current.y + mouseRef.current.x * 0.25;
 
-      // Scroll scaling transformations
-      const disperse = 1 + currentScroll * 6.5; 
-      const cameraDistance = 3.0 - currentScroll * 2.88; 
+      // Static size and distance (no camera fly-through or particle dispersion)
+      const disperse = 1.0; 
+      const cameraDistance = 3.0; 
       const focalLength = Math.min(width, height) * 0.6;
 
       const mouseXScreen = (mouseRef.current.targetX + 1) * width / 2;
@@ -281,7 +281,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
         if (p.type === "shell") {
           // Rippling wave distortion
-          const waveVal = Math.sin(time * 0.02 + i * 0.1) * 0.06 * (1 - currentScroll);
+          const waveVal = Math.sin(time * 0.02 + i * 0.1) * 0.06;
           const radius = 1 + waveVal;
           currentOX *= radius;
           currentOY *= radius;
@@ -290,18 +290,16 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           // Counter-rotational spin to core
           activeRx = -rx * 1.5;
           activeRy = ry * 1.3;
-          const pulse = 1 + Math.sin(time * 0.04 + i * 0.2) * 0.08 * (1 - currentScroll);
+          const pulse = 1 + Math.sin(time * 0.04 + i * 0.2) * 0.08;
           currentOX *= pulse;
           currentOY *= pulse;
           currentOZ *= pulse;
         } else if (p.type === "ring1") {
-          // Tilt-spin speed variation
-          activeRx = rx + time * 0.015 * (1 - currentScroll);
-          activeRy = ry + time * 0.01 * (1 - currentScroll);
+          activeRx = rx + time * 0.015;
+          activeRy = ry + time * 0.01;
         } else if (p.type === "ring2") {
-          // Inverse tilt-spin
-          activeRx = rx - time * 0.015 * (1 - currentScroll);
-          activeRy = ry - time * 0.02 * (1 - currentScroll);
+          activeRx = rx - time * 0.015;
+          activeRy = ry - time * 0.02;
         }
 
         // 3D rotations
@@ -311,7 +309,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
         let y2 = currentOY * Math.cos(activeRx) - z1 * Math.sin(activeRx);
         let z2 = currentOY * Math.sin(activeRx) + z1 * Math.cos(activeRx);
 
-        // Apply scroll dispersion
         const rx_scaled = x1 * disperse;
         const ry_scaled = y2 * disperse;
         const rz_scaled = z2 * disperse;
@@ -328,9 +325,8 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 140 && dist > 0) {
             const force = (140 - dist) / 140;
-            // Gravity warp
-            projX += (dx / dist) * force * 24 * (1 - currentScroll * 0.9);
-            projY += (dy / dist) * force * 24 * (1 - currentScroll * 0.9);
+            projX += (dx / dist) * force * 24;
+            projY += (dy / dist) * force * 24;
           }
 
           // Calculate proximity opacity
@@ -338,7 +334,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           if (zProjected < 0.5) {
             opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.85;
           }
-          opacity *= (1 - currentScroll * 0.35);
 
           // Shimmer factor
           const shimmer = 0.5 + 0.5 * Math.sin(time * p.shimmerSpeed + p.shimmerOffset);
@@ -374,7 +369,7 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
         let y2 = d.y * Math.cos(rx) - z1 * Math.sin(rx);
         let z2 = d.y * Math.sin(rx) + z1 * Math.cos(rx);
 
-        const disperseDust = 1 + currentScroll * 1.5;
+        const disperseDust = 1.0;
         const dx_scaled = x1 * disperseDust;
         const dy_scaled = y2 * disperseDust;
         const dz_scaled = z2 * disperseDust;
@@ -389,7 +384,6 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           if (zProjected < 0.5) {
             opacity = Math.max(0, (zProjected - 0.08) / 0.42) * 0.55;
           }
-          opacity *= (1 - currentScroll * 0.25);
 
           projectedDust.push({
             x: projX,
@@ -418,62 +412,42 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
         const { d } = sortedDust[k];
         const dustSize = Math.max(0.4, d.size / d.z);
 
-        // Hyperdrive star warp streaks on scroll zoom
-        if (currentScroll > 0.02) {
-          const dx = d.x - width/2;
-          const dy = d.y - height/2;
-          const streakMultiplier = currentScroll * 0.35;
-          const prevX = d.x - dx * streakMultiplier;
-          const prevY = d.y - dy * streakMultiplier;
-
-          ctx.strokeStyle = `rgba(255, 255, 255, ${d.alpha * 0.3})`;
-          ctx.lineWidth = dustSize;
-          ctx.beginPath();
-          ctx.moveTo(d.x, d.y);
-          ctx.lineTo(prevX, prevY);
-          ctx.stroke();
-        } else {
-          ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha * 0.4})`;
-          ctx.beginPath();
-          ctx.arc(d.x, d.y, dustSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha * 0.4})`;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, dustSize, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       // 2. Render Outer Shell Connections
-      const lineAlphaFactor = Math.max(0, 1 - currentScroll * 2.2);
-      if (lineAlphaFactor > 0.01) {
-        const linesToDraw: { p1: any; p2: any; avgZ: number }[] = [];
-        for (let k = 0; k < shellConnections.length; k++) {
-          const [i, j] = shellConnections[k];
-          const p1 = projectedPoints[i];
-          const p2 = projectedPoints[j];
+      const linesToDraw: { p1: any; p2: any; avgZ: number }[] = [];
+      for (let k = 0; k < shellConnections.length; k++) {
+        const [i, j] = shellConnections[k];
+        const p1 = projectedPoints[i];
+        const p2 = projectedPoints[j];
 
-          if (p1 && p2 && p1.visible && p2.visible && p1.z > 0 && p2.z > 0) {
-            linesToDraw.push({
-              p1, p2, avgZ: (p1.z + p2.z) / 2
-            });
-          }
-        }
-
-        // Sort connections by depth
-        linesToDraw.sort((a, b) => b.avgZ - a.avgZ);
-
-        ctx.lineWidth = 0.55;
-        for (let k = 0; k < linesToDraw.length; k++) {
-          const { p1, p2 } = linesToDraw[k];
-          const avgAlpha = (p1.alpha + p2.alpha) / 2 * lineAlphaFactor * 0.18;
-          ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`;
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.stroke();
+        if (p1 && p2 && p1.visible && p2.visible && p1.z > 0 && p2.z > 0) {
+          linesToDraw.push({
+            p1, p2, avgZ: (p1.z + p2.z) / 2
+          });
         }
       }
 
+      // Sort connections by depth
+      linesToDraw.sort((a, b) => b.avgZ - a.avgZ);
+
+      ctx.lineWidth = 0.55;
+      for (let k = 0; k < linesToDraw.length; k++) {
+        const { p1, p2 } = linesToDraw[k];
+        const avgAlpha = (p1.alpha + p2.alpha) / 2 * 0.18;
+        ctx.strokeStyle = `rgba(232, 115, 12, ${avgAlpha})`;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+
       // 3. Render Interactive Lightning Mouse Connections
-      if (currentScroll < 0.95 && (mouseRef.current.targetX !== 0 || mouseRef.current.targetY !== 0)) {
-        // Find closest points to mouse screen coordinates
+      if (mouseRef.current.targetX !== 0 || mouseRef.current.targetY !== 0) {
         const mouseBeamDistance = 180;
         const beams = [...projectedPoints]
           .map((p, idx) => {
@@ -483,19 +457,18 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
           })
           .filter(item => item.p.visible && item.p.z > 0 && item.dist < mouseBeamDistance)
           .sort((a, b) => a.dist - b.dist)
-          .slice(0, 4); // connect to 4 closest nodes
+          .slice(0, 4);
 
         ctx.lineWidth = 0.45;
         for (let k = 0; k < beams.length; k++) {
           const { p, dist } = beams[k];
-          const alpha = (1 - dist / mouseBeamDistance) * 0.35 * (1 - currentScroll);
+          const alpha = (1 - dist / mouseBeamDistance) * 0.35;
           
           if (alpha > 0.01) {
             ctx.strokeStyle = `rgba(255, 140, 20, ${alpha})`;
             ctx.beginPath();
             ctx.moveTo(mouseXScreen, mouseYScreen);
             
-            // Random lightning wiggle point in the middle
             const midX = (mouseXScreen + p.x) / 2 + (Math.random() - 0.5) * 6;
             const midY = (mouseYScreen + p.y) / 2 + (Math.random() - 0.5) * 6;
             
@@ -525,55 +498,28 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
 
         const size = Math.max(0.4, (baseRadius / p.z));
 
-        // Nodes turn into warp streaks when flying through on scroll
-        if (currentScroll > 0.02) {
-          const dx = p.x - width/2;
-          const dy = p.y - height/2;
-          const streakMultiplier = currentScroll * 0.45;
-          const prevX = p.x - dx * streakMultiplier;
-          const prevY = p.y - dy * streakMultiplier;
-
-          ctx.strokeStyle = `rgba(232, 115, 12, ${p.alpha * 0.75})`;
-          ctx.lineWidth = size * 0.8;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(prevX, prevY);
-          ctx.stroke();
-
-          // Core particles turn into white streaks
-          if (p.type === "core") {
-            ctx.strokeStyle = `rgba(255, 255, 255, ${p.alpha * 0.6})`;
-            ctx.lineWidth = size * 0.5;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(prevX, prevY);
-            ctx.stroke();
-          }
-        } else {
-          // Static glows using radial gradients (makes nodes look like shining neon bulbs)
-          ctx.beginPath();
-          
-          let colorString = "232, 115, 12"; // default orange
-          if (p.type === "core") {
-            // Core particles shimmer between white and orange
-            const coreShimmer = p.shimmer;
-            const r = Math.round(232 + (255 - 232) * coreShimmer);
-            const g = Math.round(115 + (255 - 115) * coreShimmer);
-            const b = Math.round(12 + (255 - 12) * coreShimmer);
-            colorString = `${r}, ${g}, ${b}`;
-          }
-
-          const gradRadius = size * (p.type === "core" ? 3.0 : 2.5);
-          const radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gradRadius);
-          
-          radGrad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha})`);
-          radGrad.addColorStop(0.2, `rgba(${colorString}, ${p.alpha * 0.85})`);
-          radGrad.addColorStop(1, `rgba(${colorString}, 0)`);
-          
-          ctx.fillStyle = radGrad;
-          ctx.arc(p.x, p.y, gradRadius, 0, Math.PI * 2);
-          ctx.fill();
+        // Static glows using radial gradients (makes nodes look like shining neon bulbs)
+        ctx.beginPath();
+        
+        let colorString = "232, 115, 12"; // default orange
+        if (p.type === "core") {
+          const coreShimmer = p.shimmer;
+          const r = Math.round(232 + (255 - 232) * coreShimmer);
+          const g = Math.round(115 + (255 - 115) * coreShimmer);
+          const b = Math.round(12 + (255 - 12) * coreShimmer);
+          colorString = `${r}, ${g}, ${b}`;
         }
+
+        const gradRadius = size * (p.type === "core" ? 3.0 : 2.5);
+        const radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gradRadius);
+        
+        radGrad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha})`);
+        radGrad.addColorStop(0.2, `rgba(${colorString}, ${p.alpha * 0.85})`);
+        radGrad.addColorStop(1, `rgba(${colorString}, 0)`);
+        
+        ctx.fillStyle = radGrad;
+        ctx.arc(p.x, p.y, gradRadius, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -605,10 +551,14 @@ export default function HomeClientWrapper({ stats, isAdmin }: HomeClientWrapperP
     >
       <Navbar />
 
-      {/* Interactive 3D Canvas Background */}
+      {/* Interactive 3D Canvas Background (fades smoothly on scroll) */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+        style={{
+          opacity: Math.max(0, 1 - scrollProgress * 1.5),
+          transition: "opacity 0.15s ease-out"
+        }}
       />
 
       {/* Section 1: Intro / Fullscreen Hero 3D Showcase */}
