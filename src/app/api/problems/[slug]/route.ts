@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSql, initDb } from "@/lib/db";
+import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth";
 import { sanitizeProblemDescription } from "@/lib/sanitizeProblem";
 
@@ -9,44 +9,21 @@ interface RouteParams {
   }>;
 }
 
-interface ProblemRow {
-  id: number;
-  title: string;
-  slug: string;
-  difficulty: string;
-  tags: string[];
-  description: string;
-  constraints: string[];
-  examples: unknown;
-  follow_up?: string | null;
-  starter_code: unknown;
-  companies?: string[];
-  test_cases?: unknown;
-}
-
 // GET problem details (including test cases)
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    await initDb();
-    const sql = getSql();
-    
     const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
     }
 
-    const rows = await sql<ProblemRow>`
-      SELECT id, title, slug, difficulty, tags, description, constraints, examples, follow_up, starter_code, companies, test_cases 
-      FROM problems 
-      WHERE slug = ${slug}
-      LIMIT 1
-    `;
+    const problem = await db.problem.findUnique({
+      where: { slug },
+    });
 
-    if (rows.length === 0) {
+    if (!problem) {
       return NextResponse.json({ success: false, error: `Problem "${slug}" not found.` }, { status: 404 });
     }
-
-    const problem = rows[0];
 
     let examples = problem.examples;
     if (typeof examples === "string") {
@@ -88,9 +65,6 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
     }
 
-    await initDb();
-    const sql = getSql();
-    
     const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
@@ -101,11 +75,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: "Invalid companies format. Array required." }, { status: 400 });
     }
 
-    await sql`
-      UPDATE problems 
-      SET companies = ${companies} 
-      WHERE slug = ${slug}
-    `;
+    await db.problem.update({
+      where: { slug },
+      data: { companies },
+    });
 
     return NextResponse.json({ success: true, message: "Companies updated successfully." });
   } catch (err) {
@@ -124,18 +97,14 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
     }
 
-    await initDb();
-    const sql = getSql();
-    
     const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
     }
 
-    await sql`
-      DELETE FROM problems 
-      WHERE slug = ${slug}
-    `;
+    await db.problem.delete({
+      where: { slug },
+    });
 
     return NextResponse.json({ success: true, message: `Problem "${slug}" deleted successfully.` });
   } catch (err) {
@@ -145,3 +114,4 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     }, { status: 500 });
   }
 }
+

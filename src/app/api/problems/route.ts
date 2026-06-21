@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSql, initDb } from "@/lib/db";
+import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth";
 import { sanitizeProblemDescription } from "@/lib/sanitizeProblem";
-
-interface ExistingProblemRow {
-  id: number;
-  title: string;
-  slug: string;
-}
 
 // GET handler: Lists all problems sorted by ID
 export async function GET() {
   try {
-    await initDb();
-    const sql = getSql();
-    
     // Select summary details for lists
-    const problems = await sql`
-      SELECT id, title, slug, difficulty, tags, companies 
-      FROM problems 
-      ORDER BY id ASC, created_at DESC
-    `;
+    const problems = await db.problem.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        difficulty: true,
+        tags: true,
+        companies: true,
+      },
+      orderBy: [
+        { id: "asc" },
+        { created_at: "desc" },
+      ],
+    });
     
     return NextResponse.json({ success: true, data: problems });
   } catch (err) {
@@ -39,9 +39,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
     }
 
-    await initDb();
-    const sql = getSql();
-    
     const body = await req.json();
     const problem = body;
     const allowOverwrite = body.allowOverwrite === true;
@@ -61,24 +58,25 @@ export async function POST(req: NextRequest) {
 
     // Determine ID to assign
     let finalId = problem.id;
-    const existing = await sql<ExistingProblemRow>`
-      SELECT id, title, slug FROM problems WHERE slug = ${problem.slug} LIMIT 1
-    `;
+    const existing = await db.problem.findUnique({
+      where: { slug: problem.slug },
+      select: { id: true, title: true, slug: true },
+    });
 
-    if (existing.length > 0) {
+    if (existing) {
       if (!allowOverwrite) {
         return NextResponse.json({
           success: false,
-          error: `Duplicate: "${existing[0].title}" already exists with slug "${problem.slug}".`,
+          error: `Duplicate: "${existing.title}" already exists with slug "${problem.slug}".`,
           isDuplicate: true,
         }, { status: 409 });
       }
-      finalId = existing[0].id;
+      finalId = existing.id;
     } else {
-      const maxRow = await sql<{ next_id: number }>`
-        SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM problems
-      `;
-      finalId = maxRow[0].next_id;
+      const agg = await db.problem.aggregate({
+        _max: { id: true },
+      });
+      finalId = (agg._max.id ?? 0) + 1;
     }
 
     const savedProblem = {
@@ -87,27 +85,29 @@ export async function POST(req: NextRequest) {
       description: sanitizedDescription,
     };
 
+    const prismaData = {
+      id: savedProblem.id,
+      title: savedProblem.title,
+      difficulty: savedProblem.difficulty,
+      tags: savedProblem.tags,
+      description: savedProblem.description,
+      constraints: savedProblem.constraints,
+      examples: savedProblem.examples,
+      follow_up: savedProblem.follow_up || null,
+      starter_code: savedProblem.starter_code,
+      companies: savedProblem.companies || [],
+      test_cases: savedProblem.test_cases || [],
+    };
+
     // Upsert into database
-    await sql`
-      INSERT INTO problems (
-        id, title, slug, difficulty, tags, description, constraints, examples, follow_up, starter_code, companies, test_cases
-      ) VALUES (
-        ${savedProblem.id}, ${savedProblem.title}, ${savedProblem.slug}, ${savedProblem.difficulty}, ${savedProblem.tags}, ${savedProblem.description}, ${savedProblem.constraints}, ${JSON.stringify(savedProblem.examples)}, ${savedProblem.follow_up || null}, ${JSON.stringify(savedProblem.starter_code)}, ${savedProblem.companies || []}, ${JSON.stringify(savedProblem.test_cases || [])}
-      )
-      ON CONFLICT (slug)
-      DO UPDATE SET
-        id = EXCLUDED.id,
-        title = EXCLUDED.title,
-        difficulty = EXCLUDED.difficulty,
-        tags = EXCLUDED.tags,
-        description = EXCLUDED.description,
-        constraints = EXCLUDED.constraints,
-        examples = EXCLUDED.examples,
-        follow_up = EXCLUDED.follow_up,
-        starter_code = EXCLUDED.starter_code,
-        companies = EXCLUDED.companies,
-        test_cases = EXCLUDED.test_cases;
-    `;
+    await db.problem.upsert({
+      where: { slug: savedProblem.slug },
+      update: prismaData,
+      create: {
+        ...prismaData,
+        slug: savedProblem.slug,
+      },
+    });
 
     return NextResponse.json({ success: true, data: savedProblem });
   } catch (err) {
@@ -117,3 +117,4 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 }
+

@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSql, initDb } from "@/lib/db";
+import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth";
-
-interface ExistingProblemRow {
-  id: number;
-  title: string;
-  slug: string;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,30 +19,34 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Step 1: Duplicate check against DB ---
-    await initDb();
-    const sql = getSql();
-
     let isDuplicate = false;
     let duplicateReason = "";
 
     if (slug) {
-      const bySlug = await sql<ExistingProblemRow>`
-        SELECT id, title, slug FROM problems WHERE slug = ${slug} LIMIT 1
-      `;
-      if (bySlug.length > 0) {
+      const bySlug = await db.problem.findUnique({
+        where: { slug },
+        select: { id: true, title: true, slug: true },
+      });
+      if (bySlug) {
         isDuplicate = true;
-        duplicateReason = `Problem "${bySlug[0].title}" already exists with slug "${slug}".`;
+        duplicateReason = `Problem "${bySlug.title}" already exists with slug "${slug}".`;
       }
     }
 
     if (!isDuplicate && title) {
       const normalizedTitle = title.trim().toLowerCase();
-      const byTitle = await sql<ExistingProblemRow>`
-        SELECT id, title, slug FROM problems WHERE LOWER(TRIM(title)) = ${normalizedTitle} LIMIT 1
-      `;
-      if (byTitle.length > 0) {
+      const byTitle = await db.problem.findFirst({
+        where: {
+          title: {
+            equals: normalizedTitle,
+            mode: "insensitive",
+          },
+        },
+        select: { id: true, title: true, slug: true },
+      });
+      if (byTitle) {
         isDuplicate = true;
-        duplicateReason = `Problem "${byTitle[0].title}" (slug: ${byTitle[0].slug}) already exists with the same title.`;
+        duplicateReason = `Problem "${byTitle.title}" (slug: ${byTitle.slug}) already exists with the same title.`;
       }
     }
 

@@ -1,83 +1,16 @@
-import { neon } from "@neondatabase/serverless";
+import { PrismaClient } from "@prisma/client";
 
-type SqlQuery = <T = Record<string, unknown>>(
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-) => Promise<T[]>;
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-let sqlClient: SqlQuery | null = null;
+export const db = globalForPrisma.prisma ?? new PrismaClient();
 
-export function getSql() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL environment variable is missing.");
-  }
-
-  if (!sqlClient) {
-    sqlClient = neon(process.env.DATABASE_URL) as unknown as SqlQuery;
-  }
-
-  return sqlClient;
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = db;
 }
 
-// Global cache to prevent running DDL checks on every request
-let initializedPromise: Promise<void> | null = null;
-
-export async function initDb() {
-  if (initializedPromise) {
-    return initializedPromise;
-  }
-
-  initializedPromise = (async () => {
-    try {
-      const sql = getSql();
-
-      await sql`
-        CREATE TABLE IF NOT EXISTS problems (
-          id INT NOT NULL,
-          title VARCHAR(255) NOT NULL,
-          slug VARCHAR(255) PRIMARY KEY,
-          difficulty VARCHAR(50) NOT NULL,
-          tags TEXT[] NOT NULL,
-          description TEXT NOT NULL,
-          constraints TEXT[] NOT NULL,
-          examples JSONB NOT NULL,
-          follow_up TEXT,
-          starter_code JSONB NOT NULL,
-          companies TEXT[] DEFAULT '{}',
-          test_cases JSONB DEFAULT '[]',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `;
-      
-      // Auto-migration for existing tables
-      await sql`
-        ALTER TABLE problems ADD COLUMN IF NOT EXISTS companies TEXT[] DEFAULT '{}';
-      `;
-      await sql`
-        ALTER TABLE problems ADD COLUMN IF NOT EXISTS test_cases JSONB DEFAULT '[]';
-      `;
-
-      // Submissions tracking table
-      await sql`
-        CREATE TABLE IF NOT EXISTS submissions (
-          id SERIAL PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          problem_slug VARCHAR(255) NOT NULL,
-          language VARCHAR(20) NOT NULL,
-          status VARCHAR(30) NOT NULL,
-          runtime_ms INT,
-          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `;
-      await sql`
-        CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
-      `;
-    } catch (err) {
-      console.error("Failed to initialize Neon Postgres database:", err);
-      initializedPromise = null; // Allow retry on next request if initialization failed
-      throw err;
-    }
-  })();
-
-  return initializedPromise;
+// Retain a dummy initDb to support existing calls without breaking compile
+export async function initDb(): Promise<void> {
+  return Promise.resolve();
 }

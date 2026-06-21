@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { getSql, initDb } from "@/lib/db";
+import { db } from "@/lib/db";
 import { HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -35,14 +35,20 @@ export default async function ProblemsPage() {
   }
 
   try {
-    await initDb();
-    const sql = getSql();
-
-    const rows = await sql<ProblemSummary>`
-      SELECT id, title, slug, difficulty, tags, companies
-      FROM problems
-      ORDER BY id ASC, created_at DESC
-    `;
+    const rows = await db.problem.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        difficulty: true,
+        tags: true,
+        companies: true,
+      },
+      orderBy: [
+        { id: "asc" },
+        { created_at: "desc" },
+      ],
+    });
 
     problems = rows;
   } catch (err) {

@@ -49,7 +49,7 @@ A full-stack coding workspace for practicing Online Assessment (OA) problems. Pa
 | Language | TypeScript |
 | Styling | Tailwind CSS |
 | Font | [Poppins](https://fonts.google.com/specimen/Poppins) (via `next/font/google`) |
-| Database | [Neon Postgres](https://neon.tech) (serverless) |
+| Database | [Neon Postgres](https://neon.tech) with [Prisma ORM](https://prisma.io) |
 | Auth | [Clerk](https://clerk.com) |
 | Code Editor | [Monaco Editor](https://microsoft.github.io/monaco-editor/) (via `@monaco-editor/react`) |
 | Code Execution | [Wandbox API](https://wandbox.org) |
@@ -59,6 +59,8 @@ A full-stack coding workspace for practicing Online Assessment (OA) problems. Pa
 ## Project Structure
 
 ```
+prisma/
+└── schema.prisma                    # Prisma database schema definition
 src/
 ├── app/
 │   ├── api/
@@ -86,7 +88,7 @@ src/
 │   └── ProblemDescription.tsx       # Problem description renderer with company editing
 ├── lib/
 │   ├── auth.ts                      # Admin authorization helper
-│   ├── db.ts                        # Neon Postgres client with cached initialization
+│   ├── db.ts                        # Prisma client instantiation helper
 │   └── sanitizeProblem.ts           # HTML sanitization for problem descriptions
 └── proxy.ts                         # Clerk middleware configuration
 ```
@@ -115,6 +117,8 @@ CLERK_SECRET_KEY="sk_..."
 
 ```bash
 npm install
+npx prisma generate
+npx prisma db push
 npm run dev
 ```
 

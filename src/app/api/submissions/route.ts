@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSql, initDb } from "@/lib/db";
+import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 
 // POST: Record a submission
@@ -16,13 +16,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing required fields." }, { status: 400 });
     }
 
-    await initDb();
-    const sql = getSql();
-
-    await sql`
-      INSERT INTO submissions (user_id, problem_slug, language, status, runtime_ms)
-      VALUES (${userId}, ${problemSlug}, ${language}, ${status}, ${runtimeMs ?? null})
-    `;
+    await db.submission.create({
+      data: {
+        user_id: userId,
+        problem_slug: problemSlug,
+        language,
+        status,
+        runtime_ms: runtimeMs ?? null,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -41,17 +43,27 @@ export async function GET() {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    await initDb();
-    const sql = getSql();
+    const submissions = await db.submission.findMany({
+      where: { user_id: userId },
+      orderBy: { submitted_at: "desc" },
+      include: {
+        problem: {
+          select: {
+            title: true,
+          },
+        },
+      },
+    });
 
-    const rows = await sql`
-      SELECT s.id, s.problem_slug, s.language, s.status, s.runtime_ms, s.submitted_at,
-             p.title as problem_title
-      FROM submissions s
-      LEFT JOIN problems p ON s.problem_slug = p.slug
-      WHERE s.user_id = ${userId}
-      ORDER BY s.submitted_at DESC
-    `;
+    const rows = submissions.map((s) => ({
+      id: s.id,
+      problem_slug: s.problem_slug,
+      language: s.language,
+      status: s.status,
+      runtime_ms: s.runtime_ms,
+      submitted_at: s.submitted_at,
+      problem_title: s.problem?.title || null,
+    }));
 
     return NextResponse.json({ success: true, data: rows });
   } catch (err) {
@@ -61,3 +73,4 @@ export async function GET() {
     }, { status: 500 });
   }
 }
+
