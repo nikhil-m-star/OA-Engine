@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { exec } from "child_process";
 import { parseInputArgs } from "@/app/runner";
 import { CPP_BOILERPLATE_HEADERS } from "@/lib/cppTemplates";
+import { normalizeCppType, formatValueToCpp } from "@/lib/cppParserUtils";
+import {
+  executeOnJudge0,
+  executeOnWandbox,
+  executeOnPiston,
+  runCommand,
+  evaluateBatchResults,
+} from "@/lib/executionBackends";
 
 // In-memory rate limiter: 10 requests per IP per minute
 const runRateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -21,124 +28,6 @@ function checkRunRateLimit(req: NextRequest): NextResponse | null {
     runRateLimit.set(ip, { count: 1, resetAt: now + 60000 });
   }
   return null;
-}
-
-const LANGUAGE_IDS: Record<string, number> = {
-  cpp: 75, // C++ (GCC 13.2.0)
-};
-
-const WANDBOX_COMPILERS: Record<string, string> = {
-  cpp: "gcc-head",
-};
-
-// Helper to run local child process command as a promise (development C++ fallback)
-function runCommand(cmd: string, cwd: string): Promise<{ stdout: string; stderr: string; code: number }> {
-  return new Promise((resolve) => {
-    exec(cmd, { cwd }, (error, stdout, stderr) => {
-      resolve({
-        stdout,
-        stderr,
-        code: error ? error.code || 1 : 0
-      });
-    });
-  });
-}
-
-// Normalize and repair parameter/return types from C++ starter code templates
-function normalizeCppType(type: string, val: unknown): string {
-  let clean = type.replace(/[&*]/g, "").trim().replace(/^const\s+/, "").trim();
-  
-  if (clean === "ListNode" || clean === "TreeNode") {
-    return clean;
-  }
-  
-  const valArr = val as any[];
-  if (clean === "vector<vector>") {
-    let innerType = "int";
-    if (Array.isArray(valArr) && valArr.length > 0) {
-      const row = valArr[0];
-      if (Array.isArray(row) && row.length > 0) {
-        const cell = row[0];
-        if (typeof cell === "string") {
-          innerType = "string";
-        } else if (typeof cell === "boolean") {
-          innerType = "bool";
-        } else if (typeof cell === "number") {
-          innerType = Number.isInteger(cell) ? "int" : "double";
-        }
-      }
-    }
-    return `vector<vector<${innerType}>>`;
-  }
-  
-  if (clean === "vector") {
-    let innerType = "int";
-    if (Array.isArray(valArr) && valArr.length > 0) {
-      const cell = valArr[0];
-      if (Array.isArray(cell)) {
-        let nestedType = "int";
-        if (cell.length > 0) {
-          const subCell = cell[0];
-          if (typeof subCell === "string") nestedType = "string";
-          else if (typeof subCell === "boolean") nestedType = "bool";
-          else if (typeof subCell === "number") {
-            nestedType = Number.isInteger(subCell) ? "int" : "double";
-          }
-        }
-        return `vector<vector<${nestedType}>>`;
-      } else {
-        if (typeof cell === "string") {
-          innerType = "string";
-        } else if (typeof cell === "boolean") {
-          innerType = "bool";
-        } else if (typeof cell === "number") {
-          innerType = Number.isInteger(cell) ? "int" : "double";
-        }
-      }
-    }
-    return `vector<${innerType}>`;
-  }
-  
-  if (clean.includes("<>")) {
-    clean = clean.replace("<>", "<int>");
-  }
-  
-  return clean;
-}
-
-// Format JS values into C++ initializer syntax or basic literals
-function formatValueToCpp(val: unknown, type: string): string {
-  const cleanType = type.replace(/[&*]/g, "").trim();
-
-  if (cleanType === "ListNode") {
-    const listVals = Array.isArray(val) ? val : [];
-    const valString = listVals.map(v => String(v)).join(", ");
-    return `createList({${valString}})`;
-  }
-
-  if (cleanType === "TreeNode") {
-    const treeVals = Array.isArray(val) ? val : [];
-    const stringVals = treeVals.map(v => v === null ? "\"null\"" : `"${v}"`).join(", ");
-    return `createTree({${stringVals}})`;
-  }
-
-  if (Array.isArray(val)) {
-    return "{" + val.map(item => formatValueToCpp(item, cleanType.replace("vector<", "").replace(">", ""))).join(", ") + "}";
-  }
-
-  if (typeof val === "string") {
-    return `"${val}"`;
-  }
-
-  if (typeof val === "boolean") {
-    return val ? "true" : "false";
-  }
-
-  if (val === null || val === undefined) {
-    return "nullptr";
-  }
-
-  return String(val);
 }
 
 // Generate full runnable source code for C++
@@ -161,138 +50,6 @@ ${cppArgsDeclarations}
     return 0;
 }
 `;
-}
-
-
-
-// Call Judge0 remote API using base64 encoded transmission
-async function executeOnJudge0(sourceCode: string, language: string, rapidApiKey: string, judge0Url: string) {
-  const langId = LANGUAGE_IDS[language] || 75;
-  const payload = {
-    source_code: Buffer.from(sourceCode).toString("base64"),
-    language_id: langId,
-    stdin: ""
-  };
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json"
-  };
-
-  let submitUrl = "";
-  if (judge0Url.includes("rapidapi")) {
-    headers["X-RapidAPI-Host"] = judge0Url.replace("https://", "").replace("http://", "").split("/")[0];
-    headers["X-RapidAPI-Key"] = rapidApiKey;
-    submitUrl = `${judge0Url}/submissions?base64_encoded=true&wait=true`;
-  } else {
-    submitUrl = `${judge0Url}/submissions?base64_encoded=true&wait=true`;
-  }
-
-  const response = await fetch(submitUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Judge0 API responded with status ${response.status}: ${text}`);
-  }
-
-  return await response.json();
-}
-
-// Call Wandbox free keyless compile API
-async function executeOnWandbox(sourceCode: string, language: string) {
-  const compiler = WANDBOX_COMPILERS[language] || "gcc-13.2.0";
-  const response = await fetch("https://wandbox.org/api/compile.json", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      compiler,
-      code: sourceCode
-    })
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Wandbox API responded with status ${response.status}: ${text}`);
-  }
-
-  return await response.json();
-}
-
-// Call Piston free keyless execution API
-async function executeOnPiston(sourceCode: string, language: string) {
-  const response = await fetch("https://emkc.org/api/v2/piston/execute", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      language: "cpp",
-      version: "*",
-      files: [
-        {
-          name: "main.cpp",
-          content: sourceCode
-        }
-      ]
-    })
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Piston API responded with status ${response.status}: ${text}`);
-  }
-
-  return await response.json();
-}
-
-function evaluateBatchResults(stdout: string, testCases: { input: string; output: string }[]) {
-  const splits = stdout.split("CASE_OUT:");
-  const actualOutputs = splits.slice(1).map(s => s.trim());
-
-  if (actualOutputs.length < testCases.length) {
-    return {
-      success: false,
-      status: "Runtime Error" as const,
-      error: `Runtime Error: Process exited early. Only ${actualOutputs.length} of ${testCases.length} test cases ran.`,
-      passed: actualOutputs.length,
-      total: testCases.length
-    };
-  }
-
-  for (let i = 0; i < testCases.length; i++) {
-    const actual = actualOutputs[i];
-    const expected = testCases[i].output;
-
-    const cleanActual = actual.replace(/\s+/g, "").toLowerCase();
-    const cleanExpected = expected.replace(/\s+/g, "").toLowerCase();
-
-    if (cleanActual !== cleanExpected) {
-      return {
-        success: false,
-        status: "Wrong Answer" as const,
-        passed: i,
-        total: testCases.length,
-        failed_case: {
-          input: testCases[i].input,
-          expected: expected,
-          actual: actual
-        }
-      };
-    }
-  }
-
-  return {
-    success: true,
-    status: "Accepted" as const,
-    passed: testCases.length,
-    total: testCases.length,
-    output: `All ${testCases.length} test cases passed!`
-  };
 }
 
 function generateCppMultiSource(userCode: string, methodName: string, returnType: string, params: { name: string; type: string }[], testCases: { input: string; output: string }[]): string {
