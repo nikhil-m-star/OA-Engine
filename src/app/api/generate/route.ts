@@ -65,10 +65,7 @@ Your task is to parse this information and output a single, raw, valid JSON obje
     }
   ],
   "starter_code": {
-    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};",
-    "python": "class Solution:\\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\\n        pass",
-    "javascript": "class Solution {\\n    twoSum(nums, target) {\\n        \\n    }\\n}",
-    "java": "class Solution {\\n    public int[] twoSum(int[] nums, int target) {\\n        \\n    }\\n}"
+    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
   }
 }
 

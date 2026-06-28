@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing required fields." }, { status: 400 });
     }
 
+    if (language !== "cpp") {
+      return NextResponse.json({ success: false, error: "Unsupported language for submissions." }, { status: 400 });
+    }
+
     await db.submission.create({
       data: {
         user_id: userId,

@@ -32,10 +32,7 @@ const AI_PROMPT_TEXT = `Please convert the following LeetCode problem into a str
     }
   ],
   "starter_code": {
-    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};",
-    "python": "class Solution:\\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\\n        pass",
-    "javascript": "class Solution {\\n    twoSum(nums, target) {\\n        \\n    }\\n}",
-    "java": "class Solution {\\n    public int[] twoSum(int[] nums, int target) {\\n        \\n    }\\n}"
+    "cpp": "class Solution {\\npublic:\\n    vector<int> twoSum(vector<int>& nums, int target) {\\n        \\n    }\\n};"
   }
 }`;
 

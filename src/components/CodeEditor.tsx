@@ -22,28 +22,12 @@ interface RunResult {
   input: string;
 }
 
-function getStarterCode(problem: ProblemData, selectedLanguage: "cpp" | "python" | "javascript" | "java") {
-  let starter = problem.starter_code[selectedLanguage];
-
-  if (!starter) {
-    const camelCaseMethod = problem.slug.replace(/-./g, (x) => x[1].toUpperCase());
-
-    if (selectedLanguage === "python") {
-      starter = `class Solution:\n    def ${camelCaseMethod}(self, nums: List[int], target: int) -> List[int]:\n        pass\n`;
-    } else if (selectedLanguage === "javascript") {
-      starter = `class Solution {\n    ${camelCaseMethod}(nums, target) {\n        \n    }\n}\n`;
-    } else if (selectedLanguage === "java") {
-      starter = `class Solution {\n    public int[] ${camelCaseMethod}(int[] nums, int target) {\n        \n    }\n}\n`;
-    } else {
-      starter = "";
-    }
-  }
-
-  return starter;
+function getStarterCode(problem: ProblemData) {
+  return problem.starter_code.cpp || "";
 }
 
 export default function CodeEditor({ problem, code, onChange }: CodeEditorProps) {
-  const [language, setLanguage] = useState<"cpp" | "python" | "javascript" | "java">("cpp");
+  const language = "cpp";
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
   const [isRunning, setIsRunning] = useState(false);
@@ -53,30 +37,29 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
   const [fontSize, setFontSize] = useState(14);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Auto-reset run state, update custom input, and default to C++ when problem changes
+  // Auto-reset run state, update custom input when problem changes
   useEffect(() => {
     setHasRun(false);
     setIsRunning(false);
     setIsConsoleOpen(false);
     setRunResult(null);
-    setLanguage("cpp");
     
     const firstExample = problem.examples[0];
     setCustomInput(firstExample ? firstExample.input : "");
   }, [problem.id, problem.examples]);
 
-  // Load starter code template when switching languages or problem
+  // Load starter code template when switching problem
   useEffect(() => {
-    const starter = getStarterCode(problem, language);
+    const starter = getStarterCode(problem);
 
     onChange(starter);
     setRunResult(null);
     setHasRun(false);
-  }, [language, problem, onChange]);
+  }, [problem, onChange]);
 
   const handleResetCode = () => {
-    if (window.confirm(`Are you sure you want to reset your code to the ${language.toUpperCase()} starter template?`)) {
-      onChange(getStarterCode(problem, language));
+    if (window.confirm(`Are you sure you want to reset your code to the C++ starter template?`)) {
+      onChange(getStarterCode(problem));
     }
   };
 
@@ -235,16 +218,9 @@ export default function CodeEditor({ problem, code, onChange }: CodeEditorProps)
       {/* Editor Header */}
       <div className="flex items-center justify-between px-4 bg-[#050505] h-[40px] shrink-0">
         <div className="flex items-center space-x-2 select-none">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value as "cpp" | "python" | "javascript" | "java")}
-            className="bg-[#111111] text-[#eff2f6f2] font-bold px-4 py-1.5 rounded-full cursor-pointer outline-none border border-[#222] focus:ring-1 focus:ring-[#E8730C] hover:border-[#333] transition-all"
-          >
-            <option value="cpp">C++ (GCC 13)</option>
-            <option value="python">Python (3.11)</option>
-            <option value="javascript">JavaScript (Node.js 18)</option>
-            <option value="java">Java (OpenJDK 21)</option>
-          </select>
+          <span className="bg-[#111111] text-[#eff2f6f2] font-black px-4 py-1.5 rounded-full border border-[#222] text-xs">
+            C++ (GCC 13)
+          </span>
         </div>
         
         <div className="flex items-center space-x-4">
