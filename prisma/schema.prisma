@@ -22,6 +22,7 @@ model Problem {
   companies    String[]     @default([])
   test_cases   Json         @default("[]")
   created_at   DateTime     @default(now()) @db.Timestamp
+  created_by   String?      @db.VarChar(255)
   submissions  Submission[]
 
   @@map("problems")

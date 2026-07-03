@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth";
 import { sanitizeProblemDescription } from "@/lib/sanitizeProblem";
+import { auth } from "@clerk/nextjs/server";
 
 interface RouteParams {
   params: Promise<{
@@ -9,7 +10,7 @@ interface RouteParams {
   }>;
 }
 
-// GET problem details (including test cases)
+// GET problem details (including test cases) - checks visibility
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { slug } = await params;
@@ -17,11 +18,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
     }
 
+    const { userId } = await auth();
+
     const problem = await db.problem.findUnique({
       where: { slug },
     });
 
     if (!problem) {
+      return NextResponse.json({ success: false, error: `Problem "${slug}" not found.` }, { status: 404 });
+    }
+
+    // Enforce private visibility: must be public OR owned by the current user
+    if (problem.created_by !== null && problem.created_by !== userId) {
       return NextResponse.json({ success: false, error: `Problem "${slug}" not found.` }, { status: 404 });
     }
 
@@ -57,17 +65,29 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PUT: Updates companies list (Admin only)
+// PUT: Updates companies list (Admin or Owner only)
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
-    const admin = await isAdminUser();
-    if (!admin) {
-      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
-    }
-
     const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
+    }
+
+    const { userId } = await auth();
+    const admin = await isAdminUser();
+
+    const problem = await db.problem.findUnique({
+      where: { slug },
+      select: { created_by: true }
+    });
+
+    if (!problem) {
+      return NextResponse.json({ success: false, error: `Problem "${slug}" not found.` }, { status: 404 });
+    }
+
+    const isOwner = problem.created_by !== null && problem.created_by === userId;
+    if (!admin && !isOwner) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin or owner authorization required." }, { status: 403 });
     }
 
     const { companies } = await req.json();
@@ -89,17 +109,29 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE: Removes a problem from the database (Admin only)
+// DELETE: Removes a problem from the database (Admin or Owner only)
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
-    const admin = await isAdminUser();
-    if (!admin) {
-      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
-    }
-
     const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ success: false, error: "Missing problem slug." }, { status: 400 });
+    }
+
+    const { userId } = await auth();
+    const admin = await isAdminUser();
+
+    const problem = await db.problem.findUnique({
+      where: { slug },
+      select: { created_by: true }
+    });
+
+    if (!problem) {
+      return NextResponse.json({ success: false, error: `Problem "${slug}" not found.` }, { status: 404 });
+    }
+
+    const isOwner = problem.created_by !== null && problem.created_by === userId;
+    if (!admin && !isOwner) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin or owner authorization required." }, { status: 403 });
     }
 
     await db.problem.delete({
@@ -114,4 +146,3 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     }, { status: 500 });
   }
 }
-

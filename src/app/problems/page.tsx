@@ -16,16 +16,21 @@ interface ProblemSummary {
   difficulty: string;
   tags: string[];
   companies?: string[];
+  created_by?: string | null;
 }
 
 export default async function ProblemsPage() {
   let problems: ProblemSummary[] = [];
   let error: string | null = null;
   let isAdmin = false;
+  let isLoggedIn = false;
+  let currentUserId: string | null = null;
 
   try {
     const { userId } = await auth();
     if (userId) {
+      isLoggedIn = true;
+      currentUserId = userId;
       const user = await currentUser();
       const emails = user?.emailAddresses.map((email) => email.emailAddress.toLowerCase()) || [];
       isAdmin = emails.includes("nikhilm9110@gmail.com");
@@ -36,6 +41,12 @@ export default async function ProblemsPage() {
 
   try {
     const rows = await db.problem.findMany({
+      where: {
+        OR: [
+          { created_by: null },
+          ...(currentUserId ? [{ created_by: currentUserId }] : [])
+        ]
+      },
       select: {
         id: true,
         title: true,
@@ -43,6 +54,7 @@ export default async function ProblemsPage() {
         difficulty: true,
         tags: true,
         companies: true,
+        created_by: true,
       },
       orderBy: [
         { id: "asc" },
@@ -79,7 +91,7 @@ export default async function ProblemsPage() {
           <h1 className="text-2xl font-black text-white tracking-tight">Problems</h1>
           <div className="flex items-center space-x-3">
             <span className="text-sm text-gray-500 font-medium">{problems.length} problems</span>
-            {isAdmin && <AddProblemButton variant="inline" />}
+            {isLoggedIn && <AddProblemButton variant="inline" />}
           </div>
         </div>
 
@@ -92,13 +104,14 @@ export default async function ProblemsPage() {
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-5">
             <HelpCircle size={40} className="text-gray-700" />
             <p className="text-gray-500 text-sm">No problems yet</p>
-            {isAdmin && <AddProblemButton variant="inline" />}
+            {isLoggedIn && <AddProblemButton variant="inline" />}
           </div>
         ) : (
           <div className="space-y-1">
             {problems.map((problem, index) => {
               const tags = Array.isArray(problem.tags) ? problem.tags : [];
               const companies = Array.isArray(problem.companies) ? problem.companies : [];
+              const canDelete = isAdmin || (problem.created_by !== null && problem.created_by === currentUserId);
 
               return (
                 <Link
@@ -150,7 +163,7 @@ export default async function ProblemsPage() {
                       {problem.difficulty}
                     </span>
 
-                    {isAdmin && (
+                    {canDelete && (
                       <div className="flex items-center">
                         <DeleteProblemButton slug={problem.slug} title={problem.title} />
                       </div>

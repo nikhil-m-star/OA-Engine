@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const admin = await isAdminUser();
-    if (!admin) {
-      return NextResponse.json({ success: false, error: "Forbidden: Admin authorization required." }, { status: 403 });
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized: Authentication required." }, { status: 401 });
     }
+
+    const admin = await isAdminUser();
 
     const { title, slug, rawText } = await req.json();
 
@@ -18,18 +21,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Determine target slug for duplicate checks (appends suffix for non-admins)
+    let targetSlug = slug;
+    if (!admin && slug) {
+      const suffix = `-${userId}`;
+      if (!targetSlug.endsWith(suffix)) {
+        targetSlug = `${targetSlug}${suffix}`;
+      }
+    }
+
     // --- Step 1: Duplicate check against DB ---
     let isDuplicate = false;
     let duplicateReason = "";
 
-    if (slug) {
+    if (targetSlug) {
       const bySlug = await db.problem.findUnique({
-        where: { slug },
-        select: { id: true, title: true, slug: true },
+        where: { slug: targetSlug },
+        select: { id: true, title: true, slug: true, created_by: true },
       });
-      if (bySlug) {
+      // A duplicate is only a duplicate if it's either a public problem OR created by this same user.
+      if (bySlug && (bySlug.created_by === null || bySlug.created_by === userId)) {
         isDuplicate = true;
-        duplicateReason = `Problem "${bySlug.title}" already exists with slug "${slug}".`;
+        duplicateReason = `Problem "${bySlug.title}" already exists with slug "${targetSlug}".`;
       }
     }
 
@@ -41,6 +54,10 @@ export async function POST(req: NextRequest) {
             equals: normalizedTitle,
             mode: "insensitive",
           },
+          OR: [
+            { created_by: null },
+            { created_by: userId }
+          ]
         },
         select: { id: true, title: true, slug: true },
       });
